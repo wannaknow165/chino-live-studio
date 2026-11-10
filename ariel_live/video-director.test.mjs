@@ -105,11 +105,11 @@ test('starting to answer during the window preserves the conversation through sp
  d.hold('otherSpeaking',false);advance(5000);assert.equal(d.dialogueStatus().state,'transcribing');
  assert.equal(d.receive({type:'opponent',uid:'dan',text:'גם אני בסדר תודה'}).accepted,true);
 });
-test('chat waits behind an active voice conversation, then takes its turn when the 120 seconds expire',async()=>{
+test('chat gets a turn after an eight-second quiet gap while opponent recognition stays open',async()=>{
  const calls=[];const {d,advance}=setup({decide:async p=>{calls.push(p.event.type);return p.event.type==='opponent'?play:{action:'draft',text:'כיף שבאת',clipId:'',confidence:1,reason:'missing'};}});
  d.receive(event());await d.tick();finishReply(d);
  d.receive(event({type:'chat',uid:'viewer-a',text:'מה שלומך'}));advance(5000);await d.tick();assert.deepEqual(calls,['opponent']);
- advance(115000);await d.tick();assert.deepEqual(calls,['opponent','chat','chat']);assert.equal(d.queue.length,0);
+ advance(3000);await d.tick();assert.deepEqual(calls,['opponent','chat','chat']);assert.equal(d.queue.length,0);assert.equal(d.dialogueStatus().active,true);assert.equal(d.dialogueStatus().uid,'dan');
 });
 test('isolated speech interrupts a playing audience response without discarding waiting viewers',async()=>{
  const {d,output}=setup();d.receive(event({type:'chat',uid:'a'}));await d.tick();d.receive(event({type:'chat',uid:'b',text:'היי'}));
@@ -170,6 +170,27 @@ test('solo chat needs no wake word; switching to battle restores addressing rule
 test('host initiates bilingual opponent conversation, waits for turn and pivots after two unanswered attempts',async()=>{
  const turns=[];const {d,advance}=setup({context:()=>({videoMode:true,opponent:{handle:'guest',language:'en'},audienceConnection:{on:true}}),decide:async p=>{turns.push(p.event);return {action:'ignore',text:'',clipId:'',confidence:1,reason:'listen'};}});
  advance(18001);await d.tick();assert.equal(turns.length,1);assert.equal(turns[0].type,'opponent');assert.equal(turns[0].language,'en');assert.equal(turns[0].hostInitiated,true);
- d.hold('otherSpeaking',true);advance(19000);await d.tick();assert.equal(turns.length,1);d.hold('otherSpeaking',false);d.dialogue.state='waiting';await d.tick();assert.equal(turns.length,2);
+ d.hold('otherSpeaking',true);advance(19000);await d.tick();assert.equal(turns.length,1);d.hold('otherSpeaking',false);d.dialogue.state='waiting';advance(8000);await d.tick();assert.equal(turns.length,2);
  advance(18001);await d.tick();assert.equal(turns.length,3);assert.equal(turns[2].type,'audience');
+});
+
+
+test('missing opponent video does not freeze waiting chat for the recognition window',async()=>{
+ const calls=[];const {d,advance}=setup({decide:async p=>{calls.push(p.event.type);return p.event.type==='opponent'?{action:'draft',text:'צריך לברר את זה',clipId:'',confidence:1,reason:'missing'}:play;}});
+ d.receive(event());await d.tick();assert.equal(d.dialogueStatus().state,'needs_video');
+ d.receive(event({type:'chat',uid:'viewer',text:'צינו שלום'}));advance(7999);await d.tick();assert.deepEqual(calls,['opponent','opponent']);
+ advance(1);await d.tick();assert.ok(d.active);assert.equal(d.active.event.type,'chat');assert.equal(d.dialogueStatus().uid,'dan');
+ d.receive(event({text:'צינו חזרתי'}));assert.equal(d.active,null);assert.equal(d.queue[0].type,'opponent');
+});
+
+test('host pivots to audience while missing opponent media is pending, without claiming an answer',async()=>{
+ const turns=[];const {d,advance}=setup({context:()=>({videoMode:true,opponent:{handle:'dan'},audienceConnection:{on:true}}),decide:async p=>{turns.push(p.event);return {action:'draft',text:'עוד רגע נברר',clipId:'',confidence:1,reason:'missing'};}});
+ d.receive(event());await d.tick();assert.equal(d.dialogueStatus().state,'needs_video');
+ advance(18001);await d.tick();assert.equal(turns.at(-1).type,'audience');assert.equal(turns.at(-1).hostInitiated,true);assert.equal(d.dialogueStatus().uid,'dan');
+});
+
+test('waiting viewers cannot interrupt opponent speech or transcription after a long gap',async()=>{
+ const {d,advance}=setup();d.receive(event());await d.tick();finishReply(d);d.receive(event({type:'chat',uid:'viewer',text:'צינו שלום'}));
+ d.hold('otherSpeaking',true);advance(30000);await d.tick();assert.equal(d.active,null);assert.equal(d.queue.length,1);
+ d.hold('otherSpeaking',false);advance(30000);await d.tick();assert.equal(d.dialogueStatus().state,'transcribing');assert.equal(d.active,null);
 });

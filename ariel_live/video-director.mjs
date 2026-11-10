@@ -110,6 +110,12 @@ export class VideoDirector {
     return {active:!!focused,light:focused?'green':'red',state:focused?.state||'idle',name:focused?.name||'',uid:focused?.uid||'',channel:this.dialogue?'opponent':this.chatFocus?'chat':null,practice:!!focused?.practice,windowSeconds:120,secondsLeft:['waiting','needs_video'].includes(focused?.state)?Math.max(0,Math.ceil((focused.until-this.now())/1000)):null};
   }
   endDialogue() { this.audioEpoch++;this.dialogue=null;this.chatFocus=null; this.publish(); }
+  dialogueBlocksAudience() {
+    if(!this.dialogue)return false;
+    // The recognition window preserves who may reply; it must not monopolize
+    // the entire show while that person is silent or a video is being produced.
+    return !['waiting','needs_video'].includes(this.dialogue.state)||this.now()<this.dialogue.until-dialogueWindowMs+8000;
+  }
   dialogueKey(e) { return JSON.stringify([this.room,e.uid||this.context().opponent?.handle||'isolated-opponent']); }
   setAudienceMode(mode){if(!['auto','solo','battle'].includes(mode))throw new Error('invalid_audience_mode');this.saved.audienceMode=mode;this.chatFocus=null;this.save();this.publish();}
   address(raw, text, uid) {
@@ -332,9 +338,9 @@ export class VideoDirector {
     if (this.mode === 'auto' && (this.now()<(this.showHoldUntil||0)||!this.stageReady())) return;
     const fresh = this.queue.filter(e => this.now() - e.t < eventLifetime(e)); this.counts.expired += this.queue.length - fresh.length; this.queue = fresh;
     const context=this.context(),audience=context.audienceConnection;
-    if(!this.queue.length&&this.mode==='auto'&&this.now()-this.lastInitiativeAttempt>=18000&&this.now()-this.lastInput>=6500&&this.now()-this.lastFinish>=8000&&!['listening','transcribing','responding','needs_video'].includes(this.dialogue?.state)){
+    if(!this.queue.length&&this.mode==='auto'&&this.now()-this.lastInitiativeAttempt>=18000&&this.now()-this.lastInput>=6500&&this.now()-this.lastFinish>=8000&&!this.dialogueBlocksAudience()){
       const partner=this.lastOpponent||context.opponent,withOpponent=this.saved.audienceMode!=='solo'&&(!!partner?.uid||!!partner?.handle||!!context.battle||this.saved.audienceMode==='battle');
-      if(withOpponent&&this.unansweredInitiatives<2){
+      if(withOpponent&&this.unansweredInitiatives<2&&this.dialogue?.state!=='needs_video'){
         this.lastInitiativeAttempt=this.now();this.unansweredInitiatives++;
         const en=partner?.language==='en',attempt=this.unansweredInitiatives;this.receive({type:'opponent',uid:partner?.uid||partner?.handle||'isolated-opponent',name:partner?.name||'',text:en?`Approach ${attempt}: `+'There is a quiet gap. Initiate one short friendly question to the opposing player about their day, name, or a game. Do not claim they said anything. Avoid repeating unanswered questions.':`פנייה ${attempt}: `+'יש מרווח שקט. פתח מיוזמתך שאלה קצרה וחברותית למתמודד: איך עובר היום, היכרות או הצעה למשחק. אל תטען שהוא אמר משהו ואל תחזור על שאלה שלא נענתה.',source:'director_cadence'});
       }else if(audience?.on){
@@ -342,7 +348,7 @@ export class VideoDirector {
         this.receive({type:'audience',text:'יש מרווח בשיחה. פנה בקצרה לקהל באווירה טובה. אם שאלה קודמת לא נענתה, אל תחזור עליה: בחר משפט מעבר חם או הומור קצר ואז תן מקום לתגובה.',source:'director_cadence'});
       }
     }
-    if(this.dialogue&&this.queue[0]?.type!=='opponent'&&!this.queue[0]?.hostInitiated)return;
+    if(this.dialogueBlocksAudience()&&this.queue[0]?.type!=='opponent'&&!this.queue[0]?.hostInitiated)return;
     const e = this.queue.shift(); if (!e) return;
     const epoch = this.epoch, controller = new AbortController(); this.controller = controller; this.busy = true;
     const start = this.now();
