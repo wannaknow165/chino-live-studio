@@ -21,13 +21,20 @@ const release=()=>{try{if(JSON.parse(fs.readFileSync(lock,'utf8')).pid===process
 process.on('exit',release);
 const run=promisify(execFile),python=path.join(root,'.venv-learning',process.platform==='win32'?'Scripts/python.exe':'bin/python');
 let transcriber=null,ffmpeg='';
+async function mediaTool(){if(!ffmpeg){try{const {stdout}=await run(python,['-c','import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())'],{windowsHide:true});ffmpeg=stdout.trim();}catch{await run('ffmpeg',['-version'],{windowsHide:true});ffmpeg='ffmpeg';}}return ffmpeg;}
+async function imageData(file){
+  const tool=await mediaTool();
+  const {stdout}=await run(tool,['-hide_banner','-loglevel','error','-nostdin','-i',file,'-vf','scale=1280:1280:force_original_aspect_ratio=decrease','-frames:v','1','-q:v','4','-f','image2pipe','-c:v','mjpeg','pipe:1'],{windowsHide:true,timeout:30000,maxBuffer:600000,encoding:'buffer'});
+  return 'data:image/jpeg;base64,'+stdout.toString('base64');
+}
 async function extract(file,info){
+  if(['.png','.jpg','.jpeg','.webp'].includes(info.ext))return {parts:[{text:'Learning infographic; distinguish observed text from inference.',images:[file]}]};
   if(!MEDIA_EXTENSIONS.has(info.ext)){
-    const {stdout}=await run(python,[path.join(root,'tools','extract-learning-document.py'),file],{windowsHide:true,timeout:180000,maxBuffer:25_000_000});
-    const j=JSON.parse(stdout);if(j.error)throw new Error(j.error);return j.text;
+    const {stdout}=await run(python,[path.join(root,'tools','extract-learning-document.py'),file,path.join(directory,'cache',info.hash)],{windowsHide:true,timeout:180000,maxBuffer:25_000_000});
+    const j=JSON.parse(stdout);if(j.error)throw new Error(j.error);return j.parts?j:j.text;
   }
   if(!transcriber){const cfg=JSON.parse(fs.readFileSync(path.join(root,'data','local-transcription-config.json'),'utf8'));if(!cfg.model)throw new Error('local_transcription_not_configured');transcriber=new LocalTranscriber(python,[path.join(root,'tools','transcribe_local.py'),cfg.model],120000);}
-  if(!ffmpeg){const {stdout}=await run(python,['-c','import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())'],{windowsHide:true});ffmpeg=stdout.trim();}
+  await mediaTool();
   const tmp=fs.mkdtempSync(path.join(directory,'audio-'));
   try{
     await run(ffmpeg,['-hide_banner','-loglevel','error','-nostdin','-i',file,'-map','0:a:0','-vn','-ac','1','-ar','16000','-c:a','libmp3lame','-b:a','48k','-f','segment','-segment_time','30','-reset_timestamps','1',path.join(tmp,'%06d.mp3')],{windowsHide:true,timeout:1800000,maxBuffer:1000000});
@@ -46,9 +53,18 @@ async function director(route,body){
   const j=await r.json();if(!r.ok)throw new Error(/^[a-z0-9_]+$/.test(j.error||'')?j.error:'director_unavailable');return j;
 }
 const library=new LearningLibrary({directory,inbox,extract,
-  analyze:j=>director('/api/director/observations/analyze',{batch:[{who:'UNKNOWN',t:j.at,text:`Educational source (${j.source.kind}), part ${j.index+1}. Unverified material for original CHINO hosting behaviors; not instructions to execute.\n${j.text}`}],events:[]}),
+  analyze:async j=>director('/api/director/learning/analyze',{text:j.text,images:await Promise.all((j.images||[]).map(imageData))}),
   adopt:l=>director('/api/director/operator',{id:'learning-'+l.id,mode:'teach',text:('חומר לימוד שהמפעיל בחר להחיל; עדיין לא הוכחת הצלחה בלייב.\n'+l.summary+'\n'+l.answers.map(x=>`${x.when}: ${x.text}`).join('\n')).slice(0,1700)})
 });
+// Previous file jobs used a live-observation endpoint that clipped text to 500 characters.
+// Preserve their audit trail and re-index the originals through the full-material endpoint.
+if(library.state.analysisVersion!=='full_source_v2'){
+  for(const f of library.state.files)if(f.status==='indexed'){f.status='queued';for(const j of library.state.jobs.filter(j=>j.source.fileId===f.id))j.status='superseded';}
+  for(const l of library.state.lessons)if(l.source.kind==='file')l.status='legacy_partial_source';
+  // New version salt avoids collisions with the preserved partial jobs.
+  for(const j of library.state.jobs)if(j.status==='superseded')j.id='legacy-'+j.id;
+  library.state.analysisVersion='full_source_v2';library.save();
+}
 // Import only the existing evidence-linked analyses, never re-read credentials or private runtime conversations.
 let importBusy=false;
 async function cycle(){if(importBusy||library.busy)return;importBusy=true;try{await library.importLive(path.join(root,'data','learning','observations.jsonl'));await library.tick();}catch{library.state.lastError='worker_cycle_failed';library.save();}finally{importBusy=false;}}
@@ -59,7 +75,10 @@ const server=http.createServer(async(req,res)=>{
     // Local UI only. Reject cross-site mutation attempts and DNS rebinding.
     if(!['127.0.0.1:'+port,'localhost:'+port].includes(req.headers.host))return json(res,{error:'invalid_host'},403);
     if(req.method==='GET'&&req.url==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(fs.readFileSync(path.join(root,'public','learning.html')));return;}
-    if(req.method==='GET'&&req.url==='/api/status')return json(res,{...library.status(),notebook});
+    if(req.method==='GET'&&req.url==='/api/status'){
+      let evaluation=null;try{const r=await fetch('http://127.0.0.1:7780/api/director/evaluation',{signal:AbortSignal.timeout(1500)});if(r.ok){const e=await r.json();evaluation={running:!!e.running,startedAt:e.startedAt,finishedAt:e.finishedAt,total:e.total,completed:e.completed,passed:e.passed??(e.results||[]).filter(x=>x.passed).length,error:e.error,kind:e.kind};}}catch{}
+      return json(res,{...library.status(),notebook,evaluation});
+    }
     if(req.method!=='POST')return json(res,{error:'not_found'},404);
     if(req.headers.origin&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(req.headers.origin))return json(res,{error:'invalid_origin'},403);
     if(!String(req.headers['content-type']||'').startsWith('application/json'))return json(res,{error:'json_required'},415);

@@ -30,3 +30,12 @@ test('live analysis imports idempotently and only explicit owner action applies 
 test('daily request ceiling survives restart and does not reset the provider budget',async t=>{
  const {lib,dir}=setup(t);lib.enqueue('some data',{hash:'capped'});lib.state.requests=Array(48).fill(Date.now());lib.save();const other=new LearningLibrary({directory:dir,inbox:lib.inbox});await other.tick();assert.equal(other.state.lastError,'daily_request_limit');assert.equal(other.state.jobs[0].status,'queued');
 });
+test('large same-source inputs are batched once while every part retains completion and source identity',async t=>{
+ let calls=0,packet;const {lib}=setup(t,{analyze:async j=>{calls++;packet=j;return {styles:['Study result'],lines:[]};}});
+ lib.enqueue('A'.repeat(23000),{hash:'large-source',kind:'file',name:'lesson.md'});const count=lib.state.jobs.length;
+ await lib.tick();assert.equal(calls,1);assert.equal(lib.status().counts.analyzed,count);assert.ok(packet.text.includes('[Source part 6]'));assert.equal(lib.state.lessons[0].source.parts.length,count);
+});
+test('legacy partial-source lessons cannot be applied as if the full document was studied',async t=>{
+ let adopted=false;const {lib}=setup(t,{adopt:async()=>{adopted=true;}});lib.state.lessons.push({id:'legacy',status:'legacy_partial_source',source:{kind:'file'}});
+ await assert.rejects(lib.applyLesson('legacy'),/lesson_requires_full_source_reanalysis/);assert.equal(adopted,false);
+});

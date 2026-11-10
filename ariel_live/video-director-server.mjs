@@ -231,7 +231,7 @@ export function createVideoDirector({ root, bank, emit, context, onMode, onSpoke
         return true;
       }
       if (req.method !== 'POST') { json(res, { error: 'method_not_allowed' }, 405); return true; }
-      const b = await read(req, route === '/api/director/audio' ? 3000000 : 32000);
+      const b = await read(req, ['/api/director/audio','/api/director/learning/analyze'].includes(route) ? 3000000 : 32000);
       let result;
       switch (route) {
         case '/api/director/voice/auditions/check': {
@@ -252,6 +252,7 @@ export function createVideoDirector({ root, bank, emit, context, onMode, onSpoke
           const review=await provider.reviewSession({kind:'observations_from_another_live_unverified',observations:batch,events,instructionContext:'Speakers and outcomes may be unknown. Sequence is not causality. Propose original CHINO responses, never copy the observed streamer.'});
           result={lines:review.recommendations.map(r=>({text:r.suggestedAnswer,when:r.question,kind:'other'})),styles:[review.summary],battle:[],chat:[],situations:[],analysisProvider:'openai',status:'unvalidated'};break;
         }
+        case '/api/director/learning/analyze': result=await provider.reviewLearningMaterial(b);break;
         case '/api/director/evaluation/start': result=await runEvaluation();break;
         case '/api/director/evaluation/stop': evaluationController?.abort();result={stopping:!!evaluation.running};break;
         case '/api/director/operator': {if(operatorBusy)throw new Error('operator_busy');operatorBusy=true;try{result=await operatorMessage({director,provider,production,live,persona,savePersona:next=>{persona=next;fs.writeFileSync(path.join(dataDir,'persona.json'),JSON.stringify(persona,null,2));}},b);}finally{operatorBusy=false;}break;}
