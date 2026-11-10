@@ -54,7 +54,7 @@ async function director(route,body){
 }
 const library=new LearningLibrary({directory,inbox,extract,
   analyze:async j=>director('/api/director/learning/analyze',{text:j.text,images:await Promise.all((j.images||[]).map(imageData))}),
-  adopt:l=>director('/api/director/operator',{id:'learning-'+l.id,mode:'teach',text:('חומר לימוד שהמפעיל בחר להחיל; עדיין לא הוכחת הצלחה בלייב.\n'+l.summary+'\n'+l.answers.map(x=>`${x.when}: ${x.text}`).join('\n')).slice(0,1700)})
+  adopt:l=>director('/api/director/operator',{id:'learning-'+l.id,mode:'teach',text:('חומר לימוד שהמפעיל בחר להחיל; עדיין לא הוכחת הצלחה בלייב.\n'+l.summary.slice(0,400)+'\n'+(l.skills?.length?l.skills.map(x=>x.policy).join('\n'):l.answers.map(x=>`${x.when}: ${x.text}`).join('\n'))).slice(0,1700)})
 });
 // Previous file jobs used a live-observation endpoint that clipped text to 500 characters.
 // Preserve their audit trail and re-index the originals through the full-material endpoint.
