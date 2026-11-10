@@ -1,0 +1,18 @@
+[Unit]
+Description=CHINO lion live stage to client001/lion RTMP
+After=network.target chino-studio.service boostera-effects-media.service
+Wants=chino-studio.service boostera-effects-media.service
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+WorkingDirectory=/opt/ariel-effects/app
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/ariel-effects/browsers
+Environment=PYTHONUNBUFFERED=1
+Environment=PATH=/opt/ariel-effects/venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/ariel-effects/venv/bin/python /opt/ariel-effects/app/tools/chino_to_rtmp.py
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=12
+KillMode=control-group
+[Install]
+WantedBy=multi-user.target
