@@ -97,13 +97,14 @@ button.ghost{background:transparent;color:var(--text);border:1px solid var(--lin
     <div class="row"><label style="font-size:17px"><input type="checkbox" id="trainOn"> <b>הפעל מצב למידה</b></label><span class="small" id="trainStat"></span></div>
     <div id="learnLog" style="max-height:320px;overflow:auto;margin:8px 0;font-size:14px;line-height:1.7;border:1px solid var(--line);border-radius:8px;padding:8px;background:#120e0a"></div>
     <div class="row"><button id="llClear" class="ghost" style="padding:4px 10px">נקה יומן למידה</button></div>
-    <div class="small">צ׳ינו מקשיב לסטרימר שבחרת (למטה: "תתחיל ללמוד מהלייב"), <b>ועונה לו בקול על הלייב שלנו</b> כשיש לו משהו טוב להגיד — כאילו הוא מדבר איתו. על המסך: תג 🎓 LEARNING, הראש של הסטרימר בעיגול קטן משמאל (אם לוחצים "זהה ראש" על החלון שלו), ושורה של "מה למדתי עכשיו". אם אתה משדר את זה — הקהל רואה אריה לומד. אם לא — הוא פשוט לומד.</div>
+    <div class="small">מצב תצפית: הלייב המחובר הוא מקור לימוד נפרד מהקהל שלך. נשמרים אודיו, פריימים ותמלול מקומי; ניתוחי GPT הם מועמדים לבדיקה. מצב זה אינו מייצר קליפים בתשלום ואינו משיב למורה.</div>
   </div>
   <div class="card">
     <h2>🎓 למידה מלייב של מישהו אחר</h2>
     <div class="row"><input type="text" id="stName" placeholder="שם משתמש בטיקטוק (למשל prettyboyali24)" style="width:260px"><button id="sxBtn">📡 האזנה ישירה (בלי סאונד אצלך)</button></div>
+    <div id="learningEvidence" class="small" role="status">בודק ארכיון ותמלול מקומי…</div>
     <div id="sxStat" class="small" style="margin:4px 0 8px;font-size:15px;line-height:1.6">כבוי</div>
-    <div class="small">📡 <b>האזנה ישירה</b>: המערכת מושכת את השידור שלו ישר משרתי טיקטוק — בלי דפדפן, <b>בלי שום צליל באוזניות שלך</b>. באותו זמן tik.tools מביא את הצ׳אט, המתנות והקרבות של אותו לייב, והמוח מצליב: מה הוא אמר ↔ למי (בשם) ↔ איך הצ׳אט הגיב ↔ מה זה הביא. כל 2.5 דקות ניתוח, והכל נכנס למוח של צ׳ינו. נשאר דלוק: אם הוא יוצא מהלייב — מחכים שיחזור.</div>
+    <div class="small">📡 הזן שם משתמש והתחבר ללייב. אודיו ופריימים נקלטים מהשידור, ואירועי צ׳אט/מתנות/באטל נבדקים בנפרד דרך tik.tools. כשאין שידור חי המערכת ממתינה ומנסה שוב. רק מונים שעולים מעידים על קליטה בפועל. ניתן גם ללמוד מחלון עם שיתוף שמע באמצעות הכפתור למטה.</div>
     <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
       <div class="row"><b>🎵 המוזיקה שלו</b><span class="small" id="muNow"></span><button id="muQueue" class="ghost" style="padding:4px 10px">➕ הכנס 10 לתור בספוטיפיי</button><button id="muPl" class="ghost" style="padding:4px 10px">💾 צור פלייליסט בספוטיפיי</button></div>
       <div id="muList" class="small" style="max-height:150px;overflow:auto;line-height:1.7;margin-top:4px"></div>
@@ -391,7 +392,7 @@ refresh();
   grid.remove();
   const show=id=>{ cards.forEach(cd=>cd.classList.toggle('hiddenTab',cd.dataset.tab!==id)); nav.querySelectorAll('button').forEach(b=>b.classList.toggle('act',b.dataset.t===id)); try{localStorage.setItem('arielTab',id);}catch(e){} };
   TABS.forEach(([id,he])=>{ const b=document.createElement('button'); b.dataset.t=id; b.textContent=he; b.onclick=()=>show(id); nav.appendChild(b); });
-  let start='live'; try{ start=localStorage.getItem('arielTab')||'live'; }catch(e){}
+  let start='live'; try{ start=new URLSearchParams(location.search).get('tab')||localStorage.getItem('arielTab')||'live'; }catch(e){}
   show(start);
 })();
 // ---------- virtual camera + engines ----------
@@ -401,7 +402,7 @@ const lbl=()=>post('/api/label',{on:$('lblOn').checked,text:$('lblText').value.t
 $('lblOn').onchange=lbl; $('lblText').onchange=lbl; $('lblColor').onchange=lbl;
 fetch('/api/state').then(r=>r.json()).then(s=>{ if(s.label){ $('lblOn').checked=!!s.label.on; $('lblText').value=s.label.text||'test'; $('lblColor').value=s.label.color||'#ff2d2d'; } });
 $('liveWin').onclick=()=>{ post('/api/stage/open',{}); log('נפתח חלון אריה ללייב'); };
-post('/api/vcam',{on:false});
+// Opening the learning dashboard must not stop the active virtual camera.
 async function engines(){ const k=await (await fetch('/api/keys')).json(); const L=(ok,name,note)=>`${ok?'✅':'⬜'} <b>${name}</b> — ${note}`;
   $('engines').innerHTML=[L(k.gemini,'Gemini','המוח, הקול, הווידאו והתמונות (עובד)'),L(k.spotify,'Spotify',k.spotify?'מחובר: '+k.spotifyUser:'לא מחובר'),L(k.tiktools,'tik.tools','צ׳אט, מתנות וקרבות מהלייב'+(k.tiktokUser?' ('+k.tiktokUser+')':'')),L(k.openrouter,'OpenRouter','לא חובה — Gemini כבר עושה את העבודה'),L(k.kling,'Kling','לא חובה — לריקוד לפי סרטון (Motion Control)')].join('<br>'); }
 $('kSave').onclick=async()=>{await post('/api/keys',{tiktoolsKey:$('kTik').value,tiktokUser:$('kTikUser').value,openrouterKey:$('kOR').value,klingAccess:$('kKA').value,klingSecret:$('kKS').value});['kTik','kOR','kKA','kKS'].forEach(i=>$(i).value='');engines();log('המפתחות נשמרו');};
@@ -469,6 +470,15 @@ async function stStart(){
 }
 async function stStop(){ stOn=false; try{ stRec&&stRec.stop(); }catch(e){} stStream&&stStream.getTracks().forEach(t=>t.stop()); stStream=null; await post('/api/study/stop'); fetch('/api/study').then(r=>r.json()).then(j=>{ stUI(j); showReport(j.lessons); }); }
 $('stBtn').onclick=()=>stOn?stStop():stStart();
+async function learningEvidenceUI(){
+  const el=$('learningEvidence');
+  try {
+    const r=await fetch('/api/learning/status'); if(!r.ok)throw new Error('status unavailable');
+    const j=await r.json(), a=j.archive||{}, t=j.localTranscription;
+    el.textContent=`${j.observeOnly?'תצפית ללא ייצור וידאו':'מצב תגובה פעיל'} · ארכיון ${(Number(a.bytes||0)/1048576).toFixed(1)} MB · ${t?`תמלול מקומי: ${t.completed||0} קטעים הושלמו, ${t.pending||0} בתור`:'אין מנוע תמלול מוגדר'}${a.error?' · שגיאת ארכיון':''}${t?.error?' · שגיאת תמלול':''}`;
+  }catch(e){el.textContent='סטטוס הלמידה אינו זמין — בדוק שהשרת פועל';}
+}
+learningEvidenceUI(); setInterval(learningEvidenceUI,5000);
 // headless direct listening (no browser, no sound on this PC)
 let sxOn=false;
 function sxUI(j){ sxOn=!!j.on; $('sxBtn').textContent=j.on?'⏹ הפסק האזנה ישירה':'📡 האזנה ישירה (בלי סאונד אצלך)'; $('sxBtn').classList.toggle('on',!!j.on);
