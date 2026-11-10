@@ -1,0 +1,53 @@
+[
+  {
+    "id": "he-wake-phonetic",
+    "voice": "Microsoft Asaf",
+    "language": "he",
+    "text": "צִ'ינוֹ",
+    "expectedFragments": [
+      "צינו",
+      "chino"
+    ],
+    "expectedActions": [
+      "play"
+    ]
+  },
+  {
+    "id": "he-wellbeing",
+    "voice": "Microsoft Asaf",
+    "language": "he",
+    "text": "מה שלומך אחי?",
+    "expectedFragments": [
+      "שלומך",
+      "איתך"
+    ],
+    "expectedActions": [
+      "play"
+    ]
+  },
+  {
+    "id": "he-name",
+    "voice": "Microsoft Asaf",
+    "language": "he",
+    "text": "איך קוראים לך?",
+    "expectedFragments": [
+      "קוראיםלך"
+    ],
+    "expectedActions": [
+      "play"
+    ]
+  },
+  {
+    "id": "en-wellbeing",
+    "voice": "Microsoft David Desktop",
+    "language": "en",
+    "text": "Chino, how are you doing?",
+    "expectedFragments": [
+      "howareyou"
+    ],
+    "expectedActions": [
+      "play",
+      "draft"
+    ]
+  }
+]

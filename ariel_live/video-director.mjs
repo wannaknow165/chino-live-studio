@@ -119,10 +119,10 @@ export class VideoDirector {
     if(raw.type!=='opponent')return {text,addressedBy:'event'};
     if(raw.source==='director_cadence')return {text,addressedBy:'host_initiative',dialogue:{key:this.dialogueKey({uid}),uid,name:clean(raw.name,80),practice:false,state:'responding',until:this.now()+dialogueWindowMs}};
     this.lastInput=this.now(); this.dialogueStatus();
-    const key=this.dialogueKey({uid}), called=wakeSpoken.test(plain), practice=raw.source==='microphone';
+    const key=this.dialogueKey({uid}), called=wakeSpoken.test(plain), practice=['microphone','practice_audio'].includes(raw.source);
     if(!called&&this.dialogue?.key!==key&&!practice)return null;
-    return {text:body||'שלום',wakeOnly:!!prefix&&!body,addressedBy:called?'spoken_name':practice&&this.dialogue?.key!==key?'microphone_practice':'conversation_followup',
-      dialogue:{key,uid,name:clean(raw.name,80)||this.dialogue?.name||'',practice:raw.source==='microphone',state:'responding',until:this.now()+dialogueWindowMs}};
+    return {text:body||'שלום',wakeOnly:!!prefix&&!body,addressedBy:called?'spoken_name':practice&&this.dialogue?.key!==key?(raw.source==='practice_audio'?'recorded_audio_practice':'microphone_practice'):'conversation_followup',
+      dialogue:{key,uid,name:clean(raw.name,80)||this.dialogue?.name||'',practice,state:'responding',until:this.now()+dialogueWindowMs}};
   }
   publish() { this.emit('director', this.status()); }
   cancel(reason, stop = true, keepAudience = false) {
@@ -164,7 +164,7 @@ export class VideoDirector {
     if(!routing)return this.filtered(this.lastRouting.reason);
     const text=routing.text,language=/[\u0590-\u05ff]/.test(text)?'he':'en';
     const known = uid ? this.saved.people[personKey] : null;
-    const e = { id: clean(raw.id || crypto.randomUUID(), 160), type: raw.type, text, rawText, wakeOnly:!!routing.wakeOnly, addressedBy:routing.addressedBy, language, uid, name: clean(raw.name || known?.name, 80), t, queuedAt:this.now(), room: this.room, source: clean(raw.source || 'operator_test', 40),hostInitiated:raw.source==='director_cadence' };
+    const e = { id: clean(raw.id || crypto.randomUUID(), 160), type: raw.type, text, rawText, wakeOnly:!!routing.wakeOnly, addressedBy:routing.addressedBy, language, uid, name: clean(raw.name || known?.name, 80), t, queuedAt:this.now(), room: this.room, source: clean(raw.source || 'operator_test', 40),hostInitiated:raw.source==='director_cadence',...(raw.source==='practice_audio'?{fixtureId:clean(raw.fixtureId,100)}:{}) };
     const keys = ['id:' + e.id, ...(e.hostInitiated?[]:[`${e.type}:${e.uid}:${normalize(text)}`])];
     for (const [k, at] of this.seen) if (this.now() - at > 60000) this.seen.delete(k);
     if (keys.some(k => this.seen.has(k)&&(!e.wakeOnly||k.startsWith('id:')||this.now()-this.seen.get(k)<2000))) return this.filtered('duplicate');
@@ -231,7 +231,7 @@ export class VideoDirector {
     e.searchedClips=reviewedCandidates.length;
     // Local indexing and corrections are retrieval hints, never permission to
     // play. Include every eligible recording, not just exact keyword matches.
-    const packet={ event: e, context: this.context(), participantMemory:this.participantMemory(e), history: this.saved.history.filter(h => h.room === this.room && h.uid===e.uid).slice(-18),
+    const packet={ event: e, requiredReplyLanguage:e.language, context: this.context(), participantMemory:this.participantMemory(e), history: this.saved.history.filter(h => h.room === this.room && h.uid===e.uid).slice(-18),
       candidates:reviewedCandidates, languageExamples:this.answerIndex.languageExamples(e,this.personaKey()), examples: this.saved.lessons.filter(l => l.room === e.room && l.uid === e.uid).slice(-12),
       approvedTextPatterns: this.saved.inbox.filter(r => r.operatorApprovedText && r.event.room===e.room && r.event.type === e.type && (!r.event.uid || r.event.uid === e.uid)).slice(-12).map(r => ({question:r.event.text,answer:r.draft,videoReady:false})) };
     const validate=d=>{
@@ -244,19 +244,21 @@ export class VideoDirector {
     const questionOnly=d=>eventIntent({...e,understanding:e.understanding?.source==='operator'?e.understanding:d.understanding||e.understanding})==='wellbeing'&&d.action!=='ignore'&&
       (d.action==='play'&&neutralGreetings.has(d.clipId)||/^(?:(?:וואלה|היי|אהלן) )?(?:מה נשמע|מה שלומך|מה קורה|מה איתך)(?: אחי| אח שלי| מלך)?$/u.test(fold(d.text||d.fallbackText)));
     const wrongPerson=d=>d.action==='play'&&reusableReply('identity',d.text)&&/(?:איך קוראים לי|מה השם שלי|what is my name)/u.test(fold(e.text));
+    const wrongLanguage=d=>d.action==='draft'&&e.language==='en'&&/[\u0590-\u05ff]/.test(d.text||d.fallbackText||'')&&!/[a-z]/i.test(d.text||d.fallbackText||'');
     let d=await this.decide({...packet,reviewStage:'select_existing'},signal);
     if(signal?.aborted)return d;
     validate(d);
     let passes=1;
-    if(d.action==='draft'||questionOnly(d)||wrongPerson(d)){
+    if(d.action==='draft'||questionOnly(d)||wrongPerson(d)||wrongLanguage(d)){
       // A second GPT pass must confirm there really is no suitable recording
       // before a missing answer is eligible for automatic paid production.
-      const rejection=questionOnly(d)?'question_instead_of_answer':wrongPerson(d)?'wrong_person_name':null;
+      const rejection=questionOnly(d)?'question_instead_of_answer':wrongPerson(d)?'wrong_person_name':wrongLanguage(d)?'wrong_reply_language':null;
       if(rejection)this.record('choice_recheck',{eventId:e.id,clipId:d.clipId,reason:rejection});
       d=await this.decide({...packet,reviewStage:'before_new_video',proposedDecision:d,validationFeedback:rejection},signal);
       if(signal?.aborted)return d;
       validate(d);passes++;
     }
+    if(wrongLanguage(d))throw new Error('decision_language_mismatch');
     if(d.understanding&&e.understanding?.source!=='operator')e.understanding={...d.understanding,source:'model'};
     if(d.action==='play'&&!this.eligible(e,{semanticReview:true}).some(c=>c.id===d.clipId&&c.text===d.text))throw new Error('decision_clip_changed');
     // Catch an obvious question-only response without requiring all legitimate
@@ -285,16 +287,17 @@ export class VideoDirector {
     this.cancel('understanding_corrected',true,true);
     const retry={...e,id:crypto.randomUUID(),t:this.now(),queuedAt:this.now()};
     this.queue.unshift(retry);this.lastFinish=0;
-    if(e.type==='opponent')this.dialogue={key:this.dialogueKey(e),uid:e.uid,name:e.name,practice:e.source==='microphone',state:'responding',until:this.now()+dialogueWindowMs};
+    if(e.type==='opponent')this.dialogue={key:this.dialogueKey(e),uid:e.uid,name:e.name,practice:['microphone','practice_audio'].includes(e.source),state:'responding',until:this.now()+dialogueWindowMs};
     this.publish();return {saved:true,queued:this.mode!=='manual',eventId:retry.id};
   }
   missing(e, d, reason = d.reason) {
     this.record('missing',{event:e,decision:d,reason});
     if(e.type==='opponent'&&this.dialogue?.key===this.dialogueKey(e)){this.dialogue.state='needs_video';this.dialogue.until=this.now()+dialogueWindowMs;}
-    const intent=eventIntent(e),prior=String(e.id||'').startsWith('practice-')?null:this.saved.inbox.findLast(r=>r.state==='pending'&&!r.practice&&r.event.room===e.room&&r.event.type===e.type&&r.event.uid===e.uid&&((intent&&eventIntent(r.event)===intent)||fold(r.event.text)===fold(e.text)));
+    const intent=eventIntent(e),prior=String(e.id||'').startsWith('practice-')?null:this.saved.inbox.findLast(r=>r.state==='pending'&&!r.practice&&r.event.room===e.room&&r.event.type===e.type&&r.event.uid===e.uid&&r.event.language===e.language&&((intent&&eventIntent(r.event)===intent)||fold(r.event.text)===fold(e.text)));
     if(prior){
       prior.variants=[...new Set([...(prior.variants||[prior.event.text]),e.text])];prior.updated=this.now();
-      if(e.understanding&&intent&&!prior.operatorApprovedText&&!reusableReply(intent,prior.draft)&&reusableReply(intent,d.text)){
+      const priorWrongLanguage=e.language==='en'&&/[\u0590-\u05ff]/.test(prior.draft)&&!/[a-z]/i.test(prior.draft),freshEnglish=/[a-z]/i.test(d.text||'');
+      if(!prior.operatorApprovedText&&((priorWrongLanguage&&freshEnglish)||(e.understanding&&intent&&!reusableReply(intent,prior.draft)&&reusableReply(intent,d.text)))){
         prior.draftRevisions??=[];prior.draftRevisions.push({text:prior.draft,reason:prior.reason,at:this.now()});prior.draft=clean(d.text,350);prior.reason=clean(reason,160);
       }
       this.save();this.emit('director-inbox',{item:prior,event:e,decision:d});return prior;

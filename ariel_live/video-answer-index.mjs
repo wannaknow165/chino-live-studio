@@ -38,7 +38,7 @@ export function eventIntent(e){
   if(validUnderstanding(u))return u.standalone&&u.confidence>=.92&&intentOf(u.canonicalQuestion)===u.intent?u.intent:'';
   return e.wakeOnly?'wake':intentOf(e.text);
 }
-const meaningKey=(e,persona)=>JSON.stringify([e.room||'',e.type,e.uid||'',e.language,fold(e.text),persona]);
+const meaningKey=(e,persona)=>JSON.stringify([e.room||'',e.type,e.uid||'',e.language,!!e.wakeOnly,fold(e.text),persona]);
 // These complete context-free answers may share retrieval and production hints.
 // Every automatic playback still requires the director's fresh GPT decision.
 export function reusableReply(intent, text) {
@@ -64,6 +64,8 @@ export class VideoAnswerIndex {
     this.data.interpretations??=[];this.signature='';this.rebuild();
   }
   understand(event,persona=''){
+    // Name-only wake metadata must not inherit a cached greeting interpretation.
+    if(event.wakeOnly)return {intent:'wake',canonicalQuestion:canonical[event.language==='en'?'en':'he'].wake,confidence:1,standalone:true,source:'curated'};
     const saved=this.data.interpretations.findLast(x=>x.key===meaningKey(event,persona));
     if(saved)return {...saved.understanding,source:saved.source==='operator'?'operator':'learned_phrase'};
     const intent=event.wakeOnly?'wake':intentOf(event.text);

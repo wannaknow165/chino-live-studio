@@ -46,7 +46,14 @@ while st.get('status') not in ('completed', 'failed', 'cancelled', 'expired'):
     time.sleep(6)
     try: st = call(f'https://openrouter.ai/api/v1/videos/{jid}')
     except Exception as e: st = {'status': 'pending', 'err': str(e)}
-if st.get('status') != 'completed': print(json.dumps({'error': f"{st.get('status')}: {str(st.get('error'))[:400]}", 'model': model, 'id': jid})); sys.exit(0)
+if st.get('status') != 'completed':
+    message = str(st.get('error') or 'Video generation failed').replace(KEY, '[redacted]')[:400]
+    usage = st.get('usage') or {}
+    cost = usage.get('cost')
+    persist_state(st.get('status', 'failed'), providerJobId=jid, error=message,
+                  costUSD=cost if isinstance(cost, (int, float)) else None)
+    print(json.dumps({'error': f"{st.get('status')}: {message}", 'model': model, 'id': jid}))
+    sys.exit(0)
 os.makedirs(os.path.join(ROOT, 'data', 'ovsrc'), exist_ok=True); dst = os.path.join(ROOT, 'data', 'ovsrc', out_id + '.mp4')
 open(dst, 'wb').write(call(f'https://openrouter.ai/api/v1/videos/{jid}/content?index=0', raw=True, timeout=300))
 cost = float(((st.get('usage') or {}).get('cost')) or 0)

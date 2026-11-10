@@ -21,6 +21,9 @@ export function liveReadiness({provider,stage,live,context,now=Date.now()}){
   const checks={gpt:{ready:!!provider.configured&&!provider.blocked&&(!budget||budget.reservedUSD+.1<=budget.limitUSD),verifiedAt:provider.lastVerifiedAt||0},output:{ready:!!stage.ready},audio:{ready:!!live.audioConnected,signalSeen:!!live.signalAt&&now-live.signalAt<10000,transcribedAt:live.lastTranscriptAt||0,level:live.level||0},chat:{ready:!!chat.connected&&!!chat.on&&/^מחובר ✓/.test(chat.status||''),lastEventAt:chat.lastEventAt||0,eventCount:chat.eventCount||0}};
   return {ready:Object.values(checks).every(c=>c.ready),checks};
 }
+export function checkAnalysisBudget({liveActive,liveBudget,usd}){
+  if(liveActive&&liveBudget&&liveBudget.totalReservedUSD+usd>liveBudget.limitUSD+.00001)throw new Error('live_budget_exhausted');
+}
 
 export function filterLearningRecommendations(recommendations,gaps,clips){
   const questions=new Set(gaps.map(g=>fold(g.question))),recorded=new Set(clips.map(c=>fold(c.text))),seen=new Set();
@@ -121,7 +124,7 @@ export function createVideoDirector({ root, bank, emit, context, onMode, onSpoke
       }finally{for(const f of temp)if(fs.existsSync(f))fs.unlinkSync(f);}
     },
   }):null;
-  const reserveAI=budget.reserve.bind(budget);budget.reserve=(kind,usd)=>{const b=production?.sessionBudget();if(b&&b.totalReservedUSD+usd>b.limitUSD+.00001)throw new Error('live_budget_exhausted');return reserveAI(kind,usd);};
+  const reserveAI=budget.reserve.bind(budget);budget.reserve=(kind,usd)=>{checkAnalysisBudget({liveActive:live.active,liveBudget:production?.sessionBudget(),usd});return reserveAI(kind,usd);};
   let operatorBusy=false;
   const performanceStatus=()=>performances.map(p=>{
     const clip=catalog().find(c=>c.ready&&c.performanceId===p.id);
@@ -143,11 +146,14 @@ export function createVideoDirector({ root, bank, emit, context, onMode, onSpoke
   }
   async function audio(b) {
     const microphone=b.source==='microphone';
+    const practiceAudio=b.source==='practice_audio';
+    if(practiceAudio&&(live.active||live.inputMode!=='practice'))return {accepted:false,reason:'practice_audio_requires_practice_mode'};
+    if(practiceAudio&&!/^[a-zA-Z0-9_-]{8,100}$/.test(b.fixtureId||''))throw new Error('invalid_practice_fixture');
     if(microphone&&live.inputMode==='live')return {accepted:false,reason:'microphone_disabled_in_live'};
-    if(!microphone&&productionEnabled&&(!live.active||!liveStatus().audioConnected))return {accepted:false,reason:'live_audio_not_connected'};
-    if (!microphone&&b.isolatedOpponent !== true) return { accepted: false, reason: 'isolated_opponent_audio_required' };
+    if(!microphone&&!practiceAudio&&productionEnabled&&(!live.active||!liveStatus().audioConnected))return {accepted:false,reason:'live_audio_not_connected'};
+    if (!microphone&&!practiceAudio&&b.isolatedOpponent !== true) return { accepted: false, reason: 'isolated_opponent_audio_required' };
     if (!asr&&!provider.status().configured) throw new Error('local_transcription_unavailable');
-    if ((microphone&&director.active) || director.externalClip || director.muted) return { accepted: false, reason: 'input_held_during_output' };
+    if (((microphone||practiceAudio)&&director.active) || director.externalClip || director.muted) return { accepted: false, reason: 'input_held_during_output' };
     if (typeof b.b64 !== 'string' || b.b64.length > 2800000 || !/^[\w+/=]+$/.test(b.b64)) throw new Error('invalid_audio');
     const epoch = director.audioEpoch, t = Date.now(), room = director.room;
     const engine=provider.status().configured?'openai':'local';
@@ -155,13 +161,13 @@ export function createVideoDirector({ root, bank, emit, context, onMode, onSpoke
     if(engine==='openai')text=await provider.transcribeAudio(b.b64);
     else {const r=await asr.transcribe(b.b64,{language:['he','en'].includes(b.language)?b.language:undefined,initialPrompt:'צ׳ינו, צינו, Chino. שיחה עם צ׳ינו, דמות אריה וירטואלית.'});
       text=(r.lines||[]).filter(l=>l.avgLogprob>-1&&(l.noSpeechProb==null||l.noSpeechProb<0.6)).map(l=>l.text).join(' ').trim();}
-    if (epoch !== director.audioEpoch || room !== director.room || (microphone&&director.active) || director.muted || director.externalClip || Date.now() - t >= 20000) return { accepted: false, reason: 'stale_audio' };
+    if (epoch !== director.audioEpoch || room !== director.room || ((microphone||practiceAudio)&&director.active) || director.muted || director.externalClip || Date.now() - t >= 20000) return { accepted: false, reason: 'stale_audio' };
     if (!text) return { accepted: false, reason: 'no_clear_speech' };
-    if(!microphone&&director.isOwnEcho(text))return {accepted:false,reason:'own_audio_echo',engine};
+    if(!microphone&&!practiceAudio&&director.isOwnEcho(text))return {accepted:false,reason:'own_audio_echo',engine};
     live.lastTranscriptAt=Date.now();
     const opponent = context().opponent || {};
-    const result = director.receive({ type: 'opponent', text, uid: opponent.handle || '', name: opponent.name || '', source: microphone?'microphone':'isolated_audio', t });
-    emit('heard', { text }); return { ...result, text, engine, transcriptionMs: Date.now() - t };
+    const result = director.receive({ type: 'opponent', text, uid: practiceAudio?'practice-audio-fixture':opponent.handle || '', name: practiceAudio?'תרגול שמע אוטומטי':opponent.name || '', source: practiceAudio?'practice_audio':microphone?'microphone':'isolated_audio', ...(practiceAudio?{fixtureId:b.fixtureId}:{}), t });
+    emit('heard', { text,source:practiceAudio?'practice_audio':microphone?'microphone':'isolated_audio' }); return { ...result, text, engine, transcriptionMs: Date.now() - t,...(practiceAudio?{fixtureId:b.fixtureId,inputSource:'practice_audio'}:{}) };
   }
   let reportPromise=null;
   let evaluation={...load('autonomy-evaluation-latest.json',{completed:0,total:100,results:[],error:''}),running:false},evaluationController=null;
@@ -231,9 +237,10 @@ export function createVideoDirector({ root, bank, emit, context, onMode, onSpoke
         return true;
       }
       if (req.method !== 'POST') { json(res, { error: 'method_not_allowed' }, 405); return true; }
-      const b = await read(req, ['/api/director/audio','/api/director/learning/analyze'].includes(route) ? 3000000 : 32000);
+      const b = await read(req, ['/api/director/audio','/api/director/practice/audio','/api/director/learning/analyze'].includes(route) ? 3000000 : 32000);
       let result;
       switch (route) {
+        case '/api/director/practice/audio': result=await audio({...b,source:'practice_audio'});break;
         case '/api/director/voice/auditions/check': {
           if(live.active||director.busy||evaluation.running)throw new Error('evaluation_requires_idle');
           const configuration=JSON.parse(fs.readFileSync(path.join(root,'data','local-voice-config.json'),'utf8')),rows=[];

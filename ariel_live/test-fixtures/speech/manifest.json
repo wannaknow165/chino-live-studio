@@ -1,0 +1,65 @@
+[
+  {
+    "id": "he-wake-phonetic",
+    "file": "he-wake-phonetic.wav",
+    "text": "צִ'ינוֹ",
+    "language": "he",
+    "voice": "Microsoft Asaf",
+    "synthetic": true,
+    "sha256": "a9432a8ace8dddd05fc12ed90c7cee840208c20bbe82a723f6249034d12533d6",
+    "expectedFragments": [
+      "צינו",
+      "chino"
+    ],
+    "expectedActions": [
+      "play"
+    ]
+  },
+  {
+    "id": "he-wellbeing",
+    "file": "he-wellbeing.wav",
+    "text": "מה שלומך אחי?",
+    "language": "he",
+    "voice": "Microsoft Asaf",
+    "synthetic": true,
+    "sha256": "a7dfe74bc5b219bd55e538a721b2b2cba8e9cd2a9c3e21d5f1fe89e6def1d29e",
+    "expectedFragments": [
+      "שלומך",
+      "איתך"
+    ],
+    "expectedActions": [
+      "play"
+    ]
+  },
+  {
+    "id": "he-name",
+    "file": "he-name.wav",
+    "text": "איך קוראים לך?",
+    "language": "he",
+    "voice": "Microsoft Asaf",
+    "synthetic": true,
+    "sha256": "93d0ba7e530157e4ddcb16253fa456a03df0ce3d1b097f69662c8b802222a4e8",
+    "expectedFragments": [
+      "קוראיםלך"
+    ],
+    "expectedActions": [
+      "play"
+    ]
+  },
+  {
+    "id": "en-wellbeing",
+    "file": "en-wellbeing.wav",
+    "text": "Chino, how are you doing?",
+    "language": "en",
+    "voice": "Microsoft David Desktop",
+    "synthetic": true,
+    "sha256": "0ece9485891d4637f4f6f72501b8655bb5522eabd946b69f26459196d0f04032",
+    "expectedFragments": [
+      "howareyou"
+    ],
+    "expectedActions": [
+      "play",
+      "draft"
+    ]
+  }
+]
