@@ -30,6 +30,13 @@ const wakeName = "(?:צ['׳’]?ינו|chi+no)";
 const wakePrefix = new RegExp('^'+wakeName+'(?=$|[^\\p{L}\\p{N}])', 'iu');
 const wakeSpoken = new RegExp('(^|[^\\p{L}\\p{N}])'+wakeName+'(?=$|[^\\p{L}\\p{N}])', 'iu');
 const dialogueWindowMs = 120000;
+// A semantic turn-control label also needs an actual wait/listen cue in this
+// utterance. This only grounds the control; it never selects a spoken answer.
+const turnYieldCue=text=>{
+  const s=normalize(text);
+  if(/(?:אל תפסיק|אל תפסיקי|אל תעצור|dont stop|don t stop|do not stop|keep talking)/u.test(s))return false;
+  return /(?:תן לי לסיים|תני לי לסיים|תנו לי לסיים|חכה|חכי|תחכה|תחכי|תמתין|תמתיני|תקשיב|תקשיבי|אל תדבר|אל תדברי|תפסיק לדבר|תפסיקי לדבר|תעצור רגע|hold on|hang on|wait|listen|let me finish|let me speak|stop talking|stop speaking|be quiet|give me a moment)/u.test(s);
+};
 const eventLifetime = e => e.type === 'chat' || e.type === 'gift' ? 300000 : 20000;
 export class VideoDirector {
   constructor({ file, catalog, decide, providerStatus, output, emit = () => {}, context = () => ({}), now = Date.now }) {
@@ -136,7 +143,13 @@ export class VideoDirector {
     if (this.active && stop) this.output('cancel', { playId: this.active.playId, reason });
     this.active = null; this.publish();
   }
-  setMode(mode) { if (!['manual', 'rehearsal', 'auto'].includes(mode)) throw new Error('invalid_mode'); this.chatPreparing?.controller.abort();this.preparedChat.clear();this.audioEpoch++;this.cancel('mode_changed'); this.dialogue=null;this.chatFocus=null; this.mode = mode; this.publish(); }
+  setMode(mode) {
+    if (!['manual', 'rehearsal', 'auto'].includes(mode)) throw new Error('invalid_mode');
+    const startingHost=mode==='auto'&&this.mode!=='auto'&&this.context().hostSessionActive===true;
+    this.chatPreparing?.controller.abort();this.preparedChat.clear();this.audioEpoch++;this.cancel('mode_changed');this.dialogue=null;this.chatFocus=null;this.mode=mode;
+    if(startingHost){this.lastInitiativeAttempt=this.now()-12000;this.lastInput=this.now()-4000;this.lastFinish=this.now()-3500;}
+    this.publish();
+  }
   setRoom(room) { room = clean(room, 100); if (room !== this.room) { this.chatPreparing?.controller.abort();this.preparedChat.clear();this.audioEpoch++;this.cancel('room_changed'); this.dialogue=null;this.chatFocus=null;this.lastOpponent=null;this.unansweredInitiatives=0; this.room = room; this.lastDecision = null; this.otherSpeaking = false; this.seen.clear(); this.rate.clear(); this.publish(); } }
   hold(kind, on) {
     if (!['otherSpeaking', 'externalClip', 'muted'].includes(kind)) throw new Error('invalid_hold');
@@ -251,17 +264,18 @@ export class VideoDirector {
       (d.action==='play'&&neutralGreetings.has(d.clipId)||/^(?:(?:וואלה|היי|אהלן) )?(?:מה נשמע|מה שלומך|מה קורה|מה איתך)(?: אחי| אח שלי| מלך)?$/u.test(fold(d.text||d.fallbackText)));
     const wrongPerson=d=>d.action==='play'&&reusableReply('identity',d.text)&&/(?:איך קוראים לי|מה השם שלי|what is my name)/u.test(fold(e.text));
     const wrongLanguage=d=>d.action==='draft'&&e.language==='en'&&/[\u0590-\u05ff]/.test(d.text||d.fallbackText||'')&&!/[a-z]/i.test(d.text||d.fallbackText||'');
+    const unsupportedTurnControl=d=>d.understanding?.intent==='turn_yield'&&d.understanding.standalone===true&&d.understanding.confidence>=.92&&!turnYieldCue(e.rawText||e.text);
     let d=await this.decide({...packet,reviewStage:'select_existing'},signal);
     if(signal?.aborted)return d;
     validate(d);
-    const applyTurnControl=value=>value.understanding?.intent==='turn_yield'&&value.understanding.standalone===true&&value.understanding.confidence>=.92
+    const applyTurnControl=value=>value.understanding?.intent==='turn_yield'&&value.understanding.standalone===true&&value.understanding.confidence>=.92&&turnYieldCue(e.rawText||e.text)
       ?{...value,action:'ignore',clipId:'',text:'',fallbackText:'',reusable:false,reason:'speaker_requests_listening'}:value;
     d=applyTurnControl(d);
     let passes=1;
-    if(d.action==='draft'||questionOnly(d)||wrongPerson(d)||wrongLanguage(d)){
+    if(d.action==='draft'||questionOnly(d)||wrongPerson(d)||wrongLanguage(d)||unsupportedTurnControl(d)){
       // A second GPT pass must confirm there really is no suitable recording
       // before a missing answer is eligible for automatic paid production.
-      const rejection=questionOnly(d)?'question_instead_of_answer':wrongPerson(d)?'wrong_person_name':wrongLanguage(d)?'wrong_reply_language':null;
+      const rejection=questionOnly(d)?'question_instead_of_answer':wrongPerson(d)?'wrong_person_name':wrongLanguage(d)?'wrong_reply_language':unsupportedTurnControl(d)?'unsupported_turn_control':null;
       if(rejection)this.record('choice_recheck',{eventId:e.id,clipId:d.clipId,reason:rejection});
       d=await this.decide({...packet,reviewStage:'before_new_video',proposedDecision:d,validationFeedback:rejection},signal);
       if(signal?.aborted)return d;
@@ -269,6 +283,7 @@ export class VideoDirector {
       d=applyTurnControl(d);
     }
     if(wrongLanguage(d))throw new Error('decision_language_mismatch');
+    if(unsupportedTurnControl(d))throw new Error('decision_turn_control_mismatch');
     if(d.understanding&&e.understanding?.source!=='operator')e.understanding={...d.understanding,source:'model'};
     if(d.action==='play'&&!this.eligible(e,{semanticReview:true}).some(c=>c.id===d.clipId&&c.text===d.text))throw new Error('decision_clip_changed');
     // Catch an obvious question-only response without requiring all legitimate
@@ -341,13 +356,13 @@ export class VideoDirector {
     if (this.mode === 'manual' || this.busy || !this.canSpeak() || this.now() - this.lastFinish < this.cooldownMs) return;
     if (this.mode === 'auto' && (this.now()<(this.showHoldUntil||0)||!this.stageReady())) return;
     const fresh = this.queue.filter(e => this.now() - e.t < eventLifetime(e)); this.counts.expired += this.queue.length - fresh.length; this.queue = fresh;
-    const context=this.context(),audience=context.audienceConnection;
-    if(!this.queue.length&&this.mode==='auto'&&this.now()-this.lastInitiativeAttempt>=18000&&this.now()-this.lastInput>=6500&&this.now()-this.lastFinish>=8000&&!this.dialogueBlocksAudience()){
+    const context=this.context(),audience=context.audienceConnection,hosting=context.hostSessionActive===true;
+    if(!this.queue.length&&this.mode==='auto'&&this.now()-this.lastInitiativeAttempt>=(hosting?12000:18000)&&this.now()-this.lastInput>=(hosting?4000:6500)&&this.now()-this.lastFinish>=(hosting?3500:8000)&&!this.dialogueBlocksAudience()){
       const partner=this.lastOpponent||context.opponent,withOpponent=this.saved.audienceMode!=='solo'&&(!!partner?.uid||!!partner?.handle||!!context.battle||this.saved.audienceMode==='battle');
       if(withOpponent&&this.unansweredInitiatives<2&&this.dialogue?.state!=='needs_video'){
         this.lastInitiativeAttempt=this.now();this.unansweredInitiatives++;
         const en=partner?.language==='en',attempt=this.unansweredInitiatives;this.receive({type:'opponent',uid:partner?.uid||partner?.handle||'isolated-opponent',name:partner?.name||'',text:en?`Approach ${attempt}: `+'There is a quiet gap. Initiate one short friendly question to the opposing player about their day, name, or a game. Do not claim they said anything. Avoid repeating unanswered questions.':`פנייה ${attempt}: `+'יש מרווח שקט. פתח מיוזמתך שאלה קצרה וחברותית למתמודד: איך עובר היום, היכרות או הצעה למשחק. אל תטען שהוא אמר משהו ואל תחזור על שאלה שלא נענתה.',source:'director_cadence'});
-      }else if(audience?.on){
+      }else if(audience?.on||hosting){
         this.lastAudienceAttempt=this.lastInitiativeAttempt=this.now();
         this.receive({type:'audience',text:'יש מרווח בשיחה. פנה בקצרה לקהל באווירה טובה. אם שאלה קודמת לא נענתה, אל תחזור עליה: בחר משפט מעבר חם או הומור קצר ואז תן מקום לתגובה.',source:'director_cadence'});
       }

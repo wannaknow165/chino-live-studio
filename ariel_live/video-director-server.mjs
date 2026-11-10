@@ -49,7 +49,7 @@ export function createVideoDirector({ root, bank, emit, context, onMode, onSpoke
   const catalog = () => [...bank().map(b=>({...b,folder:'bank'})),...load('generated-bank.json',[]).map(b=>({...b,folder:'generated'}))].map(b => ({ id:b.id,text:b.text,file:'/media/'+b.folder+'/'+b.file, ...(b.performanceId?{performanceId:b.performanceId,performanceDescription:b.performanceDescription}:{}), motionTemplate:b.motionTemplate===true||performances.some(p=>p.id===b.performanceId&&p.interactionMotion===true), ready:path.basename(b.file)===b.file&&fs.existsSync(path.join(root,'media',b.folder,b.file)) }));
   const director = new VideoDirector({ file: path.join(dataDir, 'state.json'), catalog,
     decide: (packet, signal) => provider.decideVideo(packet, signal), providerStatus: () => ({ ...provider.status(), budget: budget.status() }),
-    context: () => ({...context(),character:persona}), output: (type, data) => emit('director-' + type, data),
+    context: () => ({...context(),character:persona,hostSessionActive:live.active}), output: (type, data) => emit('director-' + type, data),
     emit: (type, data) => { emit(type, data); if (type === 'director-spoken') onSpoken(data); if(type==='director-inbox'&&live.active&&data.decision?.action==='draft')production?.offerLive(data.item,data.event,data.decision); },
   });
   practiceState.completed=director.saved.inbox.filter(x=>x.practice).length;
