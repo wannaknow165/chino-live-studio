@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node auto-host-server.mjs",
     "effects": "node server.mjs",
+    "learning": "node learning-worker.mjs",
     "setup:local": "node tools/bootstrap-local.mjs",
     "test": "node tools/run-tests.mjs"
   },

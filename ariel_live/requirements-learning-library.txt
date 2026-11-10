@@ -1,0 +1,2 @@
+# Install into the existing learning Python environment; existing local ASR deps are reused.
+pypdf==7.0.1
