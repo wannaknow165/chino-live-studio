@@ -7,6 +7,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {LearningLibrary,MEDIA_EXTENSIONS} from './learning-library.mjs';
 import {LocalTranscriber} from './local-transcriber.mjs';
+import {migrateFullSource,createLearningRunner,acquireWorkerLock,createWorkerScheduling} from './learning-worker-lifecycle.mjs';
 
 const root=path.dirname(fileURLToPath(import.meta.url));
 const directory=process.env.CHINO_LEARNING_HOME||path.join(os.homedir(),'CHINO-Learning');
@@ -14,10 +15,7 @@ const inbox=path.join(directory,'Inbox'),port=Number(process.env.CHINO_LEARNING_
 let notebook={url:'https://notebook.google.com/',status:'not_configured',connected:false,lastSyncAt:null};
 try{const saved=JSON.parse(fs.readFileSync(path.join(directory,'notebook.json'),'utf8'));const u=new URL(saved.url);if(['notebook.google.com','notebooklm.google.com'].includes(u.hostname)&&u.protocol==='https:')notebook={...notebook,url:u.href,status:'awaiting_authenticated_connection'};}catch{}
 fs.mkdirSync(directory,{recursive:true});
-const lock=path.join(directory,'worker.lock');
-try {const previous=JSON.parse(fs.readFileSync(lock,'utf8'));try{process.kill(previous.pid,0);console.error('learning_worker_already_running');process.exit(1);}catch(e){if(e.code!=='ESRCH')throw e;}}catch(e){if(e.code!=='ENOENT'&&e.code!=='ESRCH')throw e;}
-fs.writeFileSync(lock,JSON.stringify({pid:process.pid}),{flag:'w'});
-const release=()=>{try{if(JSON.parse(fs.readFileSync(lock,'utf8')).pid===process.pid)fs.unlinkSync(lock);}catch{}};
+const release=acquireWorkerLock(directory);
 process.on('exit',release);
 const run=promisify(execFile),python=path.join(root,'.venv-learning',process.platform==='win32'?'Scripts/python.exe':'bin/python');
 let transcriber=null,ffmpeg='';
@@ -56,22 +54,15 @@ const library=new LearningLibrary({directory,inbox,extract,
   analyze:async j=>director('/api/director/learning/analyze',{text:j.text,images:await Promise.all((j.images||[]).map(imageData))}),
   adopt:l=>director('/api/director/operator',{id:'learning-'+l.id,mode:'teach',text:('חומר לימוד שהמפעיל בחר להחיל; עדיין לא הוכחת הצלחה בלייב.\n'+l.summary.slice(0,400)+'\n'+(l.skills?.length?l.skills.map(x=>x.policy).join('\n'):l.answers.map(x=>`${x.when}: ${x.text}`).join('\n'))).slice(0,1700)})
 });
-// Previous file jobs used a live-observation endpoint that clipped text to 500 characters.
-// Preserve their audit trail and re-index the originals through the full-material endpoint.
-if(library.state.analysisVersion!=='full_source_v2'){
-  for(const f of library.state.files)if(f.status==='indexed'){f.status='queued';for(const j of library.state.jobs.filter(j=>j.source.fileId===f.id))j.status='superseded';}
-  for(const l of library.state.lessons)if(l.source.kind==='file')l.status='legacy_partial_source';
-  // New version salt avoids collisions with the preserved partial jobs.
-  for(const j of library.state.jobs)if(j.status==='superseded')j.id='legacy-'+j.id;
-  library.state.analysisVersion='full_source_v2';library.save();
-}
-// Import only the existing evidence-linked analyses, never re-read credentials or private runtime conversations.
-let importBusy=false;
-async function cycle(){if(importBusy||library.busy)return;importBusy=true;try{await library.importLive(path.join(root,'data','learning','observations.jsonl'));await library.tick();}catch{library.state.lastError='worker_cycle_failed';library.save();}finally{importBusy=false;}}
-const timer=setInterval(cycle,15000);cycle();
+// Fail closed before the legacy migration can supersede quarantined jobs.
+const migrationReady=migrateFullSource(library);
+const runner=createLearningRunner({library,migrationReady,
+  importSource:()=>library.importLive(path.join(root,'data','learning','observations.jsonl'))});
+const scheduling=createWorkerScheduling(runner);
 function json(res,value,status=200){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));}
 const server=http.createServer(async(req,res)=>{
   try{
+    if(runner.stopping)return json(res,{error:'worker_stopping'},503);
     // Local UI only. Reject cross-site mutation attempts and DNS rebinding.
     if(!['127.0.0.1:'+port,'localhost:'+port].includes(req.headers.host))return json(res,{error:'invalid_host'},403);
     if(req.method==='GET'&&req.url==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(fs.readFileSync(path.join(root,'public','learning.html')));return;}
@@ -92,6 +83,12 @@ const server=http.createServer(async(req,res)=>{
     return json(res,{error:'not_found'},404);
   }catch(e){json(res,{error:/^[a-z0-9_]+$/.test(e.message||'')?e.message:'operation_failed'},400);}
 });
-server.listen(port,'127.0.0.1',()=>console.log(`Learning library: http://127.0.0.1:${port} | Inbox: ${inbox}`));
-server.on('error',()=>{clearInterval(timer);release();process.exit(1);});
-for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>{clearInterval(timer);transcriber?.stop();server.close(()=>process.exit(0));});
+server.listen(port,'127.0.0.1',()=>{scheduling.start();console.log(`Learning library: http://127.0.0.1:${port} | Inbox: ${inbox}`);});
+const shutdown=code=>runner.shutdown({
+  stopScheduling:()=>scheduling.stop(),
+  closeServer:()=>new Promise(resolve=>server.close(resolve)),
+  stopTranscriber:()=>transcriber?.stop(),
+  exit:()=>process.exit(code)
+}).catch(()=>{console.error('learning_worker_shutdown_failed');process.exit(1);});
+server.on('error',()=>shutdown(1));
+for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>shutdown(0));

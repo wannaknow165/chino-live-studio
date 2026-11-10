@@ -1,0 +1,32 @@
+# סיסמאות ומפתחות
+settings.json
+data/settings.json
+data/store.json
+*.key
+*.pem
+.env
+
+# קבצים כבדים / זמניים
+*.7z
+*.zip
+*.log
+*.pyc
+__pycache__/
+node_modules/
+pose_venv/
+venv/
+vendor/
+models/
+
+# תמונות זמניות של בדיקות
+data/_cf_*.jpg
+data/_s25*.png
+data/_scr_*.png
+data/_cfs_*.jpg
+data/_tt_*.png
+_cloudcam_check*.jpg
+
+# תמונות אפקטים שנוצרו (כבדות)
+media/recordings/
+media/thumbs/
+media/performances/

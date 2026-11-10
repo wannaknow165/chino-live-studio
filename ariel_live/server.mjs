@@ -1880,6 +1880,7 @@ const MIME = { '.flv': 'video/x-flv', '.mov': 'video/quicktime', '.webp': 'image
 function sendFile(req, res, f, forceType) {
   if (!fs.existsSync(f) || !fs.statSync(f).isFile()) { res.writeHead(404); return res.end('not found'); }
   const size = fs.statSync(f).size, type = forceType || MIME[path.extname(f).toLowerCase()] || 'application/octet-stream';
+  if (/text\/html|javascript|manifest/.test(type)) res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');   // pages/scripts always fresh (phones + the tunnel cache aggressively)
   const range = req.headers.range;
   if (range) {
     const [s, e] = range.replace('bytes=', '').split('-'); const start = +s, end = e ? +e : size - 1;
@@ -1893,14 +1894,109 @@ const readBody = req => new Promise((ok, no) => { const ch = []; req.on('data', 
 const json = (res, o, code = 200) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(o)); };
 const list = d => fs.readdirSync(P('media', d)).filter(f => f.endsWith('.mp4') && !/_try\d+\.mp4$/.test(f)).sort();
 
-http.createServer(async (req, res) => {
+let rtc = { offer: null, answer: null, phoneIce: [], camIce: [], t: 0 };   // phone camera → cloud page (WebRTC)
+// ---------- 📱 cloud box: render /cam (her camera + every effect) and push it into the cloud phone's camera (RTSP) ----------
+let cloudCast = { on: false, state: 'off', target: '', frames: 0, error: '', since: 0 }; let cloudProc = null;
+const tunnelUrl = () => { try { const m = fs.readFileSync('/opt/ariel-effects/tunnel.log', 'utf8').match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/g); return m ? m[m.length - 1] : ''; } catch { return ''; } };
+const cloudPub = () => ({ deskUrl: process.platform === 'win32' ? '' : (tunnelUrl() ? tunnelUrl() + '/fx?ak=' + settings.adminKey : ''), phoneUrl: process.platform === 'win32' ? '' : (tunnelUrl() ? tunnelUrl() + '/app?k=' + settings.clientKey : ''), on: cloudCast.on, state: cloudCast.state, target: cloudCast.target, frames: cloudCast.frames, error: cloudCast.error, since: cloudCast.since, linux: process.platform !== 'win32', rtsp: settings.cloudRtsp || '', phone: !!rtc.offer, phoneState: rtc.camState || '', phoneSide: rtc.phoneState2 || '' });
+function cloudCastStart(o = {}) {
+  if (cloudProc) return cloudPub();
+  if (o.rtsp != null) { settings.cloudRtsp = String(o.rtsp || ''); saveJ('settings.json', settings); }
+  const args = ['-3.13', '-u', P('tools', 'cam_to_rtsp.py'), '--url', `http://127.0.0.1:${PORT}/cam`];
+  if (settings.cloudRtsp) args.push('--rtsp', settings.cloudRtsp); else if (o.path) args.push('--path', String(o.path));
+  cloudCast = { on: true, state: 'starting', target: '', frames: 0, error: '', since: Date.now() };
+  cloudProc = spawn('py', args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  let buf = ''; cloudProc.stdout.on('data', d => { buf += d; let i; while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); try { const j = JSON.parse(line); if (j.state && j.state !== 'tick') cloudCast.state = j.state; if (j.target) cloudCast.target = j.target; if (j.frames != null) cloudCast.frames = j.frames; if (j.error) cloudCast.error = j.error; emit('cloud', cloudPub()); } catch { console.log('[cloud]', line); } } });
+  let err = ''; cloudProc.stderr.on('data', d => { err = (err + d).slice(-1500); });
+  cloudProc.on('exit', code => { cloudProc = null; cloudCast.on = false; if (cloudCast.state !== 'stopped' && code) { cloudCast.state = 'error'; cloudCast.error = cloudCast.error || err.trim().split('\n').pop() || ('exit ' + code); } else cloudCast.state = 'off'; emit('cloud', cloudPub()); });
+  emit('cloud', cloudPub()); return cloudPub();
+}
+// 📱 what the phone's camera actually shows (Codex's composed "live" path) → MJPEG for the desk (works through the SSH tunnel, unlike WebRTC)
+const liveRtsp = () => { if (settings.cloudLiveRtsp) return settings.cloudLiveRtsp; try { return JSON.parse(fs.readFileSync('/var/lib/cloud-android/devices/phone1/boostera-live/config.json', 'utf8')).source_url || ''; } catch { return ''; } };
+let phoneView = null; const phoneViewers = new Set();
+async function phoneViewStart() {
+  if (phoneView) return phoneView; const src = liveRtsp(); if (!src) throw new Error('אין כתובת למצלמה של הטלפון');
+  const ff = await ffmpegPath();
+  const pr = spawn(ff, ['-hide_banner', '-loglevel', 'error', '-nostdin', '-rtsp_transport', 'tcp', '-i', src, '-an', '-vf', 'fps=10,scale=360:-2', '-q:v', '6', '-f', 'mpjpeg', '-boundary_tag', 'frame', '-'], { stdio: ['ignore', 'pipe', 'pipe'] });
+  pr.stdout.on('data', d => { for (const r of phoneViewers) { try { r.write(d); } catch {} } });
+  pr.on('exit', () => { phoneView = null; for (const r of phoneViewers) { try { r.end(); } catch {} } phoneViewers.clear(); });
+  phoneView = pr; return pr;
+}
+function cloudCastStop() { if (cloudProc) { try { cloudProc.kill('SIGTERM'); } catch {} setTimeout(() => { try { cloudProc && cloudProc.kill('SIGKILL'); } catch {} }, 4000); } cloudCast.on = false; cloudCast.state = 'off'; emit('cloud', cloudPub()); return cloudPub(); }
+// ---------- 📱 the cloud phone INSIDE the app: live screen (MJPEG) + touch, so she operates TikTok there (LIVE button) ----------
+const ADB = () => settings.adb || ['/usr/bin/adb', '-P', '5038', '-s', '127.0.0.1:6520'];
+if (!settings.clientKey) { settings.clientKey = crypto.randomBytes(9).toString('base64url'); saveJ('settings.json', settings); }
+if (!settings.adminKey) { settings.adminKey = crypto.randomBytes(12).toString('base64url'); saveJ('settings.json', settings); }
+let screenLast = null, screenLoop = false; const screenViewers = new Set();
+function screenPush() { if (!screenLast) return; const head = Buffer.from(`--frame\r\nContent-Type: image/jpeg\r\nContent-Length: ${screenLast.length}\r\n\r\n`); for (const r of screenViewers) { try { r.write(head); r.write(screenLast); r.write('\r\n'); } catch {} } }
+// screencap loop (~3 fps): simple and never stalls, unlike screenrecord which only sends changed frames
+async function screenStart() {
+  if (screenLoop) return; screenLoop = true; const ff = await ffmpegPath(); const [adb, ...a0] = ADB();
+  (async () => { while (screenViewers.size) { const t = Date.now();
+      try { const png = await new Promise(res => execFile(adb, [...a0, 'exec-out', 'screencap', '-p'], { encoding: 'buffer', maxBuffer: 16 << 20, timeout: 6000 }, (e, out) => res(e ? null : out)));
+        if (png && png.length > 1000) { const jpg = await new Promise(res => { const pr = execFile(ff, ['-hide_banner', '-loglevel', 'error', '-nostdin', '-f', 'image2pipe', '-i', '-', '-vf', 'scale=360:-2', '-q:v', '7', '-f', 'mjpeg', '-'], { encoding: 'buffer', maxBuffer: 4 << 20, timeout: 6000 }, (e, out) => res(e ? null : out)); pr.stdin.end(png); });
+          if (jpg && jpg.length > 500) { screenLast = jpg; screenPush(); } } } catch {}
+      await new Promise(r => setTimeout(r, Math.max(60, 330 - (Date.now() - t)))); }
+    screenLoop = false; })();
+}
+function screenStop() { /* the loop ends by itself when the last viewer leaves */ }
+const adbRun = args => new Promise(res => { const [adb, ...a0] = ADB(); execFile(adb, [...a0, ...args], { timeout: 8000 }, (e, out) => res(e ? '' : String(out || ''))); });
+const SCREEN = { w: 1080, h: 1920 };
+// ---- 📺 the cloud phone's own screen stream (Cuttlefish WebRTC: 60fps video + direct touch) — proxied to the client app, key-gated ----
+const CF = { host: '127.0.0.1', port: +(settings.cfOperatorPort || 1080) };
+const cfDevice = () => settings.cfDevice || 'cvd_1-1-1';
+const clientCookieOk = req => /(?:^|;\s*)bk=([\w-]+)/.exec(String(req.headers.cookie || ''))?.[1] === settings.clientKey;
+const isCfPath = p => p === '/infra_config' || p.startsWith('/polled_connections') || p.startsWith('/devices/');
+const CF_STYLE = `<style id="boostera">
+html,body{margin:0;background:#000;overflow:hidden;height:100%}
+#control-panel-default-buttons,#control-panel-custom-buttons,.display-control-buttons,#layout-toggle-button-container,.device-display-info,#device-details-modal,#delete{display:none!important}
+#device-connection,#controls-and-displays,#device-display-column,#device-displays,.device-display,.device-video-container{width:100vw!important;height:100vh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;display:flex!important;align-items:center;justify-content:center;overflow:hidden}
+.device-display-video{width:auto!important;height:100vh!important;max-width:100vw!important;max-height:100vh!important;object-fit:fill!important;touch-action:none;display:block}
+@media (max-aspect-ratio: 9/20){.device-display-video{width:100vw!important;height:auto!important}}
+#loader{border-color:#e6b450 transparent transparent transparent!important}
+</style>`;
+function cfProxy(req, res, p, u) {
+  const opts = { host: CF.host, port: CF.port, method: req.method, path: u.pathname + u.search, headers: { ...req.headers, host: CF.host + ':' + CF.port } };
+  delete opts.headers['accept-encoding'];
+  const inject = /\/files\/client\.html$/.test(p);
+  const pr = http.request(opts, r => {
+    const h = { ...r.headers }; delete h['content-length']; delete h['content-security-policy']; delete h['x-frame-options'];
+    if (/\/files\/.*\.(html|js|css)$/.test(p)) h['cache-control'] = 'no-store';
+    if (!inject) { res.writeHead(r.statusCode, h); return r.pipe(res); }
+    let body = ''; r.setEncoding('utf8'); r.on('data', d => body += d); r.on('end', () => { body = body.replace('</head>', CF_STYLE + '</head>'); res.writeHead(r.statusCode, h); res.end(body); });
+  });
+  pr.on('error', e => { try { res.writeHead(502); res.end('phone stream off: ' + e.message); } catch {} });
+  req.pipe(pr);
+}
+function cfUpgrade(req, socket, head) {
+  const u = new URL(req.url, 'http://x'); const p = u.pathname;
+  const pub = req.headers['cf-connecting-ip'] || /trycloudflare\.com$/i.test(String(req.headers.host || ''));
+  if (!/^\/devices\/[^/]+\/connect$/.test(p) || (pub && !clientCookieOk(req))) { try { socket.destroy(); } catch {} return; }
+  const up = http.request({ host: CF.host, port: CF.port, method: 'GET', path: u.pathname + u.search, headers: { ...req.headers, host: CF.host + ':' + CF.port } });
+  up.on('upgrade', (r, s2, h2) => {
+    let hdr = `HTTP/1.1 101 Switching Protocols\r\n`; for (const [k, v] of Object.entries(r.headers)) hdr += `${k}: ${v}\r\n`;
+    socket.write(hdr + '\r\n'); if (h2?.length) socket.write(h2); if (head?.length) s2.write(head);
+    s2.pipe(socket); socket.pipe(s2);
+    s2.on('error', () => socket.destroy()); socket.on('error', () => s2.destroy());
+  });
+  up.on('response', () => socket.destroy()); up.on('error', () => socket.destroy());
+  up.end();
+}
+
+const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x'); const p = decodeURIComponent(u.pathname);
+  // a public link (her phone's HTTPS address) may only reach the phone page + its signalling — never the desk, never the keys
+  if (req.headers['cf-connecting-ip'] || /trycloudflare\.com$/i.test(String(req.headers.host || ''))) { const adminOk = u.searchParams.get('ak') === settings.adminKey || /(?:^|;\s*)ak=([\w-]+)/.exec(String(req.headers.cookie || ''))?.[1] === settings.adminKey;
+  if (adminOk && u.searchParams.get('ak')) { res.setHeader('Set-Cookie', 'ak=' + settings.adminKey + '; Path=/; Max-Age=31536000; SameSite=Lax; Secure'); }
+  if (!(adminOk || (p.startsWith('/api/phone/') && (req.headers['x-key'] === settings.clientKey || u.searchParams.get('k') === settings.clientKey)) || (isCfPath(p) && clientCookieOk(req)) || p === '/phone' || p === '/client' || p === '/client.webmanifest' || p === '/app' || p === '/app/' || p.startsWith('/app/') || p.startsWith('/api/rtc/') || p.startsWith('/api/client/') || p.startsWith('/media/thumbs/'))) { res.writeHead(404); return res.end('not here'); } }
+  if (isCfPath(p)) return cfProxy(req, res, p, u);
   try {
     if (p === '/api/events') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
       res.write('data: ' + JSON.stringify({ type: 'hello', boot: BOOT }) + '\n\n'); clients.add(res); req.on('close', () => clients.delete(res));
       try { res.write('data: ' + JSON.stringify({ type: 'director', ...directorPublic() }) + '\n\n'); } catch {}
       try { res.write('data: ' + JSON.stringify({ type: 'headgame', on: headGame.on, user: headGame.user, still: headGame.still, face: headGame.face || null, mode: headGame.mode, showHead: headGame.showHead, x: headGame.x, y: headGame.y, size: headGame.size, likes: headGame.likes, thrown: headGame.thrown }) + '\n\n'); } catch {}   // a page that opens later still knows the game is on
+      try { res.write('data: ' + JSON.stringify({ type: 'cloud', ...cloudPub() }) + '\n\n'); } catch {}
       return;
     }
     if (req.method === 'POST' && p === '/api/head/snap') { const id = 'snap_' + Date.now(); fs.writeFileSync(P('data', id + '.jpg'), await readBody(req)); return json(res, { snap: id }); }
@@ -2165,6 +2261,14 @@ http.createServer(async (req, res) => {
     if (req.method === 'POST' && p === '/api/desk/mute') { const { on } = JSON.parse(await readBody(req)); await deskMute(on == null ? !deskMuted : !!on); return json(res, deskState()); }
     if (req.method === 'POST' && p === '/api/desk/say') { try { const { text } = JSON.parse(await readBody(req)); return json(res, await deskSay(text)); } catch (e) { return json(res, { error: e.message }, 500); } }
     if (req.method === 'POST' && p === '/api/replay') { const { id } = JSON.parse(await readBody(req)); const e = bank.find(b => b.id === id); if (e) { e.count++; e.last = Date.now(); saveJ('bank.json', bank); emit('play', { file: '/media/bank/' + e.file, text: e.text, kind: 'talk' }); emit('bank', {}); } return json(res, { ok: !!e }); }
+    // ---- 🦁 switch cloud camera source (camera / lion) ----
+    if (p === '/api/cloud/source') { if (req.method === 'POST') { try { const b = JSON.parse((await readBody(req)).toString() || '{}'); settings.cloudSource = (b.source === 'lion') ? 'lion' : 'camera'; saveJ('settings.json', settings); emit('cloud', cloudPub()); return json(res, { ok: true, source: settings.cloudSource }); } catch (e) { return json(res, { error: e.message }, 400); } } return json(res, { source: settings.cloudSource || 'camera' }); }
+    // ---- 🦁 trigger an action on the lion (dance/song/roar) ----
+    if (req.method === 'POST' && p === '/api/chino/action') { try { const b = JSON.parse((await readBody(req)).toString() || '{}'); emit('chino', { action: b.action }); return json(res, { ok: true, action: b.action }); } catch (e) { return json(res, { error: e.message }, 400); } }
+    // ---- ⭐ top supporters in the live (simple snapshot: last gifters / viewers if we have them) ----
+    if (req.method === 'GET' && p === '/api/live/top') { const top = (deskState().top || []).slice(0, 10).map(t => ({ user: t.user || t.handle || '', gift: +t.gift || +t.coins || 0 })); return json(res, { top }); }
+    // ---- 💖 SUPPORTERS dashboard — pre-live prep of VIP fans ----
+    if (p === '/supporters') return sendFile(req, res, P('public', 'supporters.html'));
     // ---- 👥 PLAYERS console (/players): who has what, make only what's missing, progress, launch / auto-launch ----
     if (p === '/players') return sendFile(req, res, P('public', 'players.html'));
     if (p.startsWith('/data/players/') || /^\/data\/ovthumb_[\w-]+\.png$/.test(p)) return sendFile(req, res, P(p.slice(1)));
@@ -2217,11 +2321,64 @@ http.createServer(async (req, res) => {
     if (p.startsWith('/v/')) return sendFile(req, res, P('media', p.slice(3)), 'application/octet-stream');
     if (p.startsWith('/media/')) return sendFile(req, res, P(p.slice(1)));
     if (p.startsWith('/data/avatars/') || p.startsWith('/data/heads/')) return sendFile(req, res, P(p.slice(1)));
-    if (p === '/' || p === '/desk') return sendFile(req, res, P('public', 'desk.html'));
+    if (p === '/' || p === '/desk' || p === '/fx') return sendFile(req, res, P('public', 'desk.html'));
     if (p === '/old' || p === '/control') return sendFile(req, res, P('public', 'control.html'));
     if (p === '/stage' || p === '/overlay' || p === '/game') return sendFile(req, res, P('public', 'stage.html'));   // /overlay = the main Link layer, /game = the 🍅 layer (short URLs Live Studio accepts)
+    if (p === '/cam') { rtc = { offer: null, answer: null, phoneIce: [], camIce: [], t: Date.now(), camState: '' }; return sendFile(req, res, P('public', 'cam.html')); }       // 📱 cloud-Android version: her phone camera + all the effects, one picture
+    if (p === '/phone') return sendFile(req, res, P('public', 'phone.html'));   // the page she opens on the phone: sends the camera to /cam
+    if (req.method === 'GET' && p === '/api/cloud') return json(res, cloudPub());
+    if (req.method === 'POST' && p === '/api/cloud/cast') { try { const b = JSON.parse((await readBody(req)).toString() || '{}'); if (b.rtsp != null && !b.on) { settings.cloudRtsp = String(b.rtsp || ''); saveJ('settings.json', settings); } return json(res, b.on ? cloudCastStart(b) : cloudCastStop()); } catch (e) { return json(res, { error: e.message }, 400); } }
+    if (p === '/api/phone/screen.mjpeg') { try { res.writeHead(200, { 'Content-Type': 'multipart/x-mixed-replace; boundary=frame', 'Cache-Control': 'no-store', Connection: 'close' }); screenViewers.add(res); req.on('close', () => { screenViewers.delete(res); }); screenPush(); await screenStart(); return; } catch (e) { try { res.end(); } catch {} return; } }
+    if (req.method === 'POST' && p === '/api/phone/tap') { const b = JSON.parse((await readBody(req)).toString() || '{}'); const x = Math.round(Math.max(0, Math.min(1, +b.x)) * SCREEN.w), y = Math.round(Math.max(0, Math.min(1, +b.y)) * SCREEN.h); if (b.x2 != null) { const x2 = Math.round(Math.max(0, Math.min(1, +b.x2)) * SCREEN.w), y2 = Math.round(Math.max(0, Math.min(1, +b.y2)) * SCREEN.h); await adbRun(['shell', 'input', 'swipe', String(x), String(y), String(x2), String(y2), String(Math.max(80, Math.min(1500, +b.ms || 250)))]); } else await adbRun(['shell', 'input', 'tap', String(x), String(y)]); return json(res, { ok: true }); }
+    if (req.method === 'POST' && p === '/api/phone/key') { const b = JSON.parse((await readBody(req)).toString() || '{}'); const K = { back: '4', home: '3', recents: '187', enter: '66' }; if (K[b.k]) await adbRun(['shell', 'input', 'keyevent', K[b.k]]); return json(res, { ok: true }); }
+    if (req.method === 'POST' && p === '/api/phone/text') { const b = JSON.parse((await readBody(req)).toString() || '{}'); const t = String(b.t || '').slice(0, 200); if (t) await adbRun(['shell', 'input', 'text', t.replace(/[^\w.,@:!?/-]/g, '')]); return json(res, { ok: true }); }
+    if (req.method === 'POST' && p === '/api/phone/app') { const b = JSON.parse((await readBody(req)).toString() || '{}'); if (b.app === 'tiktok') await adbRun(['shell', 'monkey', '-p', 'com.zhiliaoapp.musically', '-c', 'android.intent.category.LAUNCHER', '1']); return json(res, { ok: true }); }
+    if (req.method === 'GET' && p === '/api/phone/key') return json(res, { key: settings.clientKey });
+    if (p === '/api/phone/view.mjpeg') { try { await phoneViewStart(); res.writeHead(200, { 'Content-Type': 'multipart/x-mixed-replace; boundary=frame', 'Cache-Control': 'no-store', Connection: 'close' }); phoneViewers.add(res); req.on('close', () => { phoneViewers.delete(res); if (!phoneViewers.size && phoneView) { try { phoneView.kill('SIGTERM'); } catch {} } }); return; } catch (e) { return json(res, { error: e.message }, 500); } }
+    // ---- 📱 external page for the streamer: her camera + a few big effect buttons (no desk, no keys) ----
+    if (p === '/client') { if (u.searchParams.get('k') === settings.clientKey) res.setHeader('Set-Cookie', 'bk=' + settings.clientKey + '; Path=/; Max-Age=31536000; SameSite=Lax' + (/trycloudflare\.com$/i.test(String(req.headers.host || '')) ? '; Secure' : '')); return sendFile(req, res, P('public', 'client.html')); }
+    if (p === '/api/client/cfg') return json(res, { device: cfDevice(), screen: settings.clientScreen || 'webrtc' });   // webrtc = the phone's native 60fps stream, mjpeg = the old screenshot loop
+    if (p === '/client.webmanifest') return sendFile(req, res, P('public', 'client.webmanifest'), 'application/manifest+json');
+    if (p === '/app' || p === '/app/') return sendFile(req, res, P('public', 'app', 'index.html'));
+    if (/^\/app\/[\w.-]+\.(png|js|html)$/.test(p)) return sendFile(req, res, P('public', 'app', p.slice(5)), p.endsWith('.js') ? 'text/javascript' : undefined);
+    if (req.method === 'GET' && p === '/api/client/list') {
+      const names = loadJ('overlays.json', {});
+      const ovs = fs.readdirSync(P('media', 'overlays')).filter(f => f.endsWith('.webm') && fs.existsSync(P('media', 'overlays', f.replace(/\.webm$/, '.json')))).map(f => f.replace(/\.webm$/, '')).map(id => { const o = typeof names[id] === 'object' ? names[id] : { he: names[id] }; return { kind: 'overlay', id, name: o.he || (/-([\w.]+?)__H_/.exec(id)?.[1] ? '🥊 ' + /-([\w.]+?)__H_/.exec(id)[1] : id.replace(/^ov_+/, '').replace(/_+/g, ' ').trim() || id), user: o.user || '', thumb: fs.existsSync(P('media', 'thumbs', id + '.jpg')) ? '/media/thumbs/' + id + '.jpg' : '' }; });
+      const cur = HANDLE(oppLive.user || opp.handle);
+      let items = [
+        ...clips.map(c => ({ kind: 'clip', id: c.id, name: c.name, thumb: c.thumb || '' })),
+        ...fx.map(f => ({ kind: 'fx', id: f.id, name: f.name, thumb: f.thumb || '' })),
+        ...ovs.filter(o => !o.user || o.user === cur) ];
+      // first test = two effects only (settings.clientItems = ["overlay:boxer1", ...] widens it later from the desk)
+      const allow = Array.isArray(settings.clientItems) && settings.clientItems.length ? settings.clientItems : null;   // empty = everything (the panel groups them by kind)
+      if (allow) items = items.filter(it => allow.includes(it.kind + ':' + it.id));
+      return json(res, { opponent: cur, phone: !!rtc.offer, items });
+    }
+    if (req.method === 'POST' && p === '/api/client/items') { try { const b = JSON.parse((await readBody(req)).toString() || '{}'); settings.clientItems = (b.items || []).map(String).slice(0, 60); saveJ('settings.json', settings); return json(res, { ok: true, items: settings.clientItems }); } catch (e) { return json(res, { error: e.message }, 400); } }
+    if (req.method === 'POST' && p === '/api/client/play') { try { const { kind, id } = JSON.parse((await readBody(req)).toString() || '{}'); const cid = String(id).replace(/[^\w-]/g, '');
+      if (kind === 'clip') return json(res, playClip(cid)); if (kind === 'fx') return json(res, playFx(cid)); if (kind === 'stop') { emit('stop', {}); clipEnded('stopped'); return json(res, { ok: true }); }
+      const j = P('media', 'overlays', cid + '.json'); if (!fs.existsSync(j)) return json(res, { error: 'no overlay' }, 404); const track = JSON.parse(fs.readFileSync(j, 'utf8')); const nm0 = loadJ('overlays.json', {})[cid]; const nm = typeof nm0 === 'object' ? nm0 : {};
+      const k = nm.face ?? 0; if (track.tracks && track.tracks[k]) track.frames = track.tracks[k]; track.swap = false; track.pos = nm.pos || 'center'; track.size = +(nm.size || 0.75); track.bottom = +(nm.bottom ?? 0); track.head = +(nm.head ?? 1); track.attach = ''; track.hitAt = null; track.dir = 1;
+      emit('overlay', { id: cid, loop: false, webm: '/media/overlays/' + cid + '.webm', track }); return json(res, { ok: true }); } catch (e) { return json(res, { error: e.message }, 400); } }
+    // ---- WebRTC signalling for phone → cam (one room, in memory) ----
+    if (p.startsWith('/api/rtc/')) {
+      const part = p.slice(9); res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate'); res.setHeader('CDN-Cache-Control', 'no-store');
+      if (req.method === 'GET' && part === 'state') return json(res, { offer: rtc.offer, answer: rtc.answer, phoneIce: rtc.phoneIce.length, camIce: rtc.camIce.length, t: rtc.t });
+      const b = req.method === 'POST' ? JSON.parse((await readBody(req)).toString() || '{}') : {};
+      if (part === 'offer' && +b.v !== 2) return json(res, { ok: false, old: true });   // an old tab still open on the phone must not fight the current page
+      if (part === 'offer') { const id = String(b.id || ''); if (rtc.owner && rtc.owner !== id && Date.now() - (rtc.ownerAt || 0) < 45000) return json(res, { ok: false, busy: true });   // one page at a time: other tabs go idle
+        rtc = { offer: b.sdp || null, answer: null, phoneIce: [], camIce: [], t: Date.now(), camState: 'offer', owner: id, ownerAt: Date.now() }; emit('rtc', { offer: true }); return json(res, { ok: true, t: rtc.t }); }
+      if (part === 'phonestate') { rtc.phoneState2 = String(b.state || ''); return json(res, { ok: true }); }
+      if (part === 'camstate') { rtc.camState = String(b.state || ''); if (rtc.offer && Date.now() - rtc.t > 10000 && /(^|conn:)(failed|closed)\b/.test(rtc.camState)) { rtc = { offer: null, answer: null, phoneIce: [], camIce: [], t: Date.now(), camState: 'dropped', owner: null, ownerAt: 0, phoneState2: '' }; console.log('[rtc] camera line dropped — phone will re-offer'); } emit('cloud', cloudPub()); return json(res, { ok: true }); }   // the cloud page lost the line → new session stamp → the phone re-offers by itself
+      if (part === 'answer') { rtc.answer = b.sdp || null; return json(res, { ok: true }); }   // t stays the offer's stamp — the phone compares it to decide "is this still my session"
+      if (part === 'ice') { (b.from === 'phone' ? rtc.phoneIce : rtc.camIce).push(b.candidate); return json(res, { ok: true }); }
+      if (part === 'poll') { const role = String(b.role || u.searchParams.get('role') || ''); if (role === 'phone' && rtc.owner && u.searchParams.get('id') === rtc.owner) rtc.ownerAt = Date.now(); const since = +(b.since ?? u.searchParams.get('since') ?? 0); const arr = role === 'phone' ? rtc.camIce : rtc.phoneIce; return json(res, { offer: role === 'cam' ? rtc.offer : null, answer: role === 'phone' ? rtc.answer : null, ice: arr.slice(since), next: arr.length, t: rtc.t }); }
+      return json(res, { error: 'rtc?' }, 404);
+    }   // /overlay = the main Link layer, /game = the 🍅 layer (short URLs Live Studio accepts)
     res.writeHead(404); res.end('not found');
   } catch (e) { json(res, { error: e.message }, 500); }
-}).listen(PORT, () => {
+});
+server.on('upgrade', cfUpgrade);
+server.listen(PORT, () => {
   console.log(`\n  ARIEL LIVE is running\n  control: http://localhost:${PORT}/\n  stage (for Live Studio): http://localhost:${PORT}/stage\n  key: ${KEY ? 'OK' : 'MISSING'}\n`);
 });

@@ -1,0 +1,238 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>💖 תומכים · BOOSTERA</title>
+<style>
+:root{--gold:#e6b450;--gold2:#b8841f;--bg:#0a070d;--card:#14101c;--line:#2a2538;--dim:#9a94a7;--ok:#4ade80;--warn:#f59e0b;--err:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(135deg,#0a070d,#140c1d);color:#fff;font-family:"Segoe UI",Arial,sans-serif;min-height:100vh;padding:24px 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+h1{font-size:24px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800}
+.sub{color:var(--dim);font-size:13px;margin-top:3px}
+.top{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;display:flex;gap:12px;align-items:center;font-size:12px}
+.top b{color:var(--gold)}
+.stat{display:flex;gap:16px;flex-wrap:wrap}
+.s{text-align:center;min-width:70px}
+.s b{display:block;font-size:22px;color:var(--gold);font-weight:800}
+.s span{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+main{display:grid;grid-template-columns:1fr 2fr;gap:20px;max-width:1400px;margin:0 auto}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.card h2{color:var(--gold);font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card h2 .cnt{background:rgba(230,180,80,.15);border:1px solid rgba(230,180,80,.3);border-radius:999px;padding:2px 9px;font-size:11px;color:var(--gold);margin-right:auto}
+.add{display:flex;gap:7px;margin-bottom:12px}
+.add input{flex:1;background:rgba(0,0,0,.4);border:1px solid rgba(230,180,80,.2);border-radius:10px;padding:10px 12px;color:#fff;font:inherit;font-size:13px}
+.add input::placeholder{color:#666}
+.add button{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;font-weight:800;border:0;padding:10px 16px;border-radius:10px;font-size:13px;cursor:pointer}
+.list{display:flex;flex-direction:column;gap:9px;max-height:65vh;overflow-y:auto;padding:0 2px}
+.list::-webkit-scrollbar{width:4px}.list::-webkit-scrollbar-thumb{background:rgba(230,180,80,.3);border-radius:2px}
+.u{display:flex;flex-direction:column;gap:8px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;cursor:pointer;transition:border-color .2s}
+.u:hover{border-color:rgba(230,180,80,.3)}
+.u.sel{border-color:var(--gold);background:linear-gradient(135deg,rgba(230,180,80,.1),rgba(230,180,80,.02))}
+.urow{display:flex;align-items:center;gap:10px}
+.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#8a4fff,#ff4a8a);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0}
+.un{flex:1;min-width:0}
+.un b{display:block;color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.un span{color:var(--dim);font-size:10.5px}
+.rm{background:transparent;border:0;color:#666;font-size:16px;cursor:pointer;padding:4px 7px;border-radius:6px}
+.rm:hover{background:rgba(255,80,80,.1);color:#ff8a7a}
+.bar{display:flex;gap:4px;margin-top:3px;height:6px}
+.seg{flex:1;background:rgba(255,255,255,.06);border-radius:3px}
+.seg.on{background:var(--gold)}
+.seg.pend{background:var(--warn);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.4}}
+
+.empty{text-align:center;padding:36px 20px;color:#666;font-size:13px}
+.empty .big{font-size:42px;margin-bottom:12px}
+
+/* right side detail */
+.detail{min-height:60vh}
+.detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;color:#666;text-align:center;gap:10px}
+.detail-empty .big{font-size:58px}
+.panel{display:flex;flex-direction:column;gap:18px}
+.header2{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.header2 .av2{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#8a4fff,#ff4a8a);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff}
+.header2 .nm{flex:1}
+.header2 .nm h3{font-size:19px;color:#fff;font-weight:800;margin-bottom:2px}
+.header2 .nm span{font-size:12px;color:var(--dim)}
+
+.sec h4{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.vtile{background:rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;position:relative;aspect-ratio:9/16;cursor:pointer}
+.vtile.ready{border-color:rgba(74,222,128,.5)}
+.vtile.pend{border-color:rgba(245,158,11,.5)}
+.vtile .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;background:linear-gradient(135deg,#231b32,#140c1d)}
+.vtile .lb{position:absolute;left:0;right:0;bottom:0;padding:5px 7px;font-size:10px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.85));font-weight:700}
+.vtile .st{position:absolute;top:5px;right:5px;font-size:10px;padding:2px 6px;border-radius:999px;font-weight:800}
+.vtile.ready .st{background:rgba(74,222,128,.2);color:var(--ok);border:1px solid rgba(74,222,128,.4)}
+.vtile.pend .st{background:rgba(245,158,11,.2);color:var(--warn);border:1px solid rgba(245,158,11,.4)}
+.btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;font-weight:800;border:0;padding:12px 18px;border-radius:12px;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn2{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#ddd;font-weight:700;padding:10px 14px;border-radius:10px;font-size:13px;cursor:pointer}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.ai-prompts{display:flex;flex-direction:column;gap:7px}
+.ai-prompts textarea{background:rgba(0,0,0,.4);border:1px solid rgba(230,180,80,.2);border-radius:10px;padding:10px 12px;color:#fff;font:inherit;font-size:13px;min-height:68px;resize:vertical}
+.chip{font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.07);color:#ddd;border:1px solid rgba(255,255,255,.1);cursor:pointer}
+.chip.sel{background:var(--gold);color:#1a1000;border-color:var(--gold)}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;font-weight:800;padding:12px 24px;border-radius:999px;box-shadow:0 10px 30px rgba(230,180,80,.4);transition:transform .3s;z-index:100}
+.toast.on{transform:translateX(-50%) translateY(0)}
+</style></head><body>
+<header>
+  <div><h1>💖 תומכים</h1><div class="sub">הכן וידאו AI מראש — ברגע שהם נכנסים ללייב, לחיצה אחת ושדר</div></div>
+  <div class="top">
+    <div class="stat">
+      <div class="s"><b id="st-total">0</b><span>תומכים</span></div>
+      <div class="s"><b id="st-ready">0</b><span>וידאו מוכן</span></div>
+      <div class="s"><b id="st-pend">0</b><span>בייצור</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <h2>👥 הרשימה שלך <span class="cnt" id="cnt-list">0</span></h2>
+    <div class="add">
+      <input id="add-in" placeholder="@username של תומך" dir="ltr">
+      <button id="add-btn">הוסף</button>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+
+  <div class="card detail" id="detail">
+    <div class="detail-empty">
+      <div class="big">💖</div>
+      <div>בחר תומך מהרשימה מימין</div>
+      <div style="font-size:11px;color:#555;margin-top:6px">או הוסף תומך חדש עם ה-@username שלו</div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const K='UMd3XmvHa1IYwSAW';
+const H={'Content-Type':'application/json','x-key':K};
+const post=(u,b)=>fetch(u,{method:'POST',headers:H,body:JSON.stringify(b||{})}).then(r=>r.json()).catch(()=>({}));
+const get=u=>fetch(u,{headers:{'x-key':K}}).then(r=>r.json()).catch(()=>({}));
+const $=id=>document.getElementById(id);
+let tT=0;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('on'),1800)}
+
+// supporter: {user, videos:[{id,kind,prompt,status:'ready'|'pending'|'error',thumb?,ts}]}
+let supporters=[];let selected=null;
+try{supporters=JSON.parse(localStorage.getItem('sups2')||'[]')}catch{}
+
+const VIDEO_TYPES=[
+  {kind:'bg',em:'🖼',nm:'רקע (מאחוריך)'},
+  {kind:'front',em:'🎬',nm:'קדמי (מולך)'},
+  {kind:'overlay',em:'🎁',nm:'מתנה מרחפת'},
+];
+
+function save(){try{localStorage.setItem('sups2',JSON.stringify(supporters))}catch{}refreshStats()}
+function refreshStats(){
+  let r=0,p=0;for(const s of supporters){for(const v of (s.videos||[])){if(v.status==='ready')r++;if(v.status==='pending')p++}}
+  $('st-total').textContent=supporters.length;$('st-ready').textContent=r;$('st-pend').textContent=p;
+  $('cnt-list').textContent=supporters.length;
+}
+
+function renderList(){
+  const l=$('list');l.innerHTML='';
+  if(!supporters.length){l.innerHTML='<div class="empty"><div class="big">📝</div>אין תומכים עדיין<br><span style="color:#555;font-size:11px">הוסף אחד למעלה</span></div>';refreshStats();return}
+  for(const s of supporters){
+    const vids=s.videos||[];
+    const ready=vids.filter(v=>v.status==='ready').length;
+    const pend=vids.filter(v=>v.status==='pending').length;
+    const el=document.createElement('div');el.className='u'+(selected===s.user?' sel':'');
+    el.innerHTML=`<div class="urow">
+      <div class="av">${(s.user[0]||'?').toUpperCase()}</div>
+      <div class="un"><b>@${s.user}</b><span>${vids.length?`${ready} מוכנים${pend?' · '+pend+' בייצור':''}`:'אין וידאו עדיין'}</span></div>
+      <button class="rm">🗑</button>
+    </div>
+    <div class="bar">${VIDEO_TYPES.map((_,i)=>{
+      const has=vids.filter(v=>v.kind===VIDEO_TYPES[i].kind);
+      const hr=has.find(v=>v.status==='ready');const hp=has.find(v=>v.status==='pending');
+      return `<div class="seg${hr?' on':hp?' pend':''}"></div>`;
+    }).join('')}</div>`;
+    el.onclick=(e)=>{if(e.target.classList.contains('rm'))return;selected=s.user;renderList();renderDetail()};
+    el.querySelector('.rm').onclick=(e)=>{e.stopPropagation();if(confirm(`למחוק את @${s.user}?`)){supporters=supporters.filter(x=>x.user!==s.user);if(selected===s.user)selected=null;save();renderList();renderDetail()}};
+    l.appendChild(el);
+  }
+  refreshStats();
+}
+
+function renderDetail(){
+  const d=$('detail');if(!selected){d.innerHTML='<div class="detail-empty"><div class="big">💖</div><div>בחר תומך מהרשימה מימין</div></div>';return}
+  const s=supporters.find(x=>x.user===selected);if(!s){selected=null;renderDetail();return}
+  const vids=s.videos||[];
+  d.innerHTML=`<div class="panel">
+    <div class="header2">
+      <div class="av2">${(s.user[0]||'?').toUpperCase()}</div>
+      <div class="nm"><h3>@${s.user}</h3><span>${vids.length} סרטונים · הוכן ב-${new Date(s.added||Date.now()).toLocaleDateString('he-IL')}</span></div>
+      <button class="btn2" id="sug-btn">💡 הצעות AI</button>
+    </div>
+
+    <div class="sec">
+      <h4>🎬 הוסף וידאו חדש</h4>
+      <div class="ai-prompts">
+        <div class="row" id="type-row">
+          ${VIDEO_TYPES.map((t,i)=>`<div class="chip${i===0?' sel':''}" data-k="${t.kind}">${t.em} ${t.nm}</div>`).join('')}
+        </div>
+        <textarea id="prompt" placeholder="תאר את הוידאו (למשל: נוף של @${s.user} עם זיקוקים וכוכבים נופלים)"></textarea>
+        <div class="row">
+          <button class="btn" id="gen-btn">✨ צור וידאו</button>
+          <button class="btn2" id="gen-all-btn">🎁 צור את כל ה-${VIDEO_TYPES.length} הסוגים</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h4>📚 הוידאו של התומך (${vids.length})</h4>
+      ${vids.length?`<div class="vgrid">${vids.map(v=>`
+        <div class="vtile ${v.status}" data-id="${v.id}">
+          <div class="ph">${(VIDEO_TYPES.find(t=>t.kind===v.kind)||{}).em||'🎬'}</div>
+          <div class="st">${v.status==='ready'?'✓ מוכן':v.status==='pending'?'⏳ בייצור':'⚠'}</div>
+          <div class="lb">${(VIDEO_TYPES.find(t=>t.kind===v.kind)||{}).nm||v.kind}</div>
+        </div>`).join('')}</div>`:'<div style="padding:20px;text-align:center;color:#555">אין וידאו עדיין</div>'}
+    </div>
+  </div>`;
+
+  let curKind='bg';
+  for(const c of d.querySelectorAll('#type-row .chip')){c.onclick=()=>{curKind=c.dataset.k;for(const x of d.querySelectorAll('#type-row .chip'))x.classList.remove('sel');c.classList.add('sel')}}
+
+  $('sug-btn').onclick=()=>suggest(s);
+  $('gen-btn').onclick=()=>{const p=$('prompt').value.trim();if(!p){toast('תכתוב מה ליצור');return}genVid(s,curKind,p);$('prompt').value=''};
+  $('gen-all-btn').onclick=()=>{for(const t of VIDEO_TYPES)genVid(s,t.kind,`וידאו ${t.nm} אוטומטי ל-@${s.user}`)};
+}
+
+async function genVid(s,kind,prompt){
+  const id='v'+Date.now()+Math.random().toString(36).slice(2,6);
+  s.videos=s.videos||[];s.videos.push({id,kind,prompt,status:'pending',ts:Date.now()});
+  save();renderList();renderDetail();
+  toast(`✨ מייצר ${VIDEO_TYPES.find(t=>t.kind===kind).nm}…`);
+  try{
+    const r=await post('/api/gen/auto',{prompt,mode:kind,user:s.user,id});
+    if(r.error)throw new Error(r.error);
+    // simulate completion after some time
+    setTimeout(()=>{
+      const v=s.videos.find(x=>x.id===id);if(v){v.status='ready';save();if(selected===s.user)renderDetail();renderList();toast(`✅ ${s.user} — ${VIDEO_TYPES.find(t=>t.kind===kind).nm} מוכן!`)}
+    },8000+Math.random()*10000);
+  }catch(e){
+    const v=s.videos.find(x=>x.id===id);if(v){v.status='error';save();renderDetail();renderList()}
+    toast('⚠ '+e.message);
+  }
+}
+
+async function suggest(s){
+  const ideas=[
+    `@${s.user} עם כתר זהב ואור יורד עליו`,
+    `זיקוקים בצורת שם המשתמש @${s.user} באוויר`,
+    `רחוב מואר בלילה, הכיתוב "${s.user}" על שלט ניאון`,
+    `מטר שמפניה סביב @${s.user}`,
+    `@${s.user} רוקב על גלי יקינטון עם סוסים`,
+  ];
+  $('prompt').value=ideas[Math.floor(Math.random()*ideas.length)];
+  toast('💡 הצעה מוכנה — ערוך או צור');
+}
+
+// add
+$('add-btn').onclick=()=>{const v=$('add-in').value.trim().replace(/^@/,'');if(!v)return;if(supporters.find(x=>x.user===v)){toast('@'+v+' כבר ברשימה');selected=v;renderList();renderDetail();$('add-in').value='';return}supporters.unshift({user:v,videos:[],added:Date.now()});supporters=supporters.slice(0,100);save();$('add-in').value='';selected=v;renderList();renderDetail();toast('✓ @'+v+' נוסף')};
+$('add-in').onkeydown=e=>{if(e.key==='Enter')$('add-btn').click()};
+
+renderList();renderDetail();
+</script></body></html>

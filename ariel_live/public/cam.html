@@ -1,0 +1,38 @@
+<!doctype html><html lang="he"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>📱 BOOSTERA CAM — המצלמה + כל האפקטים</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+#wrap{position:relative;width:100vw;height:100vh;background:#000}
+#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+#cam.mirror{transform:scaleX(-1)}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}
+#msg{position:absolute;left:0;right:0;top:40%;text-align:center;color:#fff;font:600 22px "Segoe UI",Arial,sans-serif;text-shadow:0 2px 8px #000;direction:rtl}
+#msg.off{display:none}
+</style></head><body>
+<div id="wrap">
+  <video id="cam" autoplay muted playsinline></video>
+  <div id="msg">📱 מחכה למצלמה של הטלפון… (פתחי בטלפון את /phone ולחצי "התחילי")</div>
+  <!-- the two effect layers, exactly as in Live Studio: clips/boxers/Chino pill, and the 💥 head game -->
+  <iframe src="/overlay" allow="autoplay"></iframe>
+  <iframe src="/game" allow="autoplay"></iframe>
+</div>
+<script>
+// source: ?src=local → this device's own camera (quick test);  default → the phone's camera over WebRTC
+const Q=new URLSearchParams(location.search); const V=document.getElementById('cam'); const M=document.getElementById('msg');
+if(Q.get('mirror')==='1') V.classList.add('mirror');
+let pc=null, lastOfferT=0;
+const rep=s=>fetch('/api/rtc/camstate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({state:s})}).catch(()=>{});
+const gathered=p=>new Promise(r=>{ if(p.iceGatheringState==='complete') return r(); const t=setTimeout(r,4000); p.addEventListener('icegatheringstatechange',()=>{ if(p.iceGatheringState==='complete'){ clearTimeout(t); r(); } }); });
+async function local(){ try{ V.srcObject=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1080},height:{ideal:1920}},audio:false}); M.classList.add('off'); }catch(e){ M.textContent='אין מצלמה: '+e.message; } }
+async function connect(offer){
+  if(pc) try{ pc.close(); }catch{}
+  const p=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}); pc=p;
+  p.ontrack=e=>{ V.srcObject=e.streams[0]; M.classList.add('off'); };
+  p.onconnectionstatechange=()=>{ rep(p.connectionState); if(p.connectionState==='failed'||p.connectionState==='disconnected'){ M.textContent='📱 החיבור לטלפון נפל — מחכה…'; M.classList.remove('off'); } };
+  await p.setRemoteDescription(offer); const ans=await p.createAnswer(); await p.setLocalDescription(ans); await gathered(p);
+  await fetch('/api/rtc/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:p.localDescription})});
+}
+async function tick(){ try{ const j=await (await fetch('/api/rtc/poll?role=cam&since=0&_='+Date.now(),{cache:'no-store'})).json(); if(j.offer && j.t!==lastOfferT){ lastOfferT=j.t; try{ await connect(j.offer); }catch(e){ rep('error: '+(e&&e.message||e)); } } }catch(e){ rep('tick: '+(e&&e.message||e)); } }
+rep('page-open');
+if(Q.get('src')==='local') local(); else setInterval(tick,800);
+setInterval(()=>{ if(pc) rep('ice:'+pc.iceConnectionState+' conn:'+pc.connectionState+' sig:'+pc.signalingState+' v:'+(V.videoWidth||0)+'x'+(V.videoHeight||0)); },2000);
+</script></body></html>

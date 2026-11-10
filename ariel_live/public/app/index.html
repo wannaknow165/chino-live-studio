@@ -1,0 +1,34 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>BOOSTERA Live — הורדת האפליקציה</title>
+<link rel="manifest" href="/client.webmanifest"><link rel="apple-touch-icon" href="/app/icon-180.png"><link rel="icon" href="/app/icon-96.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="BOOSTERA"><meta name="theme-color" content="#e6b450">
+<style>
+body{margin:0;background:#0e0c12;color:#fff;font-family:"Segoe UI",Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 18px 40px;box-sizing:border-box}
+img.logo{width:132px;height:132px;border-radius:30px;box-shadow:0 10px 40px rgba(230,180,80,.25)}
+h1{font-size:28px;margin:16px 0 4px}.sub{color:#b9b3c7;font-size:17px;margin:0 0 22px}
+.btn{display:inline-block;background:#e6b450;color:#1a1200;font-weight:800;font-size:20px;padding:16px 28px;border-radius:16px;text-decoration:none;border:0;cursor:pointer;margin:6px 0}
+.btn.g{background:#2a2f3a;color:#fff;font-weight:600;font-size:16px}
+.card{background:#171420;border:1px solid #2c2838;border-radius:18px;padding:16px 18px;max-width:420px;width:100%;margin-top:14px;text-align:right}
+.card h2{font-size:18px;margin:0 0 10px;color:#f3c86b}
+ol{margin:0;padding-right:20px;font-size:17px;line-height:1.8}
+.hide{display:none}
+.small{color:#8f889f;font-size:14px;margin-top:18px;max-width:420px}
+</style></head><body>
+<img class="logo" src="/app/icon-512.png" alt="BOOSTERA">
+<h1>BOOSTERA Live</h1><p class="sub">הטיקטוק שלך בענן, המצלמה שלך, האפקטים — הכל במסך אחד.</p>
+
+<button class="btn hide" id="install">⬇️ הורד את האפליקציה</button>
+<a class="btn" id="open" href="/client">▶ פתח עכשיו</a>
+
+<div class="card" id="ios"><h2>📱 באייפון — 3 נגיעות:</h2><ol><li>לוחצים על כפתור <b>השיתוף</b> למטה (הריבוע עם החץ ⬆️)</li><li>גוללים ובוחרים <b>"הוסף למסך הבית"</b></li><li>לוחצים <b>"הוסף"</b> — יש אייקון BOOSTERA במסך הבית</li></ol></div>
+<div class="card" id="android"><h2>🤖 באנדרואיד:</h2><ol><li>לוחצים <b>"הורד את האפליקציה"</b> למעלה (או ⋮ ← "הוסף למסך הבית")</li><li>מאשרים — יש אייקון BOOSTERA במסך הבית</li></ol></div>
+<div class="card"><h2>✅ ואז כל פעם:</h2><ol><li>פותחים את האייקון</li><li>בפעם הראשונה הטלפון שואל "לאפשר מצלמה?" — <b>לאפשר</b></li><li>רואים את טיקטוק על המסך — לוחצים <b>LIVE</b> כרגיל. זהו. 🎉</li></ol></div>
+<p class="small">האפליקציה לא מצלמת לבד — רק כשהיא פתוחה על המסך. סוגרים אותה = המצלמה נסגרת.</p>
+<script>
+const K=new URLSearchParams(location.search).get('k')||''; try{ if(K) localStorage.setItem('bk',K); }catch{} if(K) document.getElementById('open').href='/client?k='+encodeURIComponent(K);
+const ua=navigator.userAgent; const isIOS=/iPhone|iPad|iPod/.test(ua); const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+document.getElementById(isIOS?'android':'ios').classList.add('hide');
+if(standalone) location.replace('/client');            // opened from the home-screen icon → straight to the camera
+let deferred=null; window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferred=e; document.getElementById('install').classList.remove('hide'); });
+document.getElementById('install').onclick=async()=>{ if(!deferred) return; deferred.prompt(); await deferred.userChoice; deferred=null; };
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/app/sw.js').catch(()=>{});
+</script></body></html>

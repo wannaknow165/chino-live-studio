@@ -1,0 +1,30 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>📱 המצלמה שלי → BOOSTERA</title>
+<style>
+body{margin:0;background:#0b0d12;color:#fff;font-family:"Segoe UI",Arial,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+video{width:100vw;max-height:70vh;object-fit:cover;background:#000}
+.bar{padding:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button{font:inherit;font-size:17px;padding:12px 20px;border-radius:12px;border:0;background:#e6b450;color:#1a1200;font-weight:700}
+button.g{background:#2a2f3a;color:#fff}
+#st{padding:8px 14px;font-size:15px;color:#cfd3dc;text-align:center}
+</style></head><body>
+<video id="v" autoplay muted playsinline></video>
+<div id="st">לחצי "התחילי" — המצלמה שלך תעבור ללייב עם האפקטים</div>
+<div class="bar"><button id="go">▶ התחילי</button><button id="flip" class="g">🔄 מצלמה קדמית/אחורית</button></div>
+<script>
+const Q=new URLSearchParams(location.search); let facing='user', stream=null, pc=null, sinceIce=0, poll=null;
+const st=m=>document.getElementById('st').textContent=m;
+async function cam(){ if(stream) stream.getTracks().forEach(t=>t.stop()); stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1080},height:{ideal:1920},frameRate:{ideal:30}},audio:false}); document.getElementById('v').srcObject=stream; return stream; }
+async function start(){
+  try{ await cam(); }catch(e){ st('אין גישה למצלמה: '+e.message); return; }
+  pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]});
+  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+  pc.onicecandidate=e=>{ if(e.candidate) fetch('/api/rtc/ice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:'phone',candidate:e.candidate})}); };
+  pc.onconnectionstatechange=()=>{ st(pc.connectionState==='connected'?'🟢 מחובר — המצלמה שלך בלייב עם האפקטים':pc.connectionState==='failed'?'🔴 החיבור נפל — לחצי שוב':'מתחבר… ('+pc.connectionState+')'); };
+  const offer=await pc.createOffer(); await pc.setLocalDescription(offer);
+  await fetch('/api/rtc/offer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:offer})});
+  st('מחכה למסך בענן…'); sinceIce=0; clearInterval(poll);
+  poll=setInterval(async()=>{ try{ const j=await (await fetch('/api/rtc/poll?role=phone&since='+sinceIce)).json(); if(j.answer && !pc.currentRemoteDescription){ await pc.setRemoteDescription(j.answer); } for(const c of j.ice){ try{ await pc.addIceCandidate(c); }catch{} } sinceIce=j.next; }catch{} },800);
+}
+document.getElementById('go').onclick=start;
+document.getElementById('flip').onclick=async()=>{ facing=facing==='user'?'environment':'user'; const s=await cam(); const vt=s.getVideoTracks()[0]; const sender=pc&&pc.getSenders().find(x=>x.track&&x.track.kind==='video'); if(sender) sender.replaceTrack(vt); };
+</script></body></html>

@@ -1,0 +1,15 @@
+[Unit]
+Description=Chino studio — specials panel / auto host (Codex, port 7780)
+After=network-online.target ariel-effects.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/ariel-effects/app
+Environment=PATH=/opt/ariel-effects/bin:/opt/ariel-effects/venv/bin:/opt/boostera-effects/runtime/node/bin:/usr/local/bin:/usr/bin:/bin
+Environment=CHINO_PORT=7780
+ExecStart=/opt/boostera-effects/runtime/node/bin/node auto-host-server.mjs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

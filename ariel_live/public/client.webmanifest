@@ -1,0 +1,2 @@
+{"name":"BOOSTERA Live","short_name":"BOOSTERA","description":"המצלמה שלך בלייב עם אפקטים","start_url":"/client","scope":"/","display":"standalone","orientation":"portrait","background_color":"#0e0c12","theme_color":"#e6b450","lang":"he","dir":"rtl",
+ "icons":[{"src":"/app/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/app/icon-512.png","sizes":"512x512","type":"image/png"},{"src":"/app/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}

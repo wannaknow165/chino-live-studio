@@ -1,0 +1,18 @@
+[Unit]
+Description=ARIEL DESK — effects dashboard + cloud camera box (port 7777)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/ariel-effects/app
+Environment=PATH=/opt/ariel-effects/bin:/opt/ariel-effects/venv/bin:/opt/boostera-effects/runtime/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/ariel-effects/browsers
+Environment=ARIEL_CLOUD=1
+ExecStart=/opt/boostera-effects/runtime/node/bin/node server.mjs
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

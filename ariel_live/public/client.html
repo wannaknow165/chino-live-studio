@@ -1,0 +1,604 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>📱 BOOSTERA — הלייב שלי</title>
+<link rel="manifest" href="/client.webmanifest"><link rel="apple-touch-icon" href="/app/icon-180.png"><link rel="icon" href="/app/icon-96.png"><meta name="theme-color" content="#0a070d">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="BOOSTERA">
+<style>
+:root{--gold:#e6b450;--gold2:#b8841f;--bg:#0a070d;--card:#14101c;--line:#2a2538;--text:#fff;--dim:#9a94a7;--glass:rgba(14,10,20,.86)}
+*{box-sizing:border-box}
+html,body{margin:0;background:#000;color:var(--text);font-family:"Segoe UI",Arial,sans-serif;height:100%;height:100dvh;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+#wrap{position:relative;height:100%}
+#scr{position:absolute;inset:0;background:#000;overflow:hidden}
+#scr img,#scr iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;border:0;background:#000}
+#scr iframe{touch-action:none}
+#pip{display:none;position:absolute;top:calc(env(safe-area-inset-top) + 8px);left:8px;width:64px;height:86px;border-radius:12px;border:2px solid var(--gold);object-fit:cover;background:#000;z-index:3}
+#st{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;font-size:12px;color:#e8ebf2;background:linear-gradient(transparent,rgba(0,0,0,.6));z-index:2;pointer-events:none;transition:opacity 1s;text-align:center}
+
+/* ---- the golden floating button (always visible) ---- */
+#fab{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom) + 18px);width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);display:flex;align-items:center;justify-content:center;font-size:26px;color:#1a1000;font-weight:800;box-shadow:0 10px 28px rgba(230,180,80,.55),0 0 0 1px rgba(255,255,255,.1);z-index:10;transition:transform .2s,box-shadow .2s;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#fab.on{background:linear-gradient(135deg,#fff 0%,var(--gold) 100%);box-shadow:0 0 0 4px rgba(230,180,80,.35),0 0 50px rgba(230,180,80,.5);transform:scale(1.05)}
+#fab.hidden{opacity:0;pointer-events:none;transform:scale(.4)}
+#fab .ic{transition:transform .25s}
+#fab.on .ic{transform:rotate(45deg)}
+
+/* ---- the ring of 7 icons ---- */
+#ring{position:absolute;right:38px;bottom:calc(env(safe-area-inset-bottom) + 44px);z-index:9;pointer-events:none}
+#ring .halo{position:absolute;right:0;bottom:0;width:330px;height:330px;border-radius:50%;background:radial-gradient(circle at 100% 100%, rgba(230,180,80,.22) 0%, rgba(230,180,80,.06) 35%, transparent 65%);transform:translate(50%,50%) scale(.3);opacity:0;transition:transform .35s cubic-bezier(.2,.9,.3,1.4),opacity .35s}
+#ring.on{pointer-events:auto}
+#ring.on .halo{opacity:1;transform:translate(50%,50%) scale(1)}
+.rb{position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(14,10,20,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:22px;color:#eee;box-shadow:0 8px 20px rgba(0,0,0,.55);transform:translate(50%,50%) scale(.3);opacity:0;transition:transform .35s cubic-bezier(.2,.9,.3,1.4),opacity .25s;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rb .lb{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-size:9.5px;color:var(--gold);font-weight:800;white-space:nowrap;text-shadow:0 1px 4px #000;letter-spacing:.2px}
+#ring.on .rb{opacity:1}
+#ring.on .rb:nth-child(2){transition-delay:.04s;transform:translate(130px,30px) scale(1)}
+#ring.on .rb:nth-child(3){transition-delay:.08s;transform:translate(95px,-25px) scale(1)}
+#ring.on .rb:nth-child(4){transition-delay:.12s;transform:translate(45px,-75px) scale(1)}
+#ring.on .rb:nth-child(5){transition-delay:.16s;transform:translate(-20px,-95px) scale(1)}
+#ring.on .rb:nth-child(6){transition-delay:.20s;transform:translate(-80px,-75px) scale(1)}
+#ring.on .rb:nth-child(7){transition-delay:.24s;transform:translate(-125px,-25px) scale(1)}
+#ring.on .rb:nth-child(8){transition-delay:.28s;transform:translate(-140px,30px) scale(1)}
+#ring.on .rb:nth-child(9){transition-delay:.32s;transform:translate(-130px,90px) scale(1)}
+.rb:active{transform-origin:center}
+#ring.on .rb.sel{border-color:var(--gold);background:linear-gradient(135deg,#3a2a14,#1a1000);box-shadow:0 0 0 2px rgba(230,180,80,.5),0 8px 20px rgba(0,0,0,.55)}
+
+/* dim the live feed when ring is open */
+#dim{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:8;opacity:0;pointer-events:none;transition:opacity .25s}
+#dim.on{opacity:1;pointer-events:auto}
+
+/* ---- side strip (fav effects, sticky, only when ring closed) ---- */
+#fav{position:absolute;right:8px;top:calc(env(safe-area-inset-top) + 70px);display:flex;flex-direction:column;gap:7px;z-index:5;transition:opacity .25s,transform .25s}
+#fav.gone{opacity:0;transform:translateX(80px);pointer-events:none}
+.fv{width:44px;height:44px;border-radius:14px;background:rgba(14,10,20,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:19px;color:#ddd;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;position:relative}
+.fv img{width:100%;height:100%;object-fit:cover;opacity:.95}
+.fv:active{transform:scale(.9)}
+.fv.flash{box-shadow:0 0 0 3px var(--gold),0 4px 14px rgba(0,0,0,.4)}
+
+/* ---- sub-panels (bottom sheet, small, glass) ---- */
+#sheet{position:absolute;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 90px);background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(230,180,80,.22);border-radius:22px;padding:12px;z-index:9;box-shadow:0 20px 50px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.04);transform:translateY(20px);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.2,.8,.3,1.1),opacity .22s;max-height:60vh;overflow:hidden;display:flex;flex-direction:column}
+#sheet.on{transform:none;opacity:1;pointer-events:auto}
+#sh-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#sh-ttl{font-size:14px;font-weight:800;color:var(--gold);display:flex;align-items:center;gap:6px}
+#sh-cnt{font-size:10px;color:var(--dim)}
+#sh-x{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:0}
+
+/* categories inside sheet */
+#tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+#tabs::-webkit-scrollbar{display:none}
+.tb{flex:none;font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.07);color:#ccc;border:1px solid rgba(255,255,255,.1);cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.tb.sel{background:var(--gold);color:#1a1000;border-color:var(--gold)}
+
+/* body of sheet */
+#body{flex:1;overflow-y:auto;padding:4px 2px;margin-top:8px;scrollbar-width:none}
+#body::-webkit-scrollbar{display:none}
+
+/* grid of effect tiles */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.t{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#231b32,#140c1d);border:1.5px solid rgba(255,255,255,.1);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.t img{width:100%;height:100%;object-fit:cover;opacity:.95}
+.t .em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px}
+.t .n{position:absolute;left:0;right:0;bottom:0;padding:3px 4px;font-size:9.5px;font-weight:700;background:linear-gradient(transparent,rgba(0,0,0,.82));color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t:active{transform:scale(.92)}
+.t.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(230,180,80,.5)}
+.t .bd{position:absolute;top:3px;right:3px;background:#000;color:var(--gold);font-size:8.5px;font-weight:800;padding:1px 4px;border-radius:5px}
+
+/* user list (opponents) */
+.ulist{display:flex;flex-direction:column;gap:5px}
+.ur{display:flex;align-items:center;gap:8px;padding:7px 9px;background:rgba(255,255,255,.04);border-radius:12px;border:1px solid rgba(255,255,255,.08)}
+.ur .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ff6a4a,#8a2a8a);font-size:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex-shrink:0}
+.ur .u{flex:1;min-width:0}
+.ur .u b{display:block;color:#fff;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ur .u span{color:var(--dim);font-size:9.5px}
+.ur .a{display:flex;gap:4px}
+.ur .a button{background:rgba(230,180,80,.15);border:1px solid rgba(230,180,80,.3);color:var(--gold);font-size:13px;padding:5px 7px;border-radius:9px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ur .a button:active{background:var(--gold);color:#1a1000}
+.ur.pending .av{background:linear-gradient(135deg,#444,#222);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.5}}
+
+/* input (add user) */
+.inp{display:flex;gap:6px;margin-top:8px}
+.inp input{flex:1;background:rgba(0,0,0,.4);border:1px solid rgba(230,180,80,.2);border-radius:10px;padding:8px 10px;color:#fff;font:inherit;font-size:12px}
+.inp input::placeholder{color:#666}
+.inp button{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;font-weight:800;border:0;padding:8px 14px;border-radius:10px;font-size:12px;cursor:pointer}
+
+/* ai compose */
+.ai-box{padding:4px 2px}
+.ai-ipt{background:rgba(0,0,0,.45);border:1px solid rgba(230,180,80,.22);border-radius:12px;padding:10px;font-size:13px;color:#fff;min-height:70px;width:100%;resize:none;font-family:inherit}
+.ai-ipt::placeholder{color:#777}
+.ai-opts{display:flex;gap:5px;margin-top:8px}
+.ai-opt{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#ddd;font-size:11px;font-weight:700;padding:7px;border-radius:9px;cursor:pointer;text-align:center}
+.ai-opt.sel{background:var(--gold);color:#1a1000;border-color:var(--gold)}
+.ai-go{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;font-weight:800;font-size:13px;padding:11px;border-radius:12px;border:0;margin-top:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+.ai-go:disabled{opacity:.5}
+
+/* toast */
+#toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 24px);transform:translateX(-50%) translateY(-100px);z-index:11;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;font-weight:800;font-size:14px;padding:9px 18px;border-radius:999px;box-shadow:0 8px 24px rgba(230,180,80,.5);transition:transform .35s cubic-bezier(.2,.8,.3,1.1);pointer-events:none;white-space:nowrap}
+#toast.on{transform:translateX(-50%) translateY(0)}
+
+#nokey{position:absolute;inset:0;background:var(--bg);z-index:12;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:17px;line-height:1.7}
+
+/* long-press hide */
+#wrap.hid #fab,#wrap.hid #fav{opacity:0;pointer-events:none}
+</style></head><body>
+<div id="wrap">
+  <div id="scr"><img id="screen" alt=""><video id="pip" autoplay muted playsinline></video><div id="st">מתחבר…</div></div>
+
+  <!-- side favorites (quick fire when ring is closed) -->
+  <div id="fav"></div>
+
+  <!-- ring menu -->
+  <div id="dim"></div>
+  <div id="ring">
+    <div class="halo"></div>
+    <div class="rb" data-p="opp"><div class="ic">⚔</div><div class="lb">מתחרים</div></div>
+    <div class="rb" data-p="sup"><div class="ic">💖</div><div class="lb">תומכים</div></div>
+    <div class="rb" data-p="head"><div class="ic">🎭</div><div class="lb">ראשים</div></div>
+    <div class="rb" data-p="front"><div class="ic">🎬</div><div class="lb">Front</div></div>
+    <div class="rb" data-p="bg"><div class="ic">🖼</div><div class="lb">רקע</div></div>
+    <div class="rb" data-p="fx"><div class="ic">🧤</div><div class="lb">אפקטים</div></div>
+    <div class="rb" data-p="ai"><div class="ic">✨</div><div class="lb">AI חי</div></div>
+    <div class="rb" data-p="lion"><div class="ic">🦁</div><div class="lb">אריה</div></div>
+  </div>
+
+  <!-- the main golden button -->
+  <button id="fab" aria-label="פאנל"><span class="ic">✨</span></button>
+
+  <!-- sub-panel sheet -->
+  <div id="sheet">
+    <div id="sh-hdr">
+      <div id="sh-ttl"><span id="sh-ic">✨</span><span id="sh-nm">אפקטים</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span id="sh-cnt"></span><button id="sh-x">✕</button></div>
+    </div>
+    <div id="tabs"></div>
+    <div id="body"></div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+<div id="nokey">הקישור הזה לא שלם.<br>בקשו מהמפעיל את הקישור המלא ופתחו שוב.</div>
+
+<script>
+// ---- key ----
+const Q=new URLSearchParams(location.search); let K=Q.get('k')||''; try{ if(K) localStorage.setItem('bk',K); else K=localStorage.getItem('bk')||''; }catch{}
+if(!K) document.getElementById('nokey').style.display='flex';
+const H={'Content-Type':'application/json','x-key':K};
+const post=(u,b)=>fetch(u,{method:'POST',headers:H,body:JSON.stringify(b||{})}).then(r=>r.json()).catch(()=>({}));
+const get=u=>fetch(u,{headers:{'x-key':K}}).then(r=>r.json()).catch(()=>({}));
+const $=id=>document.getElementById(id);
+const st=m=>{const e=$('st');if(m.startsWith('🟢')||/מתחבר/.test(m)){e.style.opacity=0;return}e.textContent=m;e.style.opacity=1};
+let tT=0; const toast=m=>{const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('on'),1300)};
+
+// ---- cloud phone screen ----
+try{document.cookie='bk='+K+'; Path=/; Max-Age=31536000; SameSite=Lax'+(location.protocol==='https:'?'; Secure':'');}catch{}
+const img=$('screen'); function screen(){img.src='/api/phone/screen.mjpeg?k='+encodeURIComponent(K)+'&t='+Date.now()} img.onerror=()=>setTimeout(screen,2500);
+(async()=>{if(!K)return;let cfg={};try{cfg=await get('/api/client/cfg')}catch{}if(cfg.screen==='webrtc'&&!Q.get('old')){const f=document.createElement('iframe');f.id='live';f.allow='autoplay; fullscreen';f.src='/devices/'+encodeURIComponent(cfg.device)+'/files/client.html';img.replaceWith(f);}else screen();})();
+let t0=null; const rel=e=>{const r=(document.getElementById('live')||img).getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)/r.width,y:(p.clientY-r.top)/r.height,t:Date.now()}};
+(img).addEventListener('pointerdown',e=>{if(ringOn)return;t0=rel(e);e.preventDefault()});
+(img).addEventListener('pointerup',e=>{if(!t0)return;const t1=rel(e);const dx=t1.x-t0.x,dy=t1.y-t0.y;if(Math.hypot(dx,dy)>0.03)post('/api/phone/tap',{x:t0.x,y:t0.y,x2:t1.x,y2:t1.y,ms:Math.min(600,Math.max(120,t1.t-t0.t))});else post('/api/phone/tap',{x:t0.x,y:t0.y});t0=null;e.preventDefault()});
+
+// ---- her camera → cloud ----
+let facing='user',stream=null,pc=null,poll=null,myT=0,starting=false;const PID=Math.random().toString(36).slice(2,10);
+const gathered=p=>new Promise(r=>{if(p.iceGatheringState==='complete')return r();const t=setTimeout(r,4000);p.addEventListener('icegatheringstatechange',()=>{if(p.iceGatheringState==='complete'){clearTimeout(t);r()}})});
+async function cam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1080},height:{ideal:1920},frameRate:{ideal:30}},audio:false});$('pip').srcObject=stream;return stream}
+async function startCam(){
+  if(starting)return;starting=true;clearInterval(poll);poll=null;try{if(pc)pc.close()}catch{}pc=null;
+  try{await cam()}catch(e){st('אפשרו מצלמה לאתר הזה');starting=false;return}
+  const p=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]});pc=p;
+  stream.getTracks().forEach(t=>p.addTrack(t,stream));
+  try{const tr=p.getTransceivers()[0];if(tr&&tr.setCodecPreferences&&RTCRtpSender.getCapabilities){const c=RTCRtpSender.getCapabilities('video').codecs;const h=c.filter(x=>/H264/i.test(x.mimeType)&&/42e01f/i.test(x.sdpFmtpLine||'')),v=c.filter(x=>/VP8/i.test(x.mimeType));if(h.length)tr.setCodecPreferences([...h,...v,...c.filter(x=>!h.includes(x)&&!v.includes(x))])}}catch{}
+  try{const s=p.getSenders().find(x=>x.track&&x.track.kind==='video');const prm=s.getParameters();prm.encodings=prm.encodings&&prm.encodings.length?prm.encodings:[{}];prm.encodings[0].maxBitrate=3000000;prm.encodings[0].maxFramerate=30;prm.degradationPreference='maintain-framerate';await s.setParameters(prm)}catch{}
+  p.onconnectionstatechange=()=>{st(p.connectionState==='connected'?'🟢 מחוברת':p.connectionState==='failed'?'🔴 הקו נפל':'מתחבר… ('+p.connectionState+')')};
+  const offer=await p.createOffer();await p.setLocalDescription(offer);await gathered(p);
+  const o=await (await fetch('/api/rtc/offer',{method:'POST',headers:H,body:JSON.stringify({sdp:p.localDescription,v:2,id:PID})})).json();
+  if(o.busy){starting=false;st('פתוח בכרטיסייה אחרת');try{p.close()}catch{}pc=null;setTimeout(startCam,30000);return}
+  myT=o.t||0;starting=false;
+  poll=setInterval(async()=>{if(pc!==p)return;try{const j=await (await fetch('/api/rtc/poll?role=phone&id='+PID+'&since=0&_='+Date.now(),{cache:'no-store'})).json();if(myT&&j.t!==myT){startCam();return}if(j.answer&&!p.currentRemoteDescription)await p.setRemoteDescription(j.answer)}catch{}},800)
+}
+(async()=>{try{if(navigator.permissions&&navigator.permissions.query){const q=await navigator.permissions.query({name:'camera'});if(q.state==='denied'){st('המצלמה חסומה לאתר הזה');return}}}catch{}startCam()})();
+setInterval(()=>{if(pc&&!starting&&['failed','closed'].includes(pc.connectionState))startCam()},10000);
+setInterval(()=>{if(pc)fetch('/api/rtc/phonestate',{method:'POST',headers:H,body:JSON.stringify({state:'ice:'+pc.iceConnectionState+' conn:'+pc.connectionState+' sig:'+pc.signalingState+' remote:'+(!!pc.currentRemoteDescription)+' gath:'+pc.iceGatheringState})}).catch(()=>{})},2000);
+
+// ================ THE PANEL ================
+let items=[],catalog={sets:[],scenes:[]},ringOn=false,sheetOn=false,currentPanel=null,currentKind=null,favorites=[];
+
+// --- ring open/close ---
+$('fab').addEventListener('click',()=>{
+  if(sheetOn){closeSheet();return}
+  ringOn=!ringOn;
+  $('fab').classList.toggle('on',ringOn);
+  $('ring').classList.toggle('on',ringOn);
+  $('dim').classList.toggle('on',ringOn);
+  $('fav').classList.toggle('gone',ringOn);
+});
+$('dim').addEventListener('click',closeRing);
+function closeRing(){ringOn=false;$('fab').classList.remove('on');$('ring').classList.remove('on');$('dim').classList.remove('on');$('fav').classList.remove('gone')}
+
+// long-press on fab = hide everything
+let pressT=0;
+$('fab').addEventListener('pointerdown',()=>{pressT=setTimeout(()=>{$('wrap').classList.toggle('hid');navigator.vibrate&&navigator.vibrate(30)},600)});
+$('fab').addEventListener('pointerup',()=>clearTimeout(pressT));
+$('fab').addEventListener('pointerleave',()=>clearTimeout(pressT));
+$('wrap').addEventListener('pointerdown',e=>{if($('wrap').classList.contains('hid')&&e.target===$('scr')||e.target.tagName==='IMG'||e.target.id==='live'){if($('wrap').classList.contains('hid')){$('wrap').classList.remove('hid')}}},true);
+
+// --- ring buttons open sub-panels ---
+for(const rb of document.querySelectorAll('.rb')){
+  rb.addEventListener('click',()=>{const p=rb.dataset.p;openPanel(p);closeRing()});
+}
+
+// --- sheet open/close ---
+const PANELS={
+  opp:{icon:'⚔',name:'מתחרים',build:buildOpponents},
+  sup:{icon:'💖',name:'תומכים',build:buildSupporters},
+  head:{icon:'🎭',name:'ראשים',build:buildHeads},
+  front:{icon:'🎬',name:'Front',build:buildFront},
+  bg:{icon:'🖼',name:'רקע',build:buildBg},
+  fx:{icon:'🧤',name:'אפקטים',build:buildFx},
+  ai:{icon:'✨',name:'AI חי',build:buildAi},
+  lion:{icon:'🦁',name:'אריאל (האריה)',build:buildLion},
+};
+function openPanel(p){
+  currentPanel=p;const P=PANELS[p];
+  $('sh-ic').textContent=P.icon;$('sh-nm').textContent=P.name;
+  $('tabs').innerHTML='';$('body').innerHTML='';$('sh-cnt').textContent='';
+  P.build();
+  sheetOn=true;$('sheet').classList.add('on');
+  $('fab').innerHTML='<span class="ic">✕</span>';$('fab').classList.add('on');
+}
+function closeSheet(){sheetOn=false;$('sheet').classList.remove('on');$('fab').innerHTML='<span class="ic">✨</span>';$('fab').classList.remove('on');currentPanel=null}
+$('sh-x').addEventListener('click',closeSheet);
+
+// ---- fire an effect ----
+let fireBusy=0;
+async function fire(kind,id,name){
+  if(Date.now()-fireBusy<600)return;fireBusy=Date.now();
+  toast((PANELS[currentPanel]?.icon||'✨')+' '+name);
+  if(navigator.vibrate)try{navigator.vibrate(20)}catch{}
+  await post('/api/client/play',{kind,id});
+  // remember recent for favorites
+  const k=kind+':'+id;favorites=[k,...favorites.filter(x=>x!==k)].slice(0,4);renderFav();
+  try{localStorage.setItem('favs',JSON.stringify(favorites))}catch{}
+}
+try{favorites=JSON.parse(localStorage.getItem('favs')||'[]')}catch{favorites=[]}
+
+// ---- quick-fire side strip (last used) ----
+function renderFav(){
+  const f=$('fav');f.innerHTML='';
+  for(const k of favorites.slice(0,4)){
+    const [kind,id]=k.split(':');const it=items.find(x=>x.id===id&&x.kind===kind);if(!it)continue;
+    const d=document.createElement('div');d.className='fv';
+    d.innerHTML=it.thumb?`<img src="${it.thumb}">`:`<span>${iconFor(it)}</span>`;
+    d.onclick=()=>{d.classList.add('flash');setTimeout(()=>d.classList.remove('flash'),500);fire(kind,id,it.name)};
+    f.appendChild(d);
+  }
+}
+
+// ========= PANELS =========
+
+// ---- 🧤 effects (all 82 + sets + scenes) ----
+function buildFx(){
+  const t=$('tabs');
+  const cats=[
+    {k:'all',n:'הכל',ic:'✨'},
+    {k:'set',n:'סטים',ic:'🥊'},
+    {k:'body',n:'גוף',ic:'💃'},
+    {k:'scene',n:'אריה',ic:'🦁'},
+    {k:'overlay',n:'ארטיקים',ic:'🎬'},
+    {k:'clip',n:'סרטונים',ic:'📺'},
+  ];
+  currentKind='all';
+  for(const c of cats){
+    const b=document.createElement('button');b.className='tb'+(c.k==='all'?' sel':'');b.textContent=c.ic+' '+c.n;
+    b.onclick=()=>{currentKind=c.k;for(const x of t.children)x.classList.remove('sel');b.classList.add('sel');renderFxBody()};
+    t.appendChild(b);
+  }
+  renderFxBody();
+}
+function renderFxBody(){
+  const b=$('body');b.innerHTML='';const g=document.createElement('div');g.className='grid';
+  let list=[];
+  if(currentKind==='all')list=[...items,...catalog.sets.map(s=>({id:s.id,name:s.he,kind:'set',thumb:s.thumb,emoji:''})),...catalog.scenes.map(s=>({id:s.id,name:s.he,kind:'scene',thumb:'',emoji:'🦁'}))];
+  else if(currentKind==='set')list=catalog.sets.map(s=>({id:s.id,name:s.he,kind:'set',thumb:s.thumb}));
+  else if(currentKind==='body')list=catalog.sets.filter(s=>s.kind==='body').map(s=>({id:s.id,name:s.he,kind:'set',thumb:s.thumb,emoji:'💃'}));
+  else if(currentKind==='scene')list=catalog.scenes.map(s=>({id:s.id,name:s.he,kind:'scene',thumb:'',emoji:'🦁'}));
+  else list=items.filter(i=>i.kind===currentKind);
+  if(!list.length){b.innerHTML='<div style="text-align:center;color:#888;padding:20px">אין כאן עדיין</div>';return}
+  for(const it of list){
+    const d=document.createElement('div');d.className='t';
+    d.innerHTML=(it.thumb?`<img src="${it.thumb}">`:`<div class="em">${it.emoji||iconFor(it)}</div>`)+`<div class="n">${it.name||it.id}</div>`;
+    d.onclick=()=>{d.classList.add('on');setTimeout(()=>d.classList.remove('on'),900);fire(it.kind,it.id,it.name||it.id)};
+    g.appendChild(d);
+  }
+  b.appendChild(g);
+  $('sh-cnt').textContent=list.length+' פריטים';
+}
+function iconFor(it){const m={overlay:'🥊',clip:'🎬',fx:'✨',set:'⭐',scene:'🦁',body:'💃'};return m[it.kind]||'✨'}
+
+// ---- ⚔ opponents (manual + autofill from recent) ----
+// ========= ⚔ OPPONENTS =========
+// each opponent has: {user, ready:[ids she already has], pending:[ids in production]}
+let opponents=[];try{opponents=JSON.parse(localStorage.getItem('opps2')||'[]')}catch{}
+async function buildOpponents(){
+  const b=$('body');
+  // input for adding a new opponent
+  const inp=document.createElement('div');inp.className='inp';
+  inp.innerHTML=`<input id="opp-in" placeholder="@username של היריב" dir="ltr"><button id="opp-add">🔍 זהה</button>`;
+  b.appendChild(inp);
+  const list=document.createElement('div');list.className='ulist';list.id='opp-list';b.appendChild(list);
+  $('opp-add').onclick=async()=>{
+    const v=$('opp-in').value.trim().replace(/^@/,'');if(!v)return;
+    $('opp-in').value='';
+    await detectOpp(v);
+  };
+  $('opp-in').onkeydown=e=>{if(e.key==='Enter')$('opp-add').click()};
+  if(!opponents.length){
+    const empty=document.createElement('div');empty.style.cssText='text-align:center;color:#888;padding:16px;font-size:12px;line-height:1.7';
+    empty.innerHTML='🔍 הוסף @username של היריב שלך ולחץ "זהה".<br>המערכת תבדוק אילו אפקטים כבר יש לו — או תייצר חדשים.';
+    list.appendChild(empty);
+  }
+  for(const o of opponents) list.appendChild(renderOpp(o));
+  $('sh-cnt').textContent=opponents.length+' יריבים';
+}
+async function detectOpp(user){
+  // check what we already have
+  let o=opponents.find(x=>x.user===user);
+  if(!o){o={user,ready:[],pending:[]};opponents.unshift(o);opponents=opponents.slice(0,20);saveOpps()}
+  toast('🔍 מזהה ל-'+user+'…');
+  try{
+    const r=await get('/api/fun/user?user='+encodeURIComponent(user));
+    if(r&&Array.isArray(r.ready))o.ready=r.ready;
+    saveOpps();
+  }catch{}
+  // refresh list
+  $('opp-list').innerHTML='';
+  for(const x of opponents) $('opp-list').appendChild(renderOpp(x));
+}
+function saveOpps(){try{localStorage.setItem('opps2',JSON.stringify(opponents))}catch{}}
+const OPP_SETS=[
+  {id:'boxer1',em:'🥊',nm:'כפפות'},
+  {id:'boxer3',em:'👊',nm:'אגרוף'},
+  {id:'ov_baby',em:'👶',nm:'תינוק'},
+  {id:'fx_belly',em:'💃',nm:'רקדנית'},
+  {id:'fx_chicken',em:'🐔',nm:'תרנגולת'},
+  {id:'fx_bow',em:'🙇',nm:'משתחווה'},
+  {id:'fx_babyarm',em:'🤏',nm:'תינוק יד'},
+  {id:'fx_tiny',em:'📎',nm:'קטן'},
+];
+function renderOpp(o){
+  const r=document.createElement('div');r.className='ur';r.style.cssText='flex-direction:column;align-items:stretch;gap:7px;padding:9px';
+  const readyCount=o.ready?.length||0;const total=OPP_SETS.length;
+  const pct=Math.round(readyCount/total*100);
+  r.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
+    <div class="av">${o.user[0]?.toUpperCase()||'?'}</div>
+    <div class="u"><b>@${o.user}</b><span>${readyCount}/${total} מוכנים · ${pct}%</span></div>
+    <button class="refresh" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#ccc;font-size:11px;padding:4px 7px;border-radius:7px">🔄</button>
+  </div>
+  <div class="opp-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px"></div>
+  <div style="display:flex;gap:4px">
+    <button class="gen-all" style="flex:1;background:rgba(230,180,80,.15);border:1px solid rgba(230,180,80,.35);color:#e6b450;font-size:11px;font-weight:700;padding:6px;border-radius:8px">✨ צור את כל החסרים</button>
+    <button class="rm" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.25);color:#ff9a8c;font-size:11px;padding:6px 9px;border-radius:8px">🗑</button>
+  </div>`;
+  const grid=r.querySelector('.opp-grid');
+  for(const s of OPP_SETS){
+    const isReady=o.ready?.includes(s.id);
+    const isPending=o.pending?.includes(s.id);
+    const btn=document.createElement('button');
+    btn.className='opp-fx';
+    btn.style.cssText=`aspect-ratio:1;background:${isReady?'linear-gradient(135deg,#3a2a14,#1a1000)':'rgba(255,255,255,.04)'};border:1px solid ${isReady?'rgba(230,180,80,.5)':isPending?'rgba(255,165,0,.35)':'rgba(255,255,255,.08)'};color:${isReady?'#e6b450':isPending?'#ffa500':'#888'};border-radius:10px;font-size:18px;position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center`;
+    btn.innerHTML=`<span>${s.em}</span><span style="font-size:7px;margin-top:1px">${s.nm}</span>${isReady?'<span style="position:absolute;top:1px;right:3px;color:#4ade80;font-size:8px">✓</span>':isPending?'<span style="position:absolute;top:1px;right:3px;font-size:8px;animation:pulse 1s infinite">⏳</span>':''}`;
+    btn.onclick=()=>{if(isReady)fireOnOpp(o,s);else makeFor(o,s)};
+    grid.appendChild(btn);
+  }
+  r.querySelector('.refresh').onclick=()=>detectOpp(o.user);
+  r.querySelector('.gen-all').onclick=()=>makeAllFor(o);
+  r.querySelector('.rm').onclick=()=>{opponents=opponents.filter(x=>x.user!==o.user);saveOpps();buildOpponents()};
+  return r;
+}
+async function fireOnOpp(o,s){
+  toast(`${s.em} ${s.nm} → @${o.user}`);
+  if(navigator.vibrate)try{navigator.vibrate([30,50,30])}catch{}
+  const r=await post('/api/special',{user:o.user,set:s.id});
+  if(r.error)toast('⚠ '+r.error);
+}
+async function makeFor(o,s){
+  if(!o.pending)o.pending=[];
+  if(o.pending.includes(s.id))return;
+  o.pending.push(s.id);saveOpps();
+  $('opp-list').innerHTML='';for(const x of opponents) $('opp-list').appendChild(renderOpp(x));
+  toast(`✨ מייצר ${s.nm} ל-@${o.user}…`);
+  const r=await post('/api/special',{user:o.user,set:s.id});
+  if(r.error){o.pending=o.pending.filter(x=>x!==s.id);saveOpps();toast('⚠ '+r.error);return}
+  // poll for completion
+  const start=Date.now();
+  while(Date.now()-start<120000){
+    await new Promise(r=>setTimeout(r,4000));
+    const ck=await get('/api/fun/user?user='+encodeURIComponent(o.user));
+    if(ck&&ck.ready&&ck.ready.includes(s.id)){
+      o.ready=ck.ready;o.pending=o.pending.filter(x=>x!==s.id);saveOpps();
+      toast(`✅ ${s.nm} ל-@${o.user} מוכן!`);
+      $('opp-list').innerHTML='';for(const x of opponents) $('opp-list').appendChild(renderOpp(x));
+      return;
+    }
+  }
+  o.pending=o.pending.filter(x=>x!==s.id);saveOpps();
+}
+async function makeAllFor(o){
+  const missing=OPP_SETS.filter(s=>!o.ready?.includes(s.id));
+  if(!missing.length){toast('✅ הכל כבר מוכן!');return}
+  toast(`✨ מייצר ${missing.length} אפקטים ל-@${o.user}…`);
+  for(const s of missing) makeFor(o,s);
+}
+
+// ========= 💖 SUPPORTERS =========
+// each supporter has: {user, videos:[{id,kind:'bg'|'front',url,prompt}], inLive:bool}
+let supporters=[];try{supporters=JSON.parse(localStorage.getItem('sups2')||'[]')}catch{}
+async function buildSupporters(){
+  const b=$('body');
+  // tabs: top supporters (from live) | my list
+  const tabs=$('tabs');tabs.innerHTML='';
+  const tTop=document.createElement('button');tTop.className='tb sel';tTop.textContent='⭐ מובילי לייב';
+  const tMy=document.createElement('button');tMy.className='tb';tMy.textContent='📝 הרשימה שלי';
+  let mode='top';
+  tTop.onclick=()=>{mode='top';tTop.classList.add('sel');tMy.classList.remove('sel');renderSupBody(mode)};
+  tMy.onclick=()=>{mode='my';tMy.classList.add('sel');tTop.classList.remove('sel');renderSupBody(mode)};
+  tabs.appendChild(tTop);tabs.appendChild(tMy);
+  renderSupBody('top');
+}
+async function renderSupBody(mode){
+  const b=$('body');b.innerHTML='';
+  if(mode==='top'){
+    const info=document.createElement('div');info.style.cssText='background:rgba(230,180,80,.1);border:1px solid rgba(230,180,80,.2);border-radius:10px;padding:8px 10px;font-size:11px;color:#eee;line-height:1.5;margin-bottom:9px';
+    info.innerHTML='⭐ 10 התומכים המובילים בלייב הזה. נגיעה = יצירת סרטון AI אישי בשידור חי.';
+    b.appendChild(info);
+    const list=document.createElement('div');list.className='ulist';b.appendChild(list);
+    try{
+      const r=await get('/api/live/top');
+      if(r&&Array.isArray(r.top)&&r.top.length){
+        for(const t of r.top) list.appendChild(renderSup({user:t.user,gift:t.gift||0,inLive:true}));
+        $('sh-cnt').textContent=r.top.length+' מובילים';
+      }else{
+        list.innerHTML='<div style="text-align:center;color:#888;padding:16px;font-size:12px;line-height:1.7">אין לייב פעיל כרגע,<br>או שעוד אין מובילים.<br><br>לך על "📝 הרשימה שלי" כדי להכין מראש.</div>';
+      }
+    }catch{
+      list.innerHTML='<div style="text-align:center;color:#888;padding:16px;font-size:12px">לייב לא זמין כרגע</div>';
+    }
+  }else{
+    // my list
+    const inp=document.createElement('div');inp.className='inp';
+    inp.innerHTML=`<input id="sup-in" placeholder="@username של תומך" dir="ltr"><button id="sup-add">הוסף</button>`;
+    b.appendChild(inp);
+    const list=document.createElement('div');list.className='ulist';b.appendChild(list);
+    if(!supporters.length){
+      list.innerHTML='<div style="text-align:center;color:#888;padding:16px;font-size:12px;line-height:1.7">אין תומכים ברשימה.<br>הוסף תומך קבוע כדי שיהיה לו תמיד וידאו מוכן.</div>';
+    }
+    for(const s of supporters) list.appendChild(renderSup(s));
+    $('sup-add').onclick=()=>{const v=$('sup-in').value.trim().replace(/^@/,'');if(!v)return;if(!supporters.find(x=>x.user===v))supporters.unshift({user:v,videos:[]});supporters=supporters.slice(0,30);try{localStorage.setItem('sups2',JSON.stringify(supporters))}catch{}renderSupBody('my')};
+    $('sup-in').onkeydown=e=>{if(e.key==='Enter')$('sup-add').click()};
+    $('sh-cnt').textContent=supporters.length+' תומכים';
+  }
+}
+function renderSup(s){
+  const r=document.createElement('div');r.className='ur';r.style.cssText='flex-direction:column;align-items:stretch;gap:7px;padding:9px';
+  const vids=s.videos||[];
+  r.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
+    <div class="av" style="${s.inLive?'box-shadow:0 0 0 2px #4ade80':''}">${s.user[0]?.toUpperCase()||'?'}</div>
+    <div class="u"><b>@${s.user}${s.inLive?' <span style="color:#4ade80">● בלייב</span>':''}</b><span>${s.gift?'💎 '+s.gift+' · ':''}${vids.length} סרטונים מוכנים</span></div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap">
+    <button class="gen" data-m="bg" style="flex:1;min-width:80px;background:rgba(138,79,255,.15);border:1px solid rgba(138,79,255,.35);color:#c0a0ff;font-size:11px;font-weight:700;padding:6px;border-radius:8px">🖼 צור ל-BG</button>
+    <button class="gen" data-m="front" style="flex:1;min-width:80px;background:rgba(230,180,80,.15);border:1px solid rgba(230,180,80,.35);color:#e6b450;font-size:11px;font-weight:700;padding:6px;border-radius:8px">🎬 צור קדמי</button>
+    ${vids.length?`<button class="play" style="flex:1;min-width:60px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);color:#4ade80;font-size:11px;font-weight:700;padding:6px;border-radius:8px">▶ שדר</button>`:''}
+  </div>`;
+  for(const g of r.querySelectorAll('.gen')) g.onclick=()=>genForSup(s,g.dataset.m);
+  const pl=r.querySelector('.play');if(pl)pl.onclick=()=>playSupVid(s);
+  return r;
+}
+async function genForSup(s,mode){
+  toast(`✨ מייצר ${mode==='bg'?'רקע':'קדמי'} ל-@${s.user}…`);
+  const r=await post('/api/gen/opponent/some',{user:s.user,mode,auto:true});
+  if(r.error){toast('⚠ '+r.error);return}
+  s.videos=s.videos||[];s.videos.push({id:r.id||Date.now(),kind:mode,url:r.url||''});
+  try{localStorage.setItem('sups2',JSON.stringify(supporters))}catch{}
+  toast(`✅ נכנס לתור — חוזר לך בעוד ~30s`);
+}
+async function playSupVid(s){
+  const v=(s.videos||[])[s.videos.length-1];if(!v)return;
+  toast(`▶ ${s.user} בלייב`);
+  await post('/api/client/play',{kind:v.kind==='bg'?'overlay':'clip',id:v.id});
+}
+
+// ---- 🎭 heads ----
+function buildHeads(){
+  const b=$('body');
+  b.innerHTML='<div style="text-align:center;color:#ccc;padding:14px;font-size:13px;line-height:1.7">🎭 ראשים בלייב<br><span style="color:#888;font-size:11px">המערכת תזהה ראשים בלייב של היריב ותחבר אותם לאפקטים אוטומטית.<br><br>בחר מתחרה ב-⚔, ואפקטי "גוף" (💃🐔) יהיו עליו.</span></div>';
+  $('sh-cnt').textContent='אוטומטי';
+}
+
+// ---- 🎬 Front / 🖼 BG ----
+function buildFront(){buildFrontBg('front','🎬','מחליף אותך',['fx_tiny','fx_fan','fx_babyarm','fx_bottle'])}
+function buildBg(){buildFrontBg('bg','🖼','מחליף רקע',['fx_chicken','fx_belly','fx_ballet','fx_bow'])}
+function buildFrontBg(mode,ic,sub,ids){
+  const b=$('body');
+  b.innerHTML=`<div style="color:#aaa;font-size:11px;padding:0 4px 8px">${sub}</div>`;
+  const g=document.createElement('div');g.className='grid';
+  const list=catalog.sets.filter(s=>ids.includes(s.id));
+  for(const it of list){
+    const d=document.createElement('div');d.className='t';
+    d.innerHTML=`<div class="em">${iconFor({kind:'body'})}</div><div class="n">${it.he}</div>`;
+    d.onclick=()=>{d.classList.add('on');setTimeout(()=>d.classList.remove('on'),900);fire('set',it.id,it.he)};
+    g.appendChild(d);
+  }
+  b.appendChild(g);
+  $('sh-cnt').textContent=list.length+' זמינים';
+}
+
+// ---- 🦁 Lion (switch camera source to the lion avatar) ----
+let lionOn=false;
+async function buildLion(){
+  const b=$('body');
+  const st=await get('/api/cloud/source').catch(()=>({source:'camera'}));
+  lionOn=st.source==='lion';
+  b.innerHTML=`
+    <div style="text-align:center;padding:10px">
+      <div style="font-size:52px;margin-bottom:8px;animation:${lionOn?'pulse 1s infinite':'none'}">🦁</div>
+      <div style="color:#ddd;font-size:13px;margin-bottom:4px">${lionOn?'אריאל משדר עכשיו':'מצלמה שלך משדרת'}</div>
+      <div style="color:#888;font-size:10.5px;margin-bottom:14px;line-height:1.5">
+        ${lionOn?'הלייב משדר את אריאל (האריה) במקום המצלמה שלך.<br>כל מה שהוא עושה — אתה בלייב.':'לחץ למטה כדי שאריאל יחליף אותך בלייב.<br>הלקוחות יראו את האריה.'}
+      </div>
+      <button id="lion-btn" style="width:100%;background:${lionOn?'linear-gradient(135deg,#c0392b,#8a2a1a)':'linear-gradient(135deg,#e6b450,#b8841f)'};color:#1a1000;font-weight:800;font-size:14px;padding:12px;border-radius:12px;border:0;cursor:pointer">
+        ${lionOn?'🔙 חזור למצלמה שלך':'🦁 הפעל את אריאל בלייב'}
+      </button>
+      <div style="margin-top:10px;display:flex;gap:5px">
+        <button class="lion-act" data-a="dance" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#ddd;font-size:11px;padding:7px;border-radius:9px">💃 רקוד</button>
+        <button class="lion-act" data-a="song" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#ddd;font-size:11px;padding:7px;border-radius:9px">🎵 שיר</button>
+        <button class="lion-act" data-a="roar" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#ddd;font-size:11px;padding:7px;border-radius:9px">🗣 שאג</button>
+      </div>
+    </div>`;
+  $('lion-btn').onclick=async()=>{
+    const next=lionOn?'camera':'lion';
+    toast(next==='lion'?'🦁 מעביר לאריאל…':'📷 חוזר למצלמה…');
+    const r=await post('/api/cloud/source',{source:next});
+    if(r.error){toast('⚠ '+r.error);return}
+    lionOn=next==='lion';buildLion();
+  };
+  for(const btn of b.querySelectorAll('.lion-act')){
+    btn.onclick=async()=>{toast('🦁 '+btn.textContent);await post('/api/chino/action',{action:btn.dataset.a})}
+  }
+  $('sh-cnt').textContent=lionOn?'🔴 פעיל':'מושהה';
+}
+
+// ---- ✨ AI live ----
+function buildAi(){
+  const b=$('body');
+  const box=document.createElement('div');box.className='ai-box';
+  box.innerHTML=`
+    <textarea class="ai-ipt" placeholder="תאר מה אתה רוצה שה-AI יצור… (למשל: אריה רוקד סלסה על במה עם זיקוקים)" id="ai-txt"></textarea>
+    <div class="ai-opts">
+      <div class="ai-opt sel" data-m="front">🎬 Front</div>
+      <div class="ai-opt" data-m="bg">🖼 רקע</div>
+      <div class="ai-opt" data-m="overlay">🥊 אפקט</div>
+    </div>
+    <button class="ai-go" id="ai-go">✨ צור וידאו חי</button>
+    <div id="ai-eng" style="text-align:center;color:#888;font-size:10px;margin-top:8px"></div>
+  `;
+  b.appendChild(box);
+  let mode='front';
+  for(const o of box.querySelectorAll('.ai-opt')){o.onclick=()=>{mode=o.dataset.m;for(const x of box.querySelectorAll('.ai-opt'))x.classList.remove('sel');o.classList.add('sel')}}
+  // show current engine
+  get('/api/engines').then(e=>{if(e.current)box.querySelector('#ai-eng').textContent='מנוע: '+(e.names?.[e.current.video]||e.current.video)});
+  box.querySelector('#ai-go').onclick=async()=>{
+    const txt=box.querySelector('#ai-txt').value.trim();if(!txt){toast('תכתוב משהו…');return}
+    const btn=box.querySelector('#ai-go');btn.disabled=true;btn.textContent='⏳ מייצר…';
+    toast('✨ Kling / AI מייצר…');
+    try{const r=await post('/api/gen/auto',{prompt:txt,mode});if(r.error){toast('⚠ '+r.error);btn.disabled=false;btn.textContent='✨ צור וידאו חי';return}toast('✅ נכנס לתור — נראה לך כשמוכן');btn.textContent='✓ נשלח!';setTimeout(()=>{btn.disabled=false;btn.textContent='✨ צור וידאו חי';box.querySelector('#ai-txt').value=''},1500)}catch{toast('⚠ שגיאה');btn.disabled=false;btn.textContent='✨ צור וידאו חי'}
+  };
+  $('sh-cnt').textContent='חי בשידור';
+}
+
+// ---- load initial data ----
+async function load(){
+  try{
+    const [j1,j2]=await Promise.all([get('/api/client/list'),get('/api/catalog')]);
+    items=j1.items||[];catalog=j2||{sets:[],scenes:[]};
+    renderFav();
+  }catch{}
+}
+load();setInterval(load,25000);
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/app/sw.js').catch(()=>{});
+</script></body></html>

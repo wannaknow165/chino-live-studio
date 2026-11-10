@@ -1,0 +1,4 @@
+#!/bin/bash
+# "py -3.13 script.py" shim (the server calls python the Windows way) → venv python on Linux
+[ "$1" = "-3.13" ] && shift
+exec /opt/ariel-effects/venv/bin/python "$@"

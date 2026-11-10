@@ -22,7 +22,7 @@ input[type=range]{accent-color:var(--gold)}
 .badge .dot{width:10px;height:10px;border-radius:50%;background:#555}
 .badge.auto .dot{background:var(--green);box-shadow:0 0 10px var(--green)}
 .badge.manual .dot{background:#e67e22;box-shadow:0 0 10px #e67e22}
-.badge.ok .dot{background:var(--green)}.badge.bad .dot{background:var(--red)}
+.badge.ok .dot{background:var(--green)}.badge.bad .dot{background:var(--red)}.badge.warn .dot{background:#e67e22}
 #sayIn{flex:1;min-width:220px;font-size:18px}
 #stopAll{background:var(--red);color:#fff}
 #status{margin-top:6px;color:var(--dim);font-size:13px;min-height:18px;max-height:36px;overflow:hidden;text-overflow:ellipsis}
@@ -59,13 +59,22 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
 .lbl{min-width:70px;color:var(--dim)}
 /* overlays desk: the lion and his talk live in Codex's own dashboard */
 #bAuto,#bMode,#bEng,#bNow,#bScene,#sayIn,#sayGo,#muteBtn,#autoBtn,#convoCard,#headFxCard,#bHear,#autoReply,#quickWarm,#winCapCard,#oppScreenCard,#bOpp{display:none!important}
+/* 📱 phone panel: one organized column — only what goes into the phone's camera */
+body.phone .tabs,body.phone #tab-test,body.phone #tab-old,body.phone #frameCard,body.phone #scenesCard,body.phone #codexBits,body.phone #bDir,body.phone #bTT,body.phone #modeSel,body.phone #bMode{display:none!important}
+body.phone #phoneCol{max-width:980px;margin:0 auto;padding:0 14px 40px}
+body.phone .card > .small,body.phone details.tech .card > .small{display:none}
+body.phone #deskBar .row #stopClip{display:none}
+body.phone #phoneCol .card{margin-top:14px!important}
+body.phone #previewCard iframe{aspect-ratio:9/16}
+body.phone details.tech{margin-top:14px;border:1px dashed var(--line);border-radius:12px;padding:8px 12px}
+body.phone details.tech summary{cursor:pointer;font-size:16px;color:var(--dim)}
+.plink{display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:999px;color:var(--text);text-decoration:none;font-size:14px;background:#1d1710}.plink:hover{border-color:var(--gold)}
 #stopAll{background:var(--red)}
 </style></head><body>
 
 <div id="desk"><div id="deskBar">
   <div class="badges">
     <span style="font-weight:800;color:var(--gold);font-size:18px">🥊 ARIEL DESK — אוברליים</span>
-    <a href="/players" style="background:var(--gold);color:#1a1208;font-weight:800;text-decoration:none;border-radius:10px;padding:7px 14px;font-size:15px">👥 שחקנים ואפקטים — המסך החדש</a>
     <span class="badge manual" id="bAuto"><span class="dot"></span><span id="bAutoT">ידני</span></span>
     <span class="badge" id="bMode"><span>🎞</span><select id="modeSel" style="padding:2px 6px;font-size:14px;border:0;background:transparent;color:var(--text)"><option value="off">בלי אריה — רק יריב + אפקטים</option><option value="video">מצב וידאו (סרטוני האריה)</option><option value="3d">מצב 3D (האריה של Codex)</option></select></span>
     <span class="badge bad" id="bEng"><span class="dot"></span><span id="bEngT">Codex: לא מחובר</span></span>
@@ -85,6 +94,9 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
   </div>
   <div id="status"></div>
 </div>
+<div class="row" id="allPanels" style="gap:6px;flex-wrap:wrap;margin:6px 0 2px"><span class="small" style="font-weight:700">📚 כל הפאנלים:</span>
+  <a class="plink" href="/">🥊 ARIEL DESK</a><a class="plink" href="/specials" style="border-color:#7a5bb8">⭐ המיוחדים</a><a class="plink" href="/players" style="border-color:var(--gold)">👥 שחקנים ואפקטים</a><a class="plink" data-p="7780" href="/">🦁 צ׳ינו — מנחה אוטומטי</a><a class="plink" data-p="7781" href="/">🎓 למידה</a><a class="plink" href="/old">📋 הלוח הישן</a><a class="plink" href="/fx">📱 פאנל הטלפון</a><a class="plink" href="/client">🔗 הדף שלה</a>
+</div>
 <div class="tabs" id="tabs">
   <button data-t="opp" class="act">👤 היריב</button>
   <button data-t="clips">🎬 סרטונים</button>
@@ -98,7 +110,7 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
 <!-- ================= OPPONENT ENGINE ================= -->
 <div class="tab act" id="tab-opp"><div class="cols">
   <div>
-    <div class="card" style="border-color:var(--gold)">
+    <div class="card" id="whoCard" style="border-color:var(--gold)">
       <h2>🎯 מי היריב?</h2>
       <div class="row"><button id="ocWho" class="big">👥 מי מולי בלייב עכשיו</button><button id="ocSpec" class="big ghost">✍️ משתמש ספציפי</button><span class="small" id="ocWhoT"></span></div>
       <div class="row" id="ocSpecRow" style="display:none"><span class="lbl">📡 שם משתמש:</span><input type="text" id="ocUser" placeholder="שם משתמש בטיקטוק — או ריק: בקרב, הלייב של מי שמולך (אוטומטי)" style="flex:1;direction:ltr"><select id="ocSide" title="בלייב של שניים — איזה צד הוא?"><option value="">כל המסך</option><option value="left">הצד השמאלי</option><option value="right">הצד הימני</option></select><button id="ocGo" class="big">🥊 זהה וייצר — הסט הבא (~$0.30)</button><button id="ocGoAll" class="big" style="background:var(--gold)">🎬 ייצר לו הכל — כל הסטים שחסרים (~$0.30 לסט)</button><button id="ocCap" class="ghost">📸 רק תפוס</button><label class="small"><input type="checkbox" id="ocWait" checked> 🎯 לחכות שיסתכל למצלמה (עד דקה)</label></div>
@@ -120,7 +132,7 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
       <div id="ocGrid" class="grid"></div>
       <div class="small"><b>הסטים לכל יריב:</b> 🥊 מרביץ · 🥊 מתחמם ומרביץ · 👊 אגרוף ענק · 👶 תינוק בוכה (על הברכיים של אריאל). "ייצר לו הכל" עושה את כל מה שחסר; יש הכל — לא משלם. הפריים נמשך מהלייב שלו ישר מטיקטוק, RunPod <b>מייצר</b> (הפנים האמיתיות שלו), ~2–3 דק׳, יוצא שקוף — ▶ מנגן על הבמה / ב-Link.</div>
     </div>
-    <div class="card" style="margin-top:14px;border-color:var(--gold)">
+    <div class="card" id="gameCard" style="margin-top:14px;border-color:var(--gold)">
       <h2>💥 הראש שלו עף ומתפרק — כל לייק = זריקה</h2>
       <div class="row"><button id="hgOn" class="big">💥 הדלק על היריב שבשדה למעלה</button><button id="hgThrow" class="big ghost">💥 זרוק אחד</button><button id="hgThrow5" class="ghost">💥×5</button><label class="small"><input type="checkbox" id="hgLikes" checked> כל לייק בצ׳אט = זריקה</label><span class="badge" id="bHg"><span class="dot"></span><span id="bHgT">כבוי</span></span></div>
       <div class="row" style="display:none"><button class="ghost hgMode" data-m="face">💥</button><label class="small"><input type="checkbox" id="hgHead"> ראש</label></div>
@@ -144,14 +156,14 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
       </div>
       <div class="small">הראש נחתך נקי (סגמנטציה), יושב קטן למעלה במרכז ונעלם לבד כשהפנים יוצאות מהפריים.</div>
     </div>
-    <div class="card" style="margin-top:14px;border-color:var(--gold)">
+    <div class="card" id="genCard" style="margin-top:14px;border-color:var(--gold)">
       <h2>🎬 צור דמות / אפקט חדש (RunPod)</h2>
       <div class="row"><input type="text" id="gDesc" placeholder="תאר: מתאגרף גמד עם כפפות אדומות / עגבנייה עפה / חיתול…" style="flex:1"></div>
       <div class="row"><select id="gKind"><option value="character">🎭 דמות — לראש החי של היריב (גוף בלי ראש)</option><option value="puncher">🥊 דמות שנותנת מכות</option><option value="effect">💥 אפקט שעף על היריב (עגבנייה, חיתול…)</option></select><select id="gDur"><option value="5">5 שנ׳ ($0.32)</option><option value="8">8 שנ׳ ($0.50)</option></select><input type="text" id="gName" placeholder="שם קצר (לא חובה)" style="width:150px"><button id="gGo" class="big">🎬 צור</button></div>
       <div class="small">זה רץ בענן של RunPod לפי סרטון (~$0.32 ל-5 שניות), <b>שום דבר לא נשאר דלוק</b>. התהליך: ציור על מסך ירוק → הנעה → הורדה → שקיפות אוטומטית → נכנס לספרייה למטה. 1–3 דקות.</div>
       <div id="gJobs" class="small" style="margin-top:6px;line-height:1.8"></div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" id="boxersCard" style="margin-top:14px">
       <h2>🥊 דמויות — המתאגרף שנותן ליריב מכות</h2>
       <div class="drop" id="dropOv">⬆️ סרטון (למשל: מישהו חוטף אגרופים) — המערכת מוצאת את כל הפנים בו, ואתה בוחר למי מחליפים את הראש<input type="file" id="fileOv" accept="video/*" multiple style="display:none"></div>
       <div class="row"><label class="small"><input type="radio" name="ovMode" value="keep" checked> סרטון מלא על כל המסך</label><label class="small"><input type="radio" name="ovMode" value="cut"> לחתוך את הדמות מהרקע (שקוף, ליד האריה)</label><label class="small"><input type="checkbox" id="ovLoop"> בלופ</label><button id="ovStop" class="ghost">⏹ עצור</button></div>
@@ -176,21 +188,21 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
       <div class="slider"><span>למעלה/למטה</span><input type="range" id="ovY" min="-120" max="120" step="1" value="0"><span id="ovYV">0</span></div>
       <div class="small">השידור שלו נמשך ישר מטיקטוק ומכסה אותנו לגמרי — האריה מוסתר. "הצד הימני" = היריב שמולו בקרב, ממלא את כל הפריים שלנו. עליו מלבישים אפקטים. "עצור הכל" או כיבוי כאן — חוזרים לאריה.</div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" id="fxOppCard" style="margin-top:14px">
       <h2>🥊 אפקטים שקופים על היריב</h2>
       <div class="row"><b>💥 מכה בפנים (בלי סרטון):</b><button id="hitL" class="big">👈 מכה משמאל</button><button id="hitR" class="big">מכה מימין 👉</button><span class="small">הראש החי שלו נזרק הצידה, המסך רועד, POW! וכוכבים — ברגע שיש פנים בשידור.</span></div>
       <div class="drop" id="dropFx">⬆️ WebM שקוף, או MP4 על מסך ירוק (נהפך לשקוף לבד)<input type="file" id="fileFx" accept="video/webm,video/mp4,video/quicktime" multiple style="display:none"></div>
       <div id="fxGrid" class="grid"></div>
       <div class="small">לחיצה = אגרוף אחד. ↔ מהצד השני. 🎯 דלוק = האפקט נוחת <b>על הפנים של היריב</b> (המערכת מוצאת את הפנים בתוך השידור שלו ומכוונת לשם; אין פנים — נוחת במרכז). עד 3 אפקטים במקביל.</div>
     </div>
-    <div class="card" style="margin-top:14px"><h2>יומן</h2><div id="log"></div></div>
+    <div class="card" id="logCard" style="margin-top:14px"><h2>יומן</h2><div id="log"></div></div>
   </div>
 </div></div>
 
 <!-- ================= CLIPS ================= -->
 <div class="tab" id="tab-clips"><div class="cols">
   <div>
-    <div class="card">
+    <div class="card" id="clipsCard">
       <h2>🎬 סרטונים בלחיצה</h2>
       <div class="row"><span class="badge" id="bClip"><span class="dot"></span><span id="bClipT">שום סרטון לא מתנגן</span></span><button id="stopClip2" class="ghost">⏹ עצור סרטון</button></div>
       <div class="drop" id="dropClips">⬆️ גרור לכאן סרטונים (mp4 / webm / mov) או לחץ לבחירה<input type="file" id="fileClips" accept="video/*" multiple style="display:none"></div>
@@ -199,7 +211,7 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
     </div>
   </div>
   <div>
-    <div class="card">
+    <div class="card" id="previewCard">
       <h2>תצוגה מקדימה של השידור</h2>
       <div class="row"><div id="preview"><iframe src="/stage?preview=1&live=1" title="preview"></iframe></div><div class="small" style="flex:1;line-height:1.7">זה בדיוק מה שהמצלמה הווירטואלית משדרת (בלי סאונד כאן).<br>גודל הסרטון בפריים נקבע לכל סרטון בנפרד: מסך מלא / חלון קטן / חלון רחב.</div></div>
     </div>
@@ -209,7 +221,7 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
 <!-- ================= THE SET ================= -->
 <div class="tab" id="tab-set"><div class="cols">
   <div>
-    <div class="card">
+    <div class="card" id="bgCard">
       <h2>🖼 רקע מאחור</h2>
       <div class="drop" id="dropBg">⬆️ תמונה או וידאו (וילון, אולם, במה…)<input type="file" id="fileBg" accept="image/*,video/*" multiple style="display:none"></div>
       <div class="row"><b>📷 מצלמה כרקע:</b><select id="camSel" style="min-width:200px"><option value="">— בחר מצלמה —</option></select><button id="camUse" class="ghost">השתמש</button><label class="small"><input type="checkbox" id="camMirror"> מראה</label><span class="small">האפקטים והזיהוי עובדים על המצלמה בדיוק כמו על היריב — כל מצלמה/מצלמה וירטואלית שמותקנת במחשב.</span></div>
@@ -217,7 +229,7 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
       <div id="bgGrid" class="grid"></div>
       <div class="small">במצב וידאו סרטוני האריה הנוכחיים מכסים את הרקע (הכיסא צרוב בהם). במצב 3D האריה והכיסא של Codex שקופים מסביב — והרקע נראה.</div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" id="frontCard" style="margin-top:14px">
       <h2>✨ שכבה מלפנים (מסגרות, אפקטים, אלמנטים)</h2>
       <div class="drop" id="dropFront">⬆️ PNG עם שקיפות / WebM שקוף<input type="file" id="fileFront" accept="image/png,image/webp,image/gif,video/webm,video/mp4" multiple style="display:none"></div>
       <div id="frontGrid" class="grid"></div>
@@ -226,7 +238,7 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
     </div>
   </div>
   <div>
-    <div class="card">
+    <div class="card" id="frameCard">
       <h2>📐 הפריים — האריה והכיסא זזים יחד</h2>
       <div class="slider"><span>גודל</span><input type="range" id="fScale" min="0.5" max="2.2" step="0.01" value="1"><span id="fScaleV">100%</span></div>
       <div class="slider"><span>ימין/שמאל</span><input type="range" id="fX" min="-40" max="40" step="0.5" value="0"><span id="fXV">0</span></div>
@@ -234,19 +246,34 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
       <div class="row"><button id="shotFull" class="ghost">🪑 ישיבה מלאה</button><button id="shotClose" class="ghost">🗣 פריים קרוב (שיחה/באטל)</button><button id="fReset" class="ghost">↺ איפוס</button></div>
       <div class="small">שינוי כאן לא נוגע באריה עצמו — רק איפה ובאיזה גודל הסט כולו יושב בפריים. במצב 3D "פריים קרוב" גם מבקש מהמנוע של Codex את המצלמה הקרובה.</div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" id="scenesCard" style="margin-top:14px">
       <h2>🎭 סצנות</h2>
       <div class="row"><input type="text" id="sceneName" placeholder="שם הסצנה (למשל: במה אדומה)" style="flex:1"><button id="sceneSave">💾 שמור את המצב הנוכחי</button></div>
       <div id="sceneGrid" class="grid"></div>
       <div class="small">סצנה = רקע + שכבות קדמיות + פריים + מצב. לחיצה מחליפה הכל בבת אחת, הישיבה והיחס אריה-כיסא נשמרים.</div>
     </div>
-    <div class="card" style="margin-top:14px;border-color:var(--gold)">
+    <div class="card" id="runpodCard" style="margin-top:14px;border-color:var(--gold)">
       <h2>☁️ RunPod — מנוע וידאו משלנו (דמויות שקופות)</h2>
       <div class="row"><input type="password" id="rpKey" placeholder="הדבק כאן את מפתח ה-API של RunPod" style="flex:1;direction:ltr"><button id="rpSave">שמור</button><span class="small" id="rpStat"></span></div>
       <div class="small">RunPod → Settings → API Keys → Create. המפתח נשמר רק במחשב הזה (settings.json). אחרי השמירה אני מקים את ה-GPU ומנוע הווידאו, ויופיע כאן כפתור "🎬 צור דמות".</div>
     </div>
-    <div class="card" style="margin-top:14px">
-      <h2>🦁 צ׳ינו (Codex, 7780) — מה הצופים רואים</h2>
+    <div class="card" id="cloudCard" style="margin-top:14px">
+      <h2>📱 גרסת ענן — המצלמה שלה + כל האפקטים, בלי אריה</h2>
+      <div class="small" style="line-height:2">
+        <b>המסך שמשדרים</b> (פותחים בדפדפן של האנדרואיד בענן, 1080×1920): <code style="direction:ltr;user-select:all">/cam</code><br>
+        <b>הטלפון שלה</b> (פותחת ולוחצת "התחילי" — המצלמה עוברת למסך בענן): <code style="direction:ltr;user-select:all">/phone</code><br>
+        בדיקה מהירה עם המצלמה של המחשב הזה: <code style="direction:ltr;user-select:all">/cam?src=local</code> · מראה: <code style="direction:ltr">&mirror=1</code><br>
+        אותם כפתורים, אותם סרטונים, אותו משחק — השכבות יושבות על המצלמה במקום על אריאל. ⚠️ המצלמה בטלפון פותחת רק ב-HTTPS (בענן עם דומיין), לא בכתובת IP רגילה.
+      </div>
+      <div class="row" style="margin-top:8px"><button id="clCast" class="big">📱 שדר לטלפון בענן</button><span class="badge" id="bCl"><span class="dot"></span><span id="bClT">כבוי</span></span><span class="small" id="clInfo"></span></div>
+      <div class="row" id="clDeskRow" style="display:none"><label class="lbl">🎛 הדשבורד בטלפון שלך (סודי, רק לך):</label><input type="text" id="clDesk" readonly style="flex:1;direction:ltr;user-select:all"><button id="clDeskCopy" class="ghost">העתק</button></div>
+      <div class="row" id="clPhoneRow" style="display:none"><label class="lbl">📱 הקישור לטלפון שלה:</label><input type="text" id="clPhone" readonly style="flex:1;direction:ltr;user-select:all"><button id="clPhoneCopy" class="ghost">העתק</button></div>
+      <details class="small" style="margin-top:6px"><summary>🔧 פרטים טכניים (כתובת המצלמה של הטלפון)</summary>
+        <div class="row" style="margin-top:6px"><input type="text" id="clRtsp" placeholder="ריק = אוטומטי מהקובץ credentials.json של הטלפון (client001 → camera)" style="flex:1;direction:ltr"><button id="clRtspSave" class="ghost">שמור</button></div>
+        <div>הקופסא מציירת את /cam בדפדפן סמוי על השרת ודוחפת את התמונה לצינור המצלמה של Phone 1 (RTSP → relay → מצלמת האנדרואיד). עובד רק כשהלוח רץ על השרת בענן.</div>
+      </details>
+      <div id="codexBits">
+      <h2 style="margin-top:14px">🦁 צ׳ינו (Codex, 7780) — מה הצופים רואים</h2>
       <div class="row"><label class="lbl">💬 טקסט המתנה:</label><input type="text" id="dirHint" placeholder="כתבו שאלה בצ׳אט — צ׳ינו 🦁 עונה" style="flex:1"><button id="dirHintSave" class="ghost">שמור</button></div>
       <div class="small">מופיע כפס קטן למעלה ב-Link כשאין שיחה. בשיחה: 🟢 "צ׳ינו מקשיב/מדבר" + הזמן שנשאר (מהמנוע), 🟠 "רגע…" כשמחכים לקליפ. נעלם כשסרטון מכסה את המסך או כשהמנוע לא מחובר — אף פעם לא טקסט טכני לצופים.</div>
       <div id="dirInfo" class="small" style="margin-top:6px"></div>
@@ -255,6 +282,7 @@ iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);bo
       <div class="small" id="engInfo">עוד לא חובר. כש-Codex ימסור כתובת — מדביקים כאן. עד אז מצב 3D לא זמין (המשפטים לא ילכו לשום מקום).</div>
       <div class="row"><input type="text" id="renderUrl" placeholder="כתובת הרינדור השקוף (אם המנוע לא מדווח לבד)" style="flex:1;direction:ltr"><select id="renderType"><option value="iframe">דף (iframe)</option><option value="video">וידאו/סטרים</option><option value="image">תמונה</option></select><button id="renderSave" class="ghost">הצג</button></div>
     </div>
+      </div>
   </div>
 </div></div>
 
@@ -447,6 +475,29 @@ function dirUI(d){ const on=!!d.online; $('bDir').className='badge '+(on?(d.conv
 $('dirHintSave').onclick=()=>post('/api/director/hint',{hint:$('dirHint').value.trim()}).then(()=>log('💬 טקסט ההמתנה נשמר'));
 fetch('/api/director').then(r=>r.json()).then(dirUI).catch(()=>{});
 // 🍅 head game
+// ---- 📱 phone panel (/fx, and the default on the cloud box): same brain, one tidy column ----
+const PHONE = location.pathname === '/fx' || location.search.includes('phone=1');
+if (PHONE) {
+  document.body.classList.add('phone'); document.title = '📱 פאנל האפקטים — הטלפון';
+  const bar = document.querySelector('#deskBar .badges span'); if (bar) bar.textContent = '📱 פאנל האפקטים — מה שנכנס למצלמה של הטלפון';
+  const col = document.createElement('div'); col.id = 'phoneCol'; document.body.appendChild(col);
+  const mv = id => { const e = document.getElementById(id); if (e) col.appendChild(e); };
+  ['cloudCard', 'whoCard', 'gameCard', 'clipsCard', 'frontCard', 'bgCard', 'previewCard'].forEach(mv);
+  const tech = document.createElement('details'); tech.className = 'tech'; tech.innerHTML = '<summary>🔧 פרטים טכניים — דמויות, מנוע הווידאו, מפתחות, יומן</summary>'; col.appendChild(tech);
+  ['boxersCard', 'genCard', 'runpodCard', 'fxOppCard', 'logCard'].forEach(id => { const e = document.getElementById(id); if (e) tech.appendChild(e); });
+  const pv = document.querySelector('#previewCard iframe'); if (pv) { const im = document.createElement('img'); im.id = 'phoneView'; im.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#000;display:block'; im.src = '/api/phone/view.mjpeg?' + Date.now(); im.onerror = () => setTimeout(() => { im.src = '/api/phone/view.mjpeg?' + Date.now(); }, 3000); pv.replaceWith(im); }
+  const pt = document.querySelector('#previewCard h2'); if (pt) pt.textContent = '📱 הטלפון — מה המצלמה שלו משדרת עכשיו (חי)';
+  const ph = document.querySelector('#cloudCard h2'); if (ph) ph.textContent = '📱 הטלפון בענן — המצלמה שלה + האפקטים';
+  const pl = document.querySelector('#clPhoneRow .lbl'); if (pl) pl.textContent = '🔗 הקישור שלה (מצלמה + כפתורי אפקטים):';
+  document.querySelectorAll('.tab').forEach(t => t.classList.add('act'));
+}
+document.querySelectorAll('.plink[data-p]').forEach(a=>{ a.href='http://127.0.0.1:'+a.dataset.p+a.getAttribute('href'); a.target='_blank'; });   // Codex's studio only answers to 127.0.0.1:7780
+function clUI(c){ const on=!!c.on; const live=c.state==='live'; $('bCl').className='badge '+(live?'ok':on?'warn':''); $('bClT').textContent=live?'🟢 משדר לטלפון':on?'מתחבר…':c.state==='error'?'❌ נפל':'כבוי'; $('clCast').textContent=on?'⏹ הפסק שידור לטלפון':'📱 שדר לטלפון בענן'; $('clCast').classList.toggle('on',on); $('clInfo').textContent=(c.error?'❌ '+c.error+' · ':'')+(c.phone?'📱 הטלפון שלה מחובר':'📱 הטלפון שלה עוד לא לחץ "התחילי"')+(c.frames?' · '+Math.round(c.frames/24)+' שנ׳':'')+(c.linux?'':' · ⚠️ זה המחשב, לא השרת — הכפתור עובד רק בענן'); if(c.rtsp!=null && document.activeElement!==$('clRtsp')) $('clRtsp').value=c.rtsp; $('clPhoneRow').style.display=c.phoneUrl?'':'none'; if(c.phoneUrl) $('clPhone').value=c.phoneUrl; $('clDeskRow').style.display=c.deskUrl?'':'none'; if(c.deskUrl) $('clDesk').value=c.deskUrl; }
+$('clDeskCopy').onclick=()=>{ navigator.clipboard.writeText($('clDesk').value).then(()=>log('הועתק — הקישור הזה פותח את כל הלוח, לא לשלוח ללקוחות')); };
+$('clPhoneCopy').onclick=()=>{ navigator.clipboard.writeText($('clPhone').value).then(()=>log('הקישור הועתק — שלח לה בוואטסאפ')); };
+$('clCast').onclick=once(async()=>{ const cur=await (await fetch('/api/cloud')).json(); const j=await post('/api/cloud/cast',{on:!cur.on}); if(j.error) log('❌ '+j.error); else clUI(j); });
+$('clRtspSave').onclick=async()=>{ const j=await post('/api/cloud/cast',{on:false,rtsp:$('clRtsp').value.trim()}); clUI(j); log('נשמרה כתובת המצלמה'); };
+fetch('/api/cloud').then(r=>r.json()).then(clUI).catch(()=>{});
 function hgUI(g){ const on=!!g.on; $('bHg').className='badge '+(on?'ok':''); $('bHgT').textContent=on?('דלוק: '+g.user+(g.thrown?' · '+g.thrown+' 🍅':'')):'כבוי'; $('hgOn').textContent=on?'⏹ כבה את המשחק':'💥 הדלק על היריב שבשדה למעלה'; $('hgOn').classList.toggle('on',on); if(g.likes!=null) $('hgLikes').checked=!!g.likes; if(g.size){ $('hgSize').value=g.size; $('hgSizeV').textContent=Math.round(g.size*100)+'%'; } if(g.y){ $('hgY').value=g.y; $('hgYV').textContent=Math.round(g.y*100)+'%'; } if(g.mode){ document.querySelectorAll('.hgMode').forEach(b=>b.classList.toggle('on',b.dataset.m===g.mode)); } if(g.showHead!=null) $('hgHead').checked=!!g.showHead; }
 $('hgOn').onclick=once(async()=>{ const cur=await (await fetch('/api/headgame')).json(); if(cur.on){ hgUI(await post('/api/headgame',{on:false})); return; } const u=$('ocUser').value.trim(); if(!u) return alert('כתוב למעלה את שם המשתמש של היריב'); $('bHgT').textContent='מתחבר לשידור של '+u+'…'; const j=await post('/api/headgame',{on:true,user:u}); if(j.error){ log('❌ '+j.error); $('bHgT').textContent='❌ '+j.error; } else hgUI(j); });
 document.querySelectorAll('.hgMode').forEach(b=>b.onclick=()=>post('/api/headgame',{mode:b.dataset.m}).then(hgUI)); $('hgHead').onchange=e=>post('/api/headgame',{showHead:e.target.checked}).then(hgUI);
@@ -599,6 +650,7 @@ es.onmessage=ev=>{ const m=JSON.parse(ev.data);
   if(m.type==='hello'){ if(window.__boot&&m.boot&&window.__boot!==m.boot) location.reload(); window.__boot=m.boot; }
   if(m.type==='status'){ log(m.msg); }
   if(m.type==='desk') deskUI(m);
+  if(m.type==='cloud') clUI(m);
   if(m.type==='set') setUI(m);
   if(m.type==='assets') assetsUI(m);
   if(m.type==='clips') clipsUI(m.clips);
