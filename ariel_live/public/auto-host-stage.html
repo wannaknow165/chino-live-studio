@@ -1,0 +1,146 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CHINO LIVE — Video Output</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#070707;overflow:hidden}#frame{overflow:hidden;position:relative;height:100%;aspect-ratio:9/16;margin:auto;max-width:100%}video,img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}video{opacity:0}video.on{opacity:1}button{position:absolute;z-index:4;inset:40% 8%;background:#151b22e8;border:1px solid #d1a660;color:#f5dfad;border-radius:14px;font:600 20px system-ui;cursor:pointer}#error{position:absolute;bottom:15px;left:8%;right:8%;z-index:5;color:#ffd1bd;background:#1d1313c9;font:13px system-ui;text-align:center;white-space:pre-wrap}#error:empty{display:none}#frame{--attention:#dd695e}#frame.engaged{--attention:#65e9b3}
+#attention-glow{position:absolute;inset:0;z-index:2;pointer-events:none;box-shadow:inset 0 0 38px -10px var(--attention);transition:box-shadow .6s}
+#attention{position:absolute;z-index:3;top:2.3%;left:7%;right:7%;text-align:center;direction:rtl;color:#fff5dd;font:500 clamp(9px,1.2vw,14px)/1.6 system-ui;text-shadow:0 1px 4px #000;pointer-events:none}
+#attention-state{display:block;color:var(--attention);font-weight:700;margin-bottom:4px}
+#attention-help{padding:5px 10px;border-radius:10px;background:#06080bc7;display:inline-block}
+#attention-queue{display:block;font-size:.9em;color:#ddd}
+#frame{filter:contrast(1.05)}body.preview #frame{width:min(100vw,56.25vh);height:auto;aspect-ratio:9/16;max-height:100vh}
+#interaction-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}#interaction-asset{display:none}
+#show-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:6;pointer-events:none}</style></head><body><div id="frame"><img id="poster" src="/media/master.png"><video id="a" playsinline></video><video id="b" playsinline></video><canvas id="interaction-canvas" width="720" height="1280" aria-hidden="true"></canvas><video id="interaction-asset" playsinline muted preload="auto" aria-hidden="true"></video><button id="start">הפעל את צ׳ינו והסאונד</button><div id="attention-glow"></div><div id="attention" role="status"><span id="attention-state">🔴 צריכים אותי? קראו לי צ׳ינו</span><span id="attention-help">בצ׳אט: ״צינו״ או ״צ׳ינו״ לפתיחת שיחה<br>בירוק — אותו משתתף ממשיך חופשי לשתי דקות</span><span id="attention-queue"></span></div><div id="error" role="status"></div><canvas id="show-overlay" width="720" height="1280" aria-hidden="true"></canvas></div><script type="module">
+import {ChinoShowOverlay} from "/show-overlay.js";
+import {ChickenBlow,validateChickenBlow} from "/media/interactions/runtime/chicken-blow.js";
+import {SideDance,validateSideDance} from "/media/interactions/runtime/side-dance.js";
+import {TrackedInteraction} from "/media/interactions/runtime/tracked-interaction.js";
+import {validateMotionProfile,validatePointTrack} from "/media/interactions/runtime/interaction-geometry.js";
+const query=new URLSearchParams(location.search),preview=query.has('preview'),stageId=crypto.randomUUID();
+if(preview){document.getElementById('attention-help').style.display='none';if(!query.has('vcam'))document.body.classList.add('preview');}
+if(query.has('vcam')){document.title='CHINO CAMERA — Live Output';document.body.style.padding='6px';document.getElementById('frame').style.outline='6px solid #ff00ff';}
+const a=document.getElementById('a'),b=document.getElementById('b'),error=document.getElementById('error');
+let front=a,back=b,serial=0,active=null,idles=[],idleIndex=0,started=false,owner=false,boot=null,musicState=null,backgroundKey='',musicPolling=false;
+const cache=new Map();
+const interactionCanvas=document.getElementById('interaction-canvas'),interactionAsset=document.getElementById('interaction-asset');
+let interactionRenderer=null,interactionAbort=null;
+let showAudio=null;
+function impactSound(kind){
+ if(preview||!owner||!started)return;
+ try{const Audio=window.AudioContext||window.webkitAudioContext;showAudio??=new Audio();showAudio.resume().catch(()=>{});
+ const t=showAudio.currentTime,osc=showAudio.createOscillator(),gain=showAudio.createGain();osc.type='sine';osc.frequency.setValueAtTime(kind==='glove'?130:260,t);osc.frequency.exponentialRampToValueAtTime(42,t+.23);gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.14,t+.012);gain.gain.exponentialRampToValueAtTime(.0001,t+.36);osc.connect(gain).connect(showAudio.destination);osc.start(t);osc.stop(t+.4);
+ }catch{}
+}
+const showOverlay=new ChinoShowOverlay(document.getElementById('show-overlay'),{onImpact:impactSound,onFinish:cue=>acknowledgeShow(cue,'ended')});
+async function recoverShow(){try{const s=await(await fetch('/api/show')).json();if(s.active&&Date.now()<s.active.endsAt)showOverlay.play(s.active);}catch{}}
+function acknowledgeShow(cue,state){if(preview||!owner)return;fetch('/api/show/render',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:cue.id,stageId,state,preview})}).catch(()=>{});}
+function playShow(cue){if(!started||Date.now()>=cue.endsAt)return;showOverlay.play(cue);acknowledgeShow(cue,'started');}
+
+const api=(route,data)=>fetch('/api/director/'+route,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json());
+const media=src=>{if(!cache.has(src))cache.set(src,fetch(src).then(r=>{if(!r.ok)throw new Error('media_missing');return r.blob();}).then(x=>URL.createObjectURL(x)).catch(e=>{cache.delete(src);throw e;}));return cache.get(src);};
+function ack(state,duration){if(!preview&&active)return api('playback',{stageId,playId:active.playId,state,duration}).catch(()=>{});}
+async function switchVideo(src,talk=false,prepare=null){const n=++serial,v=back;let url;try{url=await media(src);if(n!==serial)return null;v.onended=null;v.onerror=null;v.pause();v.src=url;v.currentTime=0;v.muted=preview||!talk;v.loop=false;if(prepare){await videoReady(v,interactionAbort?.signal);if(n!==serial)return null;await prepare(v);if(n!==serial)return null;}await v.play();if(n!==serial){v.pause();return null;}front.classList.remove('on');front.onended=null;front.pause();v.classList.add('on');back=front;front=v;return v;}catch{if(n===serial)error.textContent='לא ניתן לנגן את הווידאו. בדוק קובץ והרשאת סאונד.';return null;}}
+function interactionUrl(value,{scene=false}={}){
+ if(typeof value!=='string'||value.length>600)throw new Error('invalid_interaction_url');
+ const u=new URL(value,location.origin),prefix=scene?'/media/interactions/scenes/':'/media/';
+ if(u.origin!==location.origin||!u.pathname.startsWith(prefix)||u.username||u.password||u.search||u.hash)throw new Error('invalid_interaction_url');return u.pathname;
+}
+function videoReady(video,signal){
+ return new Promise((resolve,reject)=>{
+  let timer;const clean=()=>{clearTimeout(timer);video.removeEventListener('loadeddata',ready);video.removeEventListener('error',failed);signal?.removeEventListener('abort',aborted);};
+  const ready=()=>{if(video.readyState>=2){clean();resolve();}},failed=()=>{clean();reject(new Error('interaction_media_failed'));},aborted=()=>{clean();reject(new Error('interaction_cancelled'));};
+  if(signal?.aborted){aborted();return;}video.addEventListener('loadeddata',ready);video.addEventListener('error',failed);signal?.addEventListener('abort',aborted,{once:true});timer=setTimeout(failed,30000);ready();
+ });
+}
+function seekVideo(video,time,signal){
+ if(Math.abs(video.currentTime-time)<.01&&!video.seeking)return Promise.resolve();
+ return new Promise((resolve,reject)=>{
+  let timer;const clean=()=>{clearTimeout(timer);video.removeEventListener('seeked',done);video.removeEventListener('error',failed);signal?.removeEventListener('abort',aborted);};
+  const done=()=>{clean();resolve();},failed=()=>{clean();reject(new Error('interaction_seek_failed'));},aborted=()=>{clean();reject(new Error('interaction_cancelled'));};
+  if(signal?.aborted){aborted();return;}video.addEventListener('seeked',done);video.addEventListener('error',failed);signal?.addEventListener('abort',aborted,{once:true});timer=setTimeout(failed,10000);video.currentTime=time;
+ });
+}
+function stopInteraction(){
+ interactionAbort?.abort();interactionAbort=null;interactionRenderer?.destroy();interactionRenderer=null;interactionAsset.pause();interactionCanvas.getContext('2d').clearRect(0,0,720,1280);delete interactionCanvas.dataset.state;delete interactionCanvas.dataset.sourceComplete;
+}
+async function prepareInteraction(m){
+ const controller=new AbortController();interactionAbort=controller;const signal=controller.signal;
+ const read=async url=>{const r=await fetch(url,{cache:'no-store',signal});if(!r.ok)throw new Error('interaction_scene_missing');return r.json();};
+ const scene=typeof m.interactionScene==='string'?await read(interactionUrl(m.interactionScene,{scene:true})):m.interactionScene;
+ if(!scene||typeof scene!=='object'||Array.isArray(scene))throw new Error('invalid_interaction_scene');if(scene.preset==='chicken_blow')validateChickenBlow(scene.profile);else if(scene.preset==='dancer_side_dance')validateSideDance(scene.profile);else validateMotionProfile(scene.profile);
+ const baseUrl=interactionUrl(scene.baseVideoUrl),assetUrl=interactionUrl(scene.overlayVideoUrl),trackUrl=['tiny_on_paw','dancer_side_dance','chicken_blow'].includes(scene.preset)?null:interactionUrl(scene.sourceTrackUrl);
+ if(baseUrl!==interactionUrl(m.file))throw new Error('interaction_scene_base_mismatch');
+ const [track,url]=await Promise.all([trackUrl?read(trackUrl):Promise.resolve(scene.sourceMetadata),media(assetUrl)]);if(signal.aborted)throw new Error('interaction_cancelled');
+ if(trackUrl)validatePointTrack(track.track,{detected:track.detected??null});interactionAsset.muted=preview||!owner;interactionAsset.volume=.9;interactionAsset.src=url;interactionAsset.load();await videoReady(interactionAsset,signal);
+ if(track.width!==interactionAsset.videoWidth||track.height!==interactionAsset.videoHeight)throw new Error('interaction_media_not_ready');
+ const sourceFrom=scene.profile.sourceWindow?.from??scene.profile.stableWindow?.from??track.stableWindow?.from??0;await seekVideo(interactionAsset,sourceFrom,signal);
+ return {scene,track,signal};
+}
+function interactionDuration(scene,video){
+ const p=scene.profile,w=p.sourceWindow,loop=p.holdBaseLoop;if(!p.repeatCount||!w||!loop)return video.duration;
+ const extra=Math.max(0,w.to-w.from)*p.repeatCount-(loop.to-p.overlayStartTime),loops=Math.max(0,Math.ceil(extra/(loop.to-loop.from)));
+ return p.duration+loops*(loop.to-loop.from);
+}
+function finishActive(playId,state='ended'){
+ if(active?.playId!==playId)return;ack(state);active=null;serial++;stopInteraction();front.onended=null;front.onerror=null;front.pause();back.pause();idle();
+}
+function musicKey(){return musicState?.ready?musicState.song.id+':'+musicState.phase+':'+musicState.preview:'idle';}
+async function idle(){
+ if(!started||active||!idles.length)return;
+ backgroundKey=musicKey();const dancing=musicState?.ready,files=dancing?musicState.files:idles;
+ const src=files[idleIndex++%files.length],v=await switchVideo(src);
+ if(v&&!active){v.onended=idle;if(dancing)fetch('/api/music-motion/render',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:src,preview})}).catch(()=>{});}
+}
+async function updateMusic(){if(musicPolling)return;musicPolling=true;try{const r=await fetch('/api/music-motion');if(!r.ok)throw new Error();musicState=await r.json();}catch{musicState=null;}finally{musicPolling=false;}showOverlay.updateMusic?.({...musicState,bpm:musicState?.songs?.find(s=>s.id===musicState?.song?.id)?.bpm});if(started&&!active&&musicKey()!==backgroundKey)idle();}
+setInterval(updateMusic,800);updateMusic();
+async function heartbeat(){if(preview||!started)return;try{const j=await api('stage',{id:stageId,ready:started});owner=j.owner===true;interactionAsset.muted=preview||!owner;if(!owner)error.textContent='צ׳ינו מדבר דרך נגן אחר שפתוח. זה אינו Spotify. כאן תצוגה שקטה; סגור את הנגן האחר כדי להעביר את הדיבור לכאן.';else if(error.textContent.includes('נגן אחר')||error.textContent.includes('החיבור לשרת נקטע'))error.textContent='';}catch{owner=false;interactionAsset.muted=true;}}
+// An integrated effect (interactionScene) waits for the idle clip to end: every idle clip starts and ends in the lion's home pose, so the effect video starts from home. Never waits past the director's start deadline.
+let pendingHome=null;
+function waitHome(m){
+ return new Promise(resolve=>{
+  const v=front;
+  if(!m.interactionScene||active||musicState?.ready||!v||v.paused||v.ended||!Number.isFinite(v.duration)){resolve('go');return;}
+  const left=(v.duration-v.currentTime)*1000,budget=m.expires-Date.now()-4500;
+  if(left<=200||left>budget){resolve('go');return;}
+  pendingHome=m.playId;let done=false,timer,poll;
+  const fin=()=>{if(done)return;done=true;clearTimeout(timer);clearInterval(poll);v.removeEventListener('ended',fin);resolve(pendingHome===m.playId?'go':'cancel');};
+  poll=setInterval(()=>{if(pendingHome!==m.playId||Date.now()>m.expires-4500)fin();},250);
+  v.addEventListener('ended',fin);timer=setTimeout(fin,left+800);
+ });
+}
+async function speak(m){
+ if(!started||active?.playId===m.playId||pendingHome===m.playId||(!preview&&(!owner||m.stageId!==stageId))||Date.now()>m.expires)return;
+ if(m.interactionScene){const w=await waitHome(m);if(w==='cancel'||active||Date.now()>m.expires){if(pendingHome===m.playId)pendingHome=null;return;}if(pendingHome===m.playId)pendingHome=null;}
+ serial++;stopInteraction();front.onended=null;front.pause();back.pause();active=m;error.textContent='';
+ try{
+  const prepared=m.interactionScene?await prepareInteraction(m):null;if(active?.playId!==m.playId)return;
+  const v=await switchVideo(m.file,true,prepared?async video=>{
+   if(active?.playId!==m.playId||prepared.signal.aborted)throw new Error('interaction_cancelled');
+   await seekVideo(video,prepared.scene.profile.baseStartSeconds||0,prepared.signal);if(active?.playId!==m.playId||prepared.signal.aborted)throw new Error('interaction_cancelled');
+   interactionAsset.muted=preview||!owner;interactionAsset.volume=.9;
+   interactionRenderer=new (prepared.scene.preset==='chicken_blow'?ChickenBlow:prepared.scene.preset==='dancer_side_dance'?SideDance:TrackedInteraction)({canvas:interactionCanvas,baseVideo:video,overlayVideo:interactionAsset,muteOverlay:preview||!owner,onState:s=>{
+    interactionCanvas.dataset.state=s.state;
+    if(s.state==='tracking_review_required'){error.textContent='מעקב האפקט דורש בדיקה. צ׳ינו חוזר למופע.';finishActive(m.playId,'failed');}
+   },onOverlayComplete:()=>{interactionCanvas.dataset.sourceComplete='true';},onFinish:({reason})=>finishActive(m.playId,reason==='finished'||reason==='base_video_ended'?'ended':'failed')});
+   interactionRenderer.play({id:prepared.scene.id||prepared.scene.requestId||m.playId,profile:prepared.scene.profile,sourceTrack:prepared.track});
+  }:null);
+  if(active?.playId!==m.playId)return;if(!v||Date.now()>m.expires){finishActive(m.playId,'failed');return;}
+  v.onended=()=>finishActive(m.playId);v.onerror=()=>finishActive(m.playId,'failed');ack('started',prepared?interactionDuration(prepared.scene,v):v.duration);
+ }catch{if(active?.playId===m.playId){error.textContent='לא ניתן להפעיל את האפקט המשולב. צ׳ינו חוזר למופע.';finishActive(m.playId,'failed');}}
+}
+function cancel(m){if(pendingHome&&(!m.playId||m.playId===pendingHome))pendingHome=null;if(active&&(!m.playId||m.playId===active.playId)){showOverlay.stop();active=null;serial++;stopInteraction();front.onended=null;front.pause();back.pause();idle();}}
+async function start(){started=true;document.getElementById('start').hidden=true;try{const j=await(await fetch('/api/stage-assets')).json();idles=j.idles;await heartbeat();await idle();await recoverShow();}catch{error.textContent='אין חיבור לשרת';}}
+document.getElementById('start').onclick=start;
+const events=new EventSource('/api/events');events.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='hello'){if(boot&&boot!==m.boot)location.reload();boot=m.boot;}if(m.type==='show-play')playShow(m);if(m.type==='show-stop')showOverlay.stop();if(m.type==='director-play'){if(m.playId!==active?.playId)showOverlay.stop();speak(m);}if(m.type==='director-cancel')cancel(m);};
+events.onerror=()=>{showOverlay.stop();stopInteraction();if(active){ack('interrupted');active=null;serial++;front.pause();back.pause();idle();}error.textContent='החיבור לשרת נקטע — מנסה להתחבר';};
+window.addEventListener('pagehide',()=>{stopInteraction();front.pause();back.pause();events.close();});
+async function attention(){
+ try{
+  const r=await fetch('/api/director/attention');if(!r.ok)throw new Error('offline');const s=await r.json(),c=s.conversation;
+  document.getElementById('frame').classList.toggle('engaged',c.active);
+  document.getElementById('attention-help').textContent='בצ׳אט: התחילו ב״צ׳ינו״ או ״צינו״ · אחרי תשובה: 120 שניות להמשיך בשיחה';
+  const labels={responding:'🟢 שמעתי, מכין תשובה',speaking:'🟢 אני מדבר איתך',waiting:'🟢 אני מקשיב לך',listening:'🟢 אני מקשיב לך',transcribing:'🟢 שמעתי אותך',needs_video:'🟠 רגע, מחכה לתגובה מוכנה'};
+  document.getElementById('attention-state').textContent=c.active?(labels[c.state]||'🟢 בשיחה')+(c.secondsLeft!=null?' · '+c.secondsLeft+' שניות':''):'🔴 צריכים אותי? קראו לי צ׳ינו';
+  document.getElementById('attention-queue').textContent=s.queue?s.queue+' פניות מהצ׳אט ממתינות בתור':'';
+ }catch{document.getElementById('frame').classList.remove('engaged');document.getElementById('attention-state').textContent='🔴 החיבור לצ׳ינו לא זמין';}
+}
+setInterval(heartbeat,1500);setInterval(attention,1000);attention();
+if(preview||query.has('vcam'))start();
+fetch('/api/director/library').then(r=>r.json()).then(rows=>rows.filter(c=>c.auto&&c.ready).forEach(c=>media(c.file).catch(()=>{})));
+</script></body></html>

@@ -1,0 +1,49 @@
+[
+  {
+    "id": "reuse-288185a729dc",
+    "file": "reuse-288185a729dc.mp4",
+    "text": "וואלה פצצה.",
+    "intent": "wellbeing",
+    "duration": 1.666667
+  },
+  {
+    "id": "reuse-96b58158a593",
+    "file": "reuse-96b58158a593.mp4",
+    "text": "אני צ׳ינו.",
+    "intent": "identity",
+    "duration": 1
+  },
+  {
+    "id": "reuse-142a64471ef9",
+    "file": "reuse-142a64471ef9.mp4",
+    "text": "יאללה משחק.",
+    "intent": "battle_accept",
+    "duration": 1.166016
+  },
+  {
+    "id": "chino-1b610728-0693-4d0e-a5cc-53e20a00ee59",
+    "file": "chino-1b610728-0693-4d0e-a5cc-53e20a00ee59.mp4",
+    "text": "מה נשמע? אני צ׳ינו. כדי לדבר איתי, תקראו לי צ׳ינו. כל עוד האור למעלה ירוק, אתם יכולים לדבר איתי חופשי.",
+    "duration": 12.032
+  },
+  {
+    "id": "chino-ba28ca84-ef7d-4243-9fb4-b8f7f59e9aa3",
+    "file": "chino-ba28ca84-ef7d-4243-9fb4-b8f7f59e9aa3.mp4",
+    "text": "רוצים לדבר איתי בצ׳אט? פשוט תכתבו צינו בתחילת המשפט, ואני אדע שאתם מדברים אליי.",
+    "duration": 9.024
+  },
+  {
+    "id": "chino-c78287d4-7340-4d2c-b325-159bc5b3cafd-edited-performance",
+    "file": "chino-c78287d4-7340-4d2c-b325-159bc5b3cafd-edited-performance.mp4",
+    "text": "נשיקות לכל הבנות שלנו!",
+    "performanceId": "kiss_audience",
+    "performanceDescription": "צ׳ינו אומר את המשפט, שולח נשיקה בכף הקדמית, ונשיקות ורודות מתפרצות ממנה אל הקהל.",
+    "duration": 8.5
+  },
+  {
+    "id": "chino-94e8ff54-b78f-4247-9f9e-9b07d6ecd6e5",
+    "file": "chino-94e8ff54-b78f-4247-9f9e-9b07d6ecd6e5.mp4",
+    "text": "נשיקות לכל הבנות שלנו!",
+    "duration": 4.032
+  }
+]

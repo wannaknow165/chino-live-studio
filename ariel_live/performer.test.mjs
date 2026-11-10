@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';import os from 'node:os';import path from 'node:path';
+import {Performer,Budget} from './performer-core.mjs';
+import {cuePose} from './public/performer-visemes.mjs';
+const d={action:'speak',text:'hello',language:'en',emotion:'warm',gaze:'chat',ttlMs:15000,reason:'reply'};
+const event={kind:'chat',text:'hello',source:'live',room:'mine',at:100000};
+function fixture(extra={}){const events=[];const p=new Performer({decide:async()=>d,voice:async()=>({audioUrl:'/test.wav'}),stageReady:()=>true,now:()=>100000,emit:(type,x)=>events.push({type,...x}),...extra});return{p,events}}
+test('observation and other rooms never become live responses',()=>{const{p}=fixture();p.setRoom('mine');p.setMode('auto');assert.equal(p.ingest({...event,source:'study'}),false);assert.equal(p.ingest({...event,room:'other'}),false);assert.equal(p.ingest(event),true);assert.equal(p.ingest(event),false);p.stop()});
+test('interruption discards an already pending decision',async()=>{let resolve;const{p,events}=fixture({decide:()=>new Promise(r=>resolve=r)});const task=p.respond(event);p.speaking(true);resolve(d);assert.equal((await task).cancelled,true);assert.equal(events.some(x=>x.type==='utterance'),false);assert.equal(p.phase,'idle')});
+test('interruption discards audio even when provider ignores abort',async()=>{let resolve;const{p,events}=fixture({voice:()=>new Promise(r=>resolve=r)});const task=p.say('hello','en');p.stop();resolve({audioUrl:'/late.wav'});assert.equal((await task).cancelled,true);assert.equal(events.some(x=>x.type==='utterance'),false)});
+test('stage loss while preparing releases busy state',async()=>{let ready=true,resolve;const{p}=fixture({stageReady:()=>ready,voice:()=>new Promise(r=>resolve=r)});const task=p.say('hello');ready=false;resolve({audioUrl:'/late.wav'});await task;assert.equal(p.phase,'idle')});
+test('only the current utterance may end playback',async()=>{const{p}=fixture();await p.say('hello');const pending=p.pending;assert.equal(p.ack('old',p.epoch,'ended'),false);assert.equal(p.ack(pending.id,pending.epoch,'started'),true);assert.equal(p.phase,'speaking');assert.equal(p.ack(pending.id,pending.epoch,'ended'),true);assert.equal(p.phase,'idle')});
+test('external clips and opponent speech suppress automatic replies',async()=>{const{p}=fixture();p.setRoom('mine');p.setMode('auto');p.clip(true);assert.equal(p.ingest(event),false);await assert.rejects(p.respond(event),/speech_held/);p.clip(false);p.speaking(true);await assert.rejects(p.respond(event),/speech_held/);p.stop()});
+test('reservations survive restart and enforce cumulative ceiling',()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'lion-budget-test-'));try{const f=path.join(dir,'ledger.json');new Budget(f,.1).reserve('decision',.06);const b=new Budget(f,.1);assert.equal(b.status().reservedUSD,.06);assert.throws(()=>b.reserve('speech',.05),/budget_limit/)}finally{fs.rmSync(dir,{recursive:true,force:true})}});
+test('visemes use audio time, silence closes mouth and seals scale with jaw',()=>{const cues=[{start:1,end:2,value:'D'},{start:2,end:3,value:'A'}];assert.equal(cuePose(cues,.5).jawOpen,0);assert.equal(cuePose(cues,1.5).jawOpen,.62);const seal=cuePose(cues,2.5);assert.equal(seal.mouthClose,seal.jawOpen);assert.equal(cuePose(cues,3).jawOpen,0)});

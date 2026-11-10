@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "jobs": [],
+  "batch": null,
+  "quotes": [],
+  "autoQueue": [],
+  "autoSession": {
+    "id": "6d653626-0edd-49e3-82ec-040dc70a5c4f",
+    "room": "duop1658",
+    "limitUSD": 15,
+    "reservedUSD": 5.55,
+    "approvedAt": 1794218822951,
+    "analysisStartUSD": 11.4,
+    "enabled": false,
+    "error": ""
+  }
+}

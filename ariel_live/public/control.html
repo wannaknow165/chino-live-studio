@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><title>אריה — שליטה</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0d0b09;--panel:#17130f;--line:#3a2f22;--gold:#d9a441;--text:#f3e7d3;--dim:#a8957a;--red:#c0392b;--green:#2ecc71}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Segoe UI",Arial,sans-serif;padding:18px}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;max-width:1200px;margin:auto}
+@media(max-width:850px){.grid{grid-template-columns:1fr}}
+h1{margin:0 0 12px;color:var(--gold);font-size:24px}h2{margin:0 0 10px;font-size:17px;color:var(--gold)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+textarea,input[type=text]{width:100%;background:#0f0c09;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:18px}
+textarea{min-height:80px;resize:vertical}
+button{background:var(--gold);color:#1a1208;border:0;border-radius:8px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}button.on{background:var(--red);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.item{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 4px;border-bottom:1px solid #2a2219;cursor:pointer}
+.item:hover{background:#201a13}.cnt{color:var(--gold);font-weight:700;min-width:34px;text-align:center}
+.small{font-size:13px;color:var(--dim)}#log{max-height:220px;overflow:auto;font-size:14px;line-height:1.6;color:var(--dim)}
+#listBank{max-height:420px;overflow:auto}
+.prop{border:1px solid var(--gold);border-radius:10px;padding:10px;margin-top:10px;background:#1f180f}
+.prop input{width:100%;font-size:18px;margin:6px 0;background:#0f0c09;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px}
+.chip{display:inline-block;background:#2b2216;border:1px solid var(--line);border-radius:12px;padding:2px 8px;margin:2px;font-size:13px}
+.tabs{position:sticky;top:0;z-index:20;background:var(--bg);display:flex;gap:8px;flex-wrap:wrap;padding:10px 0 12px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.tabs button{background:#1d1710;color:var(--text);border:1px solid var(--line);font-size:17px;padding:12px 18px}
+.tabs button.act{background:var(--gold);color:#1a1208}
+.tabbody{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:1200px;margin:auto;align-items:start}
+@media(max-width:850px){.tabbody{grid-template-columns:1fr}}
+.tabbody .card{margin-bottom:0}
+.hiddenTab{display:none}
+</style></head><body>
+<h1>👑 אריה — שליטה בלייב</h1>
+<div class="grid">
+<div>
+  <div class="card">
+    <h2>🎥 האריה ב-Live Studio</h2>
+    <div class="row"><button id="liveWin" style="font-size:18px">🦁 פתח את חלון האריה ללייב</button></div>
+    <div class="row" style="margin-top:6px"><label class="small"><input type="checkbox" id="capsOn" checked> 💬 כתוביות של השיחה על המסך</label><label class="small"><input type="checkbox" id="lblOn"> כיתוב קטן למעלה</label><input type="text" id="lblText" value="test" style="width:140px;direction:ltr;font-size:14px"><input type="color" id="lblColor" value="#ff2d2d" title="צבע"></div>
+    <div class="small" style="line-height:1.8">
+      <b>ב-Live Studio:</b> הוסף מקור (Add source) → <b>לכידת חלון (Window capture)</b> → בחר <b>ARIEL STAGE</b>.<br>
+      את חלון האריה <b>לא ממזערים</b> (מותר שיהיה מאחורי חלונות אחרים). אפשר למתוח אותו — הוא תמיד ממלא את המסך.<br>
+      <b>סאונד:</b> האריה והמוזיקה יוצאים ברמקול הראשי. ב-Live Studio: 🔊 סאונד מחשב = <b>פועל</b>, 🎤 מיקרופון = <b>כבוי</b>.
+    </div>
+  </div>
+  <div class="card">
+    <h2>2. האריה אומר</h2>
+    <div class="row" style="margin-bottom:6px"><label class="small">👤 היריב מולי:</label><input type="text" id="oppName" placeholder="שם היריב (מזוהה לבד מהקרב, או תכתוב)" style="width:230px;font-size:15px"><button id="oppSave" class="ghost" style="padding:6px 10px">שמור</button><span class="small">כתוב <b>{שם}</b> במשפט והוא יוחלף בשם הזה</span></div>
+    <textarea id="txt" placeholder="כתוב משפט ולחץ Enter…  (אפשר {שם} = היריב)"></textarea>
+    <div class="row">
+      <button id="say">🦁 תגיד</button>
+      <button id="mic" class="ghost">🎙️ לחץ ודבר — לחץ שוב לשלוח</button>
+      <button id="stop" class="ghost">⏹ עצור</button>
+      <label class="small"><input type="checkbox" id="autoPlay"> ▶ לשדר אוטומטית כשמשפט חדש מוכן (כבוי = נשמר ואני מחליט)</label>
+      <label class="small"><input type="checkbox" id="rw" checked> 🧠 לעבד לשפה ולטון של האריה</label>
+      <label class="small"><input type="checkbox" id="fast"> מצב מהיר (~27 שנ׳, איכות נמוכה — העיניים פחות טובות)</label>
+    </div>
+    <div class="small" id="status" style="margin-top:8px"></div>
+    <div id="proposals"></div>
+    <div class="small">אפשר גם להחזיק את מקש <b>רווח</b> (כשלא כותבים) ולדבר — עוזבים והוא אומר. משפט שכבר קיים בבנק יוצא מיד ובחינם. משפט חדש — קודם תראה מה הוא יגיד ותאשר, ורק אז נוצר וידאו ונשמר לתמיד.</div>
+  </div>
+  <div class="card">
+    <h2>3. שירים — מצב למידה</h2>
+    <div class="row"><input type="file" id="songFile" accept="audio/*"><button id="learn">🎵 למד את השיר</button><button id="redanceAll" class="ghost">💃 חדש את ריקודי הפזמון (כל השירים)</button><button id="pl" class="ghost">🎶 פלייליסט ברקע: כבוי</button></div>
+    <div class="small">הוא מקשיב לשיר, מבין קצב ואיפה הפזמון, ומייצר קליפי וייב + קליפי שירה. בפלייליסט: השירים מתנגנים ברקע כחלק מהאיידל, בפזמון הוא שר, וכשאתה מדבר — המוזיקה יורדת והוא מדבר.</div>
+    <div id="listSongs" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h2>🤖 לייב אוטונומי — צ׳ינו מנחה לבד</h2>
+    <div class="row"><label style="font-size:17px"><input type="checkbox" id="autoLive"> <b>צ׳ינו מנהל את הלייב לבד</b></label>
+      <select id="autoLang" style="font-size:14px"><option value="he">עברית</option><option value="mix">עברית + קצת אנגלית</option><option value="en">English</option></select></div>
+    <div class="small">צ׳ינו מנהל את הלייב <b>כמו המנחים שלמד מהם</b>: הבמאי מזהה בכל רגע את השלב (פתיחה / חימום / קרב התחיל / מפסידים / מנצחים / 30 שניות אחרונות / ניצחנו / הפסדנו / מתנה / שקט) ומפעיל את ספר המשחק: קצב של שמות מהצ׳אט, קריאות לפעולה (tap / share / follow), גיבור-המתנה (MVP), היפ בקרב. עונה לצ׳אט וליריב. אתה נכנס מתי שבא לך.</div>
+    <div class="row" style="margin-top:8px"><span class="small">שלב עכשיו: <b id="showPhase">—</b></span></div>
+    <div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">
+      <div class="row"><b>📘 ספר המשחק של צ׳ינו</b><span class="small" id="pbStat">עוד לא קומפל</span><button id="pbCompile" class="ghost" style="padding:4px 10px">🧠 קמפל עכשיו</button><button id="pbWarm" class="ghost" style="padding:4px 10px">⚡ הכן 12 משפטים מראש</button></div>
+      <div id="pbList" class="small" style="line-height:1.7;margin-top:4px"></div>
+    </div>
+  </div>
+  <div class="card" style="border-color:var(--gold)">
+    <h2>📡 האזנה קבועה — לומד כל הזמן, גם כשאתה לא פה</h2>
+    <div class="row"><label class="small">⭐ סטרימרים קבועים (תמיד מאזין כשהם בלייב):</label></div>
+    <div class="row"><input type="text" id="favUsers" placeholder="prettyboyali24, ..." style="flex:1;direction:ltr"><button id="favSave">💾 שמור</button></div>
+    <div class="row"><label class="small"><input type="checkbox" id="freeLearn" checked> 🌍 <b>למידה חופשית</b> — מחפש לבד את הסטרימרים הכי חזקים בעולם ולומד מהם</label>
+      <label class="small"><input type="checkbox" id="battlesOnly" checked> ⚔️ רק סטרימרים של באטלים</label>
+      <label class="small">מקסימום במקביל <input type="number" id="maxWatch" value="6" min="1" max="12" style="width:50px"></label></div>
+    <div class="small">רץ ברקע 24/7. סטרימר חדש שלא עושה באטלים תוך 6 דקות — עוזבים ומחפשים אחר. כל מה שנלמד נכנס ישר למוח של צ׳ינו.</div>
+    <div id="followStat" class="small" style="margin-top:6px"></div>
+  </div>
+  <div class="card">
+    <h2>🔬 מחלקת ניתוח — לומדת מלייבים אחרים ברקע</h2>
+    <div class="row"><input type="text" id="deptUsers" placeholder="שמות משתמש בטיקטוק, מופרדים בפסיק" style="flex:1;direction:ltr"><button id="deptWatch">👁️ עקוב ולמד</button></div>
+    <div class="row"><button id="deptAutoIL" class="ghost">🇮🇱 בחר לבד לייבים חמים בישראל</button><button id="deptAutoAll" class="ghost">🌍 בחר לבד לייבים חמים בעולם</button><button id="deptNow" class="ghost">🧠 נתח עכשיו</button><button id="deptWarm" class="ghost">⚡ 10 משפטים → סרטונים</button></div>
+    <div class="small">מתחברת דרך tik.tools לצ׳אט, למתנות ולקרבות של הלייבים האלה — בלי לפתוח כלום. כל 4 דקות: מה גרם למתנות, איך מנצחים קרב, איך מחממים צ׳אט → טריגרים ומשפטים לצ׳ינו (עברית + אנגלית). הכל נכנס ישר למוח שלו.</div>
+    <div id="deptList" style="margin-top:8px;font-size:14px;line-height:1.7"></div>
+    <div id="deptKnow" style="margin-top:8px;font-size:14px;line-height:1.7"></div>
+  </div>
+  <div class="card" style="border-color:var(--gold)">
+    <h2>🎓 מצב LEARNING — צ׳ינו לומד בלייב</h2>
+    <div class="row"><label style="font-size:17px"><input type="checkbox" id="trainOn"> <b>הפעל מצב למידה</b></label><span class="small" id="trainStat"></span></div>
+    <div id="learnLog" style="max-height:320px;overflow:auto;margin:8px 0;font-size:14px;line-height:1.7;border:1px solid var(--line);border-radius:8px;padding:8px;background:#120e0a"></div>
+    <div class="row"><button id="llClear" class="ghost" style="padding:4px 10px">נקה יומן למידה</button></div>
+    <div class="small">צ׳ינו מקשיב לסטרימר שבחרת (למטה: "תתחיל ללמוד מהלייב"), <b>ועונה לו בקול על הלייב שלנו</b> כשיש לו משהו טוב להגיד — כאילו הוא מדבר איתו. על המסך: תג 🎓 LEARNING, הראש של הסטרימר בעיגול קטן משמאל (אם לוחצים "זהה ראש" על החלון שלו), ושורה של "מה למדתי עכשיו". אם אתה משדר את זה — הקהל רואה אריה לומד. אם לא — הוא פשוט לומד.</div>
+  </div>
+  <div class="card">
+    <h2>🎓 למידה מלייב של מישהו אחר</h2>
+    <div class="row"><input type="text" id="stName" placeholder="שם משתמש בטיקטוק (למשל prettyboyali24)" style="width:260px"><button id="sxBtn">📡 האזנה ישירה (בלי סאונד אצלך)</button></div>
+    <div id="sxStat" class="small" style="margin:4px 0 8px;font-size:15px;line-height:1.6">כבוי</div>
+    <div class="small">📡 <b>האזנה ישירה</b>: המערכת מושכת את השידור שלו ישר משרתי טיקטוק — בלי דפדפן, <b>בלי שום צליל באוזניות שלך</b>. באותו זמן tik.tools מביא את הצ׳אט, המתנות והקרבות של אותו לייב, והמוח מצליב: מה הוא אמר ↔ למי (בשם) ↔ איך הצ׳אט הגיב ↔ מה זה הביא. כל 2.5 דקות ניתוח, והכל נכנס למוח של צ׳ינו. נשאר דלוק: אם הוא יוצא מהלייב — מחכים שיחזור.</div>
+    <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
+      <div class="row"><b>🎵 המוזיקה שלו</b><span class="small" id="muNow"></span><button id="muQueue" class="ghost" style="padding:4px 10px">➕ הכנס 10 לתור בספוטיפיי</button><button id="muPl" class="ghost" style="padding:4px 10px">💾 צור פלייליסט בספוטיפיי</button></div>
+      <div id="muList" class="small" style="max-height:150px;overflow:auto;line-height:1.7;margin-top:4px"></div>
+    </div>
+    <div class="row" style="margin-top:8px"><button id="stBtn" class="ghost">🎬 חלופה: ללמוד מחלון פתוח (שיתוף מסך)</button><span class="small" id="stStat">כבוי</span></div>
+    <div class="row" style="margin-top:8px"><button id="stReport" class="ghost">📋 מה למדנו עד עכשיו</button><button id="stWarm" class="ghost">⚡ הפוך 10 משפטים שנלמדו לסרטונים</button></div>
+    <div id="stLive" style="max-height:200px;overflow:auto;margin-top:8px;font-size:14px;line-height:1.6;border-top:1px solid var(--line);padding-top:6px"></div>
+    <div id="stReportBox" style="margin-top:8px;font-size:14px;line-height:1.7"></div>
+  </div>
+  <div class="card">
+    <h2>💬 צ׳אט הלייב (tik.tools)</h2>
+    <div class="row"><input type="text" id="ttUser" placeholder="שם משתמש בטיקטוק — שלך או של היריב (בלי @)" style="width:220px;direction:ltr"><button id="ttConnect">🔌 התחבר ללייב</button><span class="small" id="ttStat">כבוי</span></div>
+    <div class="row"><label class="small" style="font-size:15px"><input type="checkbox" id="autoReply2"> 🤖 <b>מצב אוטומט</b> — צ׳ינו קורא את הצ׳אט, שומע את היריב ועונה לבד. אתה מתערב רק למשפטים מיוחדים.</label></div>
+    <div id="chatFeed" style="max-height:240px;overflow:auto;margin-top:8px;font-size:14px;line-height:1.6"></div>
+  </div>
+  <div class="card">
+    <h2>🗣️ שיחה עם היריב</h2>
+    <div class="row"><button id="hearBtn">👂 תקשיב ליריב</button><label class="small"><input type="checkbox" id="autoReply"> 🤖 מצב אוטומט — צ׳ינו עונה לבד</label><button id="quickWarm" class="ghost">⚡ הכן תשובות מהירות</button></div>
+    <div class="small">"תקשיב" לוקח את הסאונד של הקרב (בחר את חלון Live Studio ותסמן "שתף סאונד"). כל מה שהיריב אומר מופיע כאן. במצב אוטומט צ׳ינו עונה לבד; בלי — לוחצים "ענה" ליד השורה ומאשרים.</div>
+    <div id="convoList" style="max-height:260px;overflow:auto;margin-top:8px;font-size:15px;line-height:1.7"></div>
+  </div>
+  <div class="card">
+    <h2>👤 ראש היריב (קרב)</h2>
+    <div class="row"><button id="hCap">🎯 זהה ראש בקרב</button><label class="small"><input type="checkbox" id="hRight" checked> רק צד ימין (היריב)</label><span class="small" id="hStat"></span></div>
+    <div style="position:relative;margin-top:8px"><video id="hVid" muted playsinline style="width:100%;max-height:220px;background:#000;border-radius:8px;object-fit:contain"></video><canvas id="hBox" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></div>
+    <div class="row"><button id="hShow" class="ghost">👁️ הצג בלייב: כבוי</button></div>
+    <div class="row" id="hFx">
+      <button class="ghost" data-fx="bubble">🫧 בועה</button><button class="ghost" data-fx="crown">👑 כתר</button><button class="ghost" data-fx="bobble">🤪 ראש מתנדנד</button>
+      <button class="ghost" data-fx="cage">🔒 כלוב</button><button class="ghost" data-fx="cry">😭 בוכה</button><button class="ghost" data-fx="shake">💥 רעידה</button>
+    </div>
+    <div class="small">לוחצים "זהה ראש", בוחרים את חלון ה-Live Studio (או הקרב), והמערכת מוצאת לבד את הפנים של היריב ועוקבת אחריהן חי. אז "הצג בלייב" ובוחרים אפקט. השאר את החלון הזה פתוח (לא ממוזער) בזמן שזה עובד.</div>
+  </div>
+  <div class="card">
+    <h2>🥊 דמויות עם הראש של היריב</h2>
+    <div class="row" id="ovBtns"></div>
+    <div class="row"><label class="small"><input type="checkbox" id="ovLoop"> בלופ עד שעוצרים</label><button id="ovStop" class="ghost">⏹ עצור דמות</button></div>
+    <div class="small">קודם "🎯 זהה ראש בקרב" (למעלה). אחר כך לחיצה על דמות — היא קופצת ליד האריה, והראש החי של היריב יושב לה על הפנים ועוקב אחרי התנועה.</div>
+  </div>
+  <div class="card">
+    <h2>🎬 סרטון של היריב עם האריה</h2>
+    <div class="row" id="funScenes"></div>
+    <div class="row"><input type="text" id="funLabel" placeholder="שם היריב (לא חובה)" style="flex:1;font-size:15px"><button id="funGo">📸 צלם את היריב וצור</button></div>
+    <div class="small">כל סצנה = סרטון אחד (~דקה). היריב מופיע כדמות קרטון תלת-ממדית מזוהה. בוחרים את מה שיצא טוב ולוחצים "שדר".</div>
+    <div id="funList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h2>🦁 האופי של האריה</h2>
+    <textarea id="persona" style="min-height:110px;font-size:14px"></textarea>
+    <div class="row"><button id="savePersona" class="ghost">💾 שמור אופי</button><span class="small">כל משפט שלך עובר דרך זה לפני שהוא נאמר.</span></div>
+  </div>
+  <div class="card">
+    <h2>🎧 נגן ספוטיפיי</h2>
+    <div class="row" id="spCid" style="display:none"><input type="text" id="spCidIn" placeholder="הדבק כאן את ה-Client ID מספוטיפיי" style="flex:1;font-size:15px;direction:ltr"><button id="spCidSave">שמור</button></div>
+    <div class="row" id="spAcc"><button id="spConnect" class="ghost">🔗 חבר את חשבון הספוטיפיי שלי</button><span class="small" id="spUser"></span></div>
+    <div class="row" id="spPls" style="display:none"><select id="spList" style="flex:1;font-size:15px"></select><button id="spPlayList">▶ נגן פלייליסט</button></div>
+    <div id="spNow" style="font-size:16px;margin-bottom:6px">לא מתנגן כלום בספוטיפיי</div>
+    <div class="row">
+      <button class="ghost" id="pPrev" style="font-size:20px">⏮</button>
+      <button id="pPlay" style="font-size:20px;min-width:70px">⏯</button>
+      <button class="ghost" id="pNext" style="font-size:20px">⏭</button>
+      <label class="small">ווליום ספוטיפיי</label><input type="range" id="pVol" min="0" max="1" step="0.05" value="1" style="flex:1;min-width:120px">
+    </div>
+    <div class="row"><button id="spPl" class="ghost">🎓 מצב למידת פלייליסט: כבוי</button><button id="spLearn" class="ghost">למד רק את השיר הזה</button><button id="spStop" class="ghost">⏹ סיים הקשבה</button></div>
+    <div class="small">הדלק "מצב למידת פלייליסט" ותנגן את הפלייליסט מההתחלה — כל שיר נלמד ברקע, והמסך של הלייב לא מראה כלום. אפשר גם ללמד שיר בודד. הוא מקשיב, מוצא את הפזמון ומכין לבד וייב + שירה. בפעם הבאה שהשיר יתנגן — הוא כבר יודע אותו.</div>
+    <div class="row">
+      <label class="small"><input type="checkbox" id="autoLearn"> ללמוד לבד כל שיר חדש (בלי פזמון, רק וייב)</label>
+      <label class="small"><input type="checkbox" id="autoDance" checked> כשמתנגן שיר שהוא כבר למד — הוא רוקד</label>
+    </div>
+    <div class="small">פשוט תנגן שיר בספוטיפיי במחשב. הסאונד של ספוטיפיי יוצא ללייב דרך Live Studio (סאונד מחשב).</div>
+  </div>
+  <div class="card">
+    <h2>🔑 מנועים ומפתחות</h2>
+    <div id="engines" class="small" style="line-height:1.9"></div>
+    <div class="row"><input type="text" id="kTik" placeholder="tik.tools API Key (לצ׳אט של הלייב)" style="flex:1;direction:ltr"><input type="text" id="kTikUser" placeholder="שם משתמש טיקטוק" style="width:180px;direction:ltr"></div>
+    <div class="row"><input type="text" id="kOR" placeholder="OpenRouter Key (לא חובה)" style="flex:1;direction:ltr"></div>
+    <div class="row"><input type="text" id="kKA" placeholder="Kling Access Key (לא חובה)" style="flex:1;direction:ltr"><input type="text" id="kKS" placeholder="Kling Secret Key" style="flex:1;direction:ltr"></div>
+    <div class="row"><button id="kSave">💾 שמור מפתחות</button></div>
+  </div>
+  <div class="card"><h2>יומן</h2><div id="log"></div></div>
+</div>
+<div>
+  <div class="card">
+    <h2>בנק המשפטים (לפי כמה חזרת עליהם)</h2>
+    <div class="row"><button id="warm" class="ghost">⚡ הכן משפטי פתיחה</button><button id="idle" class="ghost">➕ עוד איידל</button><a href="/api/bank/zip"><button class="ghost">⬇️ הורד את כל הסרטונים</button></a><button id="clearAll" class="ghost">🗑️ מחק את כל המשפטים</button><span class="small" id="idleCount"></span></div>
+    <div id="listBank" style="margin-top:8px"></div>
+  </div>
+</div>
+</div>
+<script type="module">
+import { FilesetResolver, FaceDetector, ImageSegmenter } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs';
+const $=id=>document.getElementById(id);
+const post=(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})}).then(r=>r.json());
+let det=null, seg=null, stream=null, box=null, lastSeen=0, showing=false, curFx='bubble';
+const segC=document.createElement('canvas'); segC.width=segC.height=320; const sgc=segC.getContext('2d');
+const crop=document.createElement('canvas'); crop.width=crop.height=320; const cc=crop.getContext('2d');
+const vid=$('hVid'), bc=$('hBox').getContext('2d');
+async function loadDet(){
+  if(det) return det;
+  $('hStat').textContent='טוען זיהוי פנים…';
+  const fs=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+  det=await FaceDetector.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',delegate:'GPU'},runningMode:'VIDEO',minDetectionConfidence:0.45});
+  try{ seg=await ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',delegate:'GPU'},runningMode:'IMAGE',outputConfidenceMasks:true}); }catch(e){ console.log('segmenter', e); }
+  return det;
+}
+$('hCap').onclick=async()=>{
+  try{
+    await loadDet();
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+    stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:30},audio:false});
+    vid.srcObject=stream; await vid.play(); box=null;
+    $('hStat').textContent='מחפש פנים…';
+    stream.getVideoTracks()[0].onended=()=>{ $('hStat').textContent='הלכידה הופסקה'; };
+    loop();
+  }catch(e){ $('hStat').textContent='שגיאה: '+e.message; }
+};
+let busyUp=false, lastUp=0;
+function loop(){
+  if(!stream || !stream.active) return;
+  const vw=vid.videoWidth, vh=vid.videoHeight;
+  if(vw && det){
+    const r=det.detectForVideo(vid, performance.now());
+    let faces=(r.detections||[]).map(d=>d.boundingBox).filter(b=>!$('hRight').checked || (b.originX+b.width/2)>vw/2);
+    faces.sort((a,b)=>b.width*b.height-a.width*a.height);
+    const f=faces[0];
+    if(f){
+      // whole head: widen and lift the face box
+      const s=Math.max(f.width,f.height)*1.45, cx=f.originX+f.width/2, cy=f.originY+f.height*0.40;
+      const nb={x:cx-s/2,y:cy-s/2,s};
+      box = box ? {x:box.x+(nb.x-box.x)*0.6,y:box.y+(nb.y-box.y)*0.6,s:box.s+(nb.s-box.s)*0.5} : nb;
+      lastSeen=Date.now();
+      $('hStat').textContent='✓ ראש זוהה';
+    } else if(Date.now()-lastSeen>1500){ $('hStat').textContent='מחפש פנים…'; box=null; }
+    // preview box
+    const C=$('hBox'); C.width=C.clientWidth; C.height=C.clientHeight; bc.clearRect(0,0,C.width,C.height);
+    if(box){ const sc=Math.min(C.width/vw,C.height/vh), ox=(C.width-vw*sc)/2, oy=(C.height-vh*sc)/2; bc.strokeStyle='#d9a441'; bc.lineWidth=3; bc.strokeRect(ox+box.x*sc,oy+box.y*sc,box.s*sc,box.s*sc); }
+    // crop round head and send to the stage (~18 fps)
+    if(box && Date.now()-lastSeen<800 && !busyUp && Date.now()-lastUp>45){
+      cc.globalCompositeOperation='source-over'; cc.clearRect(0,0,320,320);
+      cc.drawImage(vid, box.x, box.y, box.s, box.s, 0, 0, 320, 320);
+      cc.globalCompositeOperation='destination-in';
+      let masked=false;
+      if(seg){ try{
+        const r=seg.segment(crop); const m=r.confidenceMasks&&r.confidenceMasks[0];
+        if(m){ const w=m.width,h=m.height,data=m.getAsFloat32Array(); const img=sgc.createImageData(w,h);
+          for(let i=0;i<w*h;i++){ const v=data[i]; const a=v<0.35?0:v>0.7?255:Math.round((v-0.35)/0.35*255); img.data[i*4+3]=a; }
+          segC.width=w; segC.height=h; sgc.putImageData(img,0,0);
+          // soften the edge a touch, then also cap to a circle so stray body/background can't leak in
+          cc.filter='blur(1.2px)'; cc.drawImage(segC,0,0,320,320); cc.filter='none'; masked=true; }
+        r.close&&r.close();
+      }catch(e){} }
+      if(!masked){ const g=cc.createRadialGradient(160,160,135,160,160,158); g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(1,'rgba(0,0,0,0)'); cc.fillStyle=g; cc.fillRect(0,0,320,320); }
+      else { cc.globalCompositeOperation='destination-in'; const g2=cc.createRadialGradient(160,160,140,160,160,160); g2.addColorStop(0,'rgba(0,0,0,1)'); g2.addColorStop(1,'rgba(0,0,0,0)'); cc.fillStyle=g2; cc.fillRect(0,0,320,320); }
+      busyUp=true; lastUp=Date.now();
+      crop.toBlob(b=>{ fetch('/api/head/frame',{method:'POST',body:b}).finally(()=>busyUp=false); },'image/webp',0.85);
+    }
+  }
+  setTimeout(loop, 33);
+}
+function paintFx(){ document.querySelectorAll('#hFx button').forEach(b=>b.classList.toggle('on',b.dataset.fx===curFx)); }
+$('hShow').onclick=()=>{ showing=!showing; post('/api/head/state',{on:showing,fx:curFx}); $('hShow').textContent='👁️ הצג בלייב: '+(showing?'פועל':'כבוי'); $('hShow').classList.toggle('on',showing); };
+document.querySelectorAll('#hFx button').forEach(b=>b.onclick=()=>{ curFx=b.dataset.fx; paintFx(); post('/api/head/state',{fx:curFx}); });
+paintFx();
+
+// ---- fun clips: snapshot of the opponent + scenes ----
+const snapC=document.createElement('canvas'); snapC.width=snapC.height=512; const sc2=snapC.getContext('2d');
+async function loadFun(){ const j=await (await fetch('/api/fun/list')).json();
+  if(!$('funScenes').children.length) $('funScenes').innerHTML=Object.entries(j.scenes).map(([k,v],i)=>`<label class="small" style="border:1px solid var(--line);border-radius:8px;padding:5px 8px"><input type="checkbox" value="${k}" ${i<3?'checked':''}> ${v}</label>`).join('');
+  $('funList').innerHTML=''; j.items.forEach(renderFun); }
+function renderFun(it){
+  let d=document.getElementById('fun_'+it.id); if(!d){ d=document.createElement('div'); d.id='fun_'+it.id; d.style.cssText='border:1px solid var(--line);border-radius:10px;padding:6px;background:#120e0a'; $('funList').prepend(d); }
+  const media=it.file?`<video src="${it.file.replace('/media/','/v/')}" muted loop autoplay playsinline style="width:100%;border-radius:6px"></video>`:(it.img?`<img src="${it.img}" style="width:100%;border-radius:6px;opacity:.7">`:'<div style="height:120px"></div>');
+  d.innerHTML=`${media}<div class="small">${it.sceneHe}${it.label?' · '+it.label:''}<br>${it.status}</div><div class="row">${it.file?`<button class="go" style="padding:6px 10px">▶ שדר</button>`:''}<button class="ghost del" style="padding:6px 8px">✕</button></div>`;
+  const g=d.querySelector('.go'); if(g) g.onclick=()=>post('/api/fun/play',{id:it.id});
+  d.querySelector('.del').onclick=()=>{ post('/api/fun/delete',{id:it.id}); d.remove(); };
+}
+$('funGo').onclick=async()=>{
+  if(!box||!vid.videoWidth){ alert('קודם לחץ "זהה ראש בקרב" ותחכה ל"✓ ראש זוהה"'); return; }
+  const scenes=[...document.querySelectorAll('#funScenes input:checked')].map(x=>x.value); if(!scenes.length) return alert('בחר לפחות סצנה אחת');
+  const s=box.s*1.5, x=box.x+box.s/2-s/2, y=box.y+box.s/2-s/2.4;
+  sc2.fillStyle='#000'; sc2.fillRect(0,0,512,512); sc2.drawImage(vid,x,y,s,s,0,0,512,512);
+  const blob=await new Promise(r=>snapC.toBlob(r,'image/jpeg',0.92));
+  const {snap}=await (await fetch('/api/head/snap',{method:'POST',body:blob})).json();
+  await post('/api/fun',{snap,scenes,label:$('funLabel').value.trim()});
+  $('hStat').textContent='📸 צולם — יוצר '+scenes.length+' סרטונים…';
+};
+const fes=new EventSource('/api/events'); fes.onmessage=ev=>{ const m=JSON.parse(ev.data); if(m.type==='fun') renderFun(m.item); };
+loadFun();
+</script>
+<script>
+const $=id=>document.getElementById(id);
+
+// ---------- anti double-click: one press = one play, extra presses within 1.5s are ignored ----------
+let _lastFire=0; function once(fn){ return (...a)=>{ const now=Date.now(); if(now-_lastFire<1500){ log('⏳ כבר נשלח — לחיצה נוספת התעלמה'); return; } _lastFire=now; return fn(...a); }; }
+const log=m=>{const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('he-IL')+' — '+m;$('log').prepend(d);};
+const post=(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})}).then(r=>r.json());
+const STARTERS=['מה קורה צ׳אט?','שלום לכולם, ברוכים הבאים ללייב של המלך','צ׳אט, כולם ללחוץ עכשיו! יאללה, דאבל טאפ למלך','תודה על המתנה, אחי, אתה מלך','מי פה חדש? תכתבו בצ׳אט','יאללה, תעקבו אחרי המלך','אל תפספסו, יש הפתעה בסוף הלייב','מה אתם אומרים? תכתבו לי'];
+
+async function refresh(){
+  const s=await (await fetch('/api/state')).json();
+  if(!s.hasKey) log('חסר מפתח Gemini בקובץ .env');
+  $('idleCount').textContent=`${s.idles.length} קליפי איידל`;
+  $('listBank').innerHTML=s.bank.length?'':'<div class="small">עדיין ריק — כל משפט שתגיד יישמר כאן.</div>';
+  for(const b of s.bank){const d=document.createElement('div');d.className='item';d.innerHTML=`<span class="cnt">${b.count}×</span><span style="flex:1">${b.text}${b.input&&b.input!==b.text?`<br><span class=\"small\">אתה: ${b.input}</span>`:''}</span><span class="small">${b.score?('⭐'+b.score):''} ▶</span><a href="/api/bank/file?id=${b.id}" title="הורד למחשב" class="dl"><button class="ghost" style="padding:4px 8px">⬇️</button></a><button class="ghost del" style="padding:4px 8px" title="מחק">✕</button>`;d.onclick=once(()=>post('/api/replay',{id:b.id}));d.querySelector('.dl').onclick=e=>e.stopPropagation();d.querySelector('.del').onclick=e=>{e.stopPropagation();if(confirm('למחוק את "'+b.text+'"?'))post('/api/bank/delete',{id:b.id});};$('listBank').appendChild(d);}
+  $('listSongs').innerHTML='';
+  for(const so of s.songs){const d=document.createElement('div');d.className='item';const a=so.analysis;d.innerHTML=`<span style="flex:1">🎵 ${so.name}<br><span class="small">${so.status||''} ${a?`· ${a.genre||''} · ${a.bpm||''} BPM · ${(so.chorus||[]).length} פזמונים`:''}</span></span>`;
+    if(so.dances?.length){const btn=document.createElement('button');btn.textContent='נגן — הוא רוקד';btn.onclick=e=>{e.stopPropagation();post('/api/song/play',{id:so.id});};d.appendChild(btn);} $('listSongs').appendChild(d);}
+}
+const say=once(function(t){t=(t||'').trim();if(!t)return;post('/api/say',{text:t,res:$('fast').checked?'360p':'720p',rewrite:$('rw').checked});log('🦁 '+t);});
+
+// (stage window opens from the "Lion in Live Studio" card)
+$('say').onclick=()=>{say($('txt').value);$('txt').value='';$('txt').focus();};
+$('txt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('say').click();}});
+$('stop').onclick=()=>post('/api/stop');
+$('warm').onclick=()=>{post('/api/warm',{lines:STARTERS});log('מכין '+STARTERS.length+' משפטי פתיחה ברקע…');};
+$('idle').onclick=()=>{const v=['he slowly raises a thick lit cigar with one paw, takes a calm puff, exhales a cloud of smoke with a confident smirk, then lowers the paw back to the armrest','he looks to his left at the chat with a confident smirk, taps a claw on the armrest','he slowly strokes his chin with one paw like a boss thinking','he leans back on the throne, proud, chest out, then settles','a slow look around the room, a small yawn with mouth closed, then a nod'];post('/api/idle',{extra:v[Math.floor(Math.random()*v.length)]});};
+$('clearAll').onclick=()=>{if(confirm('למחוק את כל המשפטים מהבנק? (הם עוברים לתיקיית rejected, לא נמחקים לגמרי)'))post('/api/bank/delete',{all:true});};
+let plOn=false;$('pl').onclick=async()=>{plOn=!plOn;await post('/api/playlist',{on:plOn});$('pl').textContent='🎶 פלייליסט ברקע: '+(plOn?'פועל':'כבוי');$('pl').classList.toggle('on',plOn);};
+$('redanceAll').onclick=async()=>{ if(!confirm('לייצר מחדש ריקודי פזמון אנרגטיים לכל השירים? (3 סרטונים לשיר)')) return; const j=await post('/api/song/redance',{all:true}); log('מייצר ריקודי פזמון חדשים ל-'+j.n+' שירים ברקע'); };
+$('learn').onclick=async()=>{const f=$('songFile').files[0];if(!f)return alert('בחר קובץ שיר');await fetch('/api/song/learn',{method:'POST',headers:{'Content-Type':f.type||'audio/mpeg','x-name':encodeURIComponent(f.name)},body:f});log('לומד: '+f.name);};
+
+// mic: push-to-talk. Listens ONLY while on; on stop, sends everything said as one line.
+let rec=null,on=false,heard=[],interim='';
+function micStart(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return alert('פתח ב-Chrome');if(on)return;
+  heard=[];interim='';rec=new SR();rec.lang='he-IL';rec.continuous=true;rec.interimResults=true;
+  rec.onresult=e=>{interim='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)heard.push(r[0].transcript.trim());else interim+=r[0].transcript;}$('status').textContent='🎙️ '+[...heard,interim].join(' ');};
+  rec.onend=()=>{if(on){try{rec.start();}catch(e){}}else{const t=[...heard,interim].join(' ').trim();heard=[];interim='';if(t)say(t);else $('status').textContent='לא נקלט דיבור';}};
+  rec.start();on=true;$('mic').classList.add('on');$('mic').textContent='🔴 מקשיב… לחץ לשלוח';}
+function micStop(){if(!on)return;on=false;try{rec.stop();}catch(e){}$('mic').classList.remove('on');$('mic').textContent='🎙️ לחץ ודבר — לחץ שוב לשלוח';}
+$('mic').onclick=()=>on?micStop():micStart();
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&document.activeElement!==$('txt')){e.preventDefault();micStart();}});
+document.addEventListener('keyup',e=>{if(e.code==='Space'&&document.activeElement!==$('txt')){e.preventDefault();micStop();}});
+
+fetch('/api/persona').then(r=>r.json()).then(j=>$('persona').value=j.text);
+$('savePersona').onclick=()=>post('/api/persona',{text:$('persona').value}).then(()=>log('האופי נשמר'));
+let lp=false;const lpUI=v=>{lp=v;$('spPl').textContent='🎓 מצב למידת פלייליסט: '+(v?'פועל — כל שיר שמתנגן נלמד ברקע':'כבוי');$('spPl').classList.toggle('on',v);};
+$('spPl').onclick=()=>{const v=!lp;if(v&&!confirm('להפעיל למידת פלייליסט? כל שיר שיתנגן בספוטיפיי יילמד ברקע (עולה כסף ב-Gemini על כל שיר). על המסך של הלייב לא יראו כלום.'))return;post('/api/settings',{learnPlaylist:v});lpUI(v);};
+$('spLearn').onclick=async()=>{const r=await post('/api/spotify/learn');if(r.error)alert(r.error);};
+$('spStop').onclick=()=>post('/api/spotify/stoplearn');
+$('pPlay').onclick=()=>post('/api/player',{cmd:'play'});
+$('pNext').onclick=()=>post('/api/player',{cmd:'next'});
+$('pPrev').onclick=()=>post('/api/player',{cmd:'prev'});
+let vt=null;$('pVol').oninput=()=>{clearTimeout(vt);vt=setTimeout(()=>post('/api/player',{cmd:'vol',vol:$('pVol').value}),150);};
+async function spStatus(){const j=await (await fetch('/api/sp/status')).json();
+  if(j.connected){$('spUser').textContent='✓ מחובר: '+(j.user||'')+(j.product&&j.product!=='premium'?' (לשליטה בנגינה צריך Premium)':'');$('spConnect').textContent='החלף חשבון';$('spPls').style.display='flex';
+    const l=await (await fetch('/api/sp/playlists')).json(); if(Array.isArray(l)) $('spList').innerHTML=l.map(x=>`<option value="${x.uri}">${x.name}${x.n?` (${x.n})`:''}</option>`).join('');}
+  else { $('spUser').textContent=j.clientId?'לא מחובר — לחץ חבר':'הגדרה חד-פעמית: הדבק Client ID'; $('spCid').style.display=j.clientId?'none':'flex'; $('spConnect').style.display=j.clientId?'':'none'; }}
+$('spCidSave').onclick=async()=>{await post('/api/sp/client',{id:$('spCidIn').value});spStatus();};
+$('spConnect').onclick=()=>window.open('/spotify/login','splogin','width=520,height=760');
+$('spPlayList').onclick=async()=>{const r=await post('/api/sp/play',{uri:$('spList').value});if(r.error)alert(r.error);};
+spStatus();
+function showReady(m){ const d=document.createElement('div'); d.className='prop'; d.style.borderColor='#2ecc71';
+  d.innerHTML=`<div class="small">✓ מוכן ונשמר (⭐${m.score||''}):</div><div style="font-size:18px;margin:4px 0">${m.text}</div><div class="row"><button class="go">▶ שדר עכשיו</button><button class="ghost no">✕ סגור</button></div>`;
+  d.querySelector('.go').onclick=once(()=>{post('/api/replay',{id:m.id});d.remove();}); d.querySelector('.no').onclick=()=>d.remove(); $('proposals').prepend(d); }
+$('autoPlay').onchange=()=>post('/api/settings',{autoPlayNew:$('autoPlay').checked});
+fetch('/api/spotify').then(r=>r.json()).then(j=>{$('autoPlay').checked=!!j.settings.autoPlayNew;});
+const setS=()=>post('/api/settings',{autoLearn:$('autoLearn').checked,autoDance:$('autoDance').checked});
+$('autoLearn').onchange=setS;$('autoDance').onchange=setS;
+fetch('/api/spotify').then(r=>r.json()).then(j=>{$('autoLearn').checked=j.settings.autoLearn;$('autoDance').checked=j.settings.autoDance;lpUI(!!j.settings.learnPlaylist);});
+function showProposal(m){
+  const d=document.createElement('div');d.className='prop';
+  d.innerHTML=`<div class="small">אתה כתבת: <b>${m.input}</b></div>
+  <div class="small">האריה יגיד (אפשר לערוך):</div><input value="">
+  ${m.names&&m.names.length?`<div class="small">שמות שנשמרים בדיוק: ${m.names.map(n=>`<span class="chip">${n} ✓</span>`).join('')}</div>`:''}
+  <div class="row"><button class="ok">✓ אשר וצור וידאו</button><button class="ghost asis">כמו שכתבתי</button><button class="ghost no">✕ בטל</button></div>`;
+  const inp=d.querySelector('input'); inp.value=m.line;
+  const done=()=>d.remove();
+  d.querySelector('.ok').onclick=()=>{post('/api/approve',{pid:m.pid,line:inp.value});log('✓ אושר: '+inp.value);done();};
+  d.querySelector('.asis').onclick=()=>{post('/api/approve',{pid:m.pid,asIs:true});log('✓ כמו שכתבת: '+m.input);done();};
+  d.querySelector('.no').onclick=()=>{post('/api/reject',{pid:m.pid});done();};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();d.querySelector('.ok').click();}});
+  $('proposals').prepend(d); inp.focus();
+}
+const es=new EventSource('/api/events');
+es.onmessage=ev=>{const m=JSON.parse(ev.data);if(m.type==='proposal')showProposal(m);if(m.type==='convo')addConvo(m.who,m.text);if(m.type==='chatmsg')addChat(m);if(m.type==='studyline'){const d=document.createElement('div');d.innerHTML=`<span style="color:${m.who==='HOST'?'#ffd36b':'#8ec5ff'}">${m.who==='HOST'?'סטרימר':'יריב'}</span> ${m.text}`;$('stLive').prepend(d);while($('stLive').children.length>40)$('stLive').lastChild.remove();}if(m.type==='study')stUI(m);if(m.type==='stream')sxUI(m);if(m.type==='music')muUI(m);if(m.type==='playbook')pbUI(m);if(m.type==='autolive'&&m.phase){$('showPhase').textContent=(PH_HE[m.phase]||m.phase);}if(m.type==='dept')deptUI(m);if(m.type==='training'&&m.learned){$('trainStat').textContent='💡 '+m.learned;}if(m.type==='learnlog')llRow(m);if(m.type==='vision'){$('visionNow').innerHTML=`${m.context==='battle'?'⚔️ BATTLE':'between'} · energy: <b>${m.energy||'?'}</b> · ${m.expression||''}<br>${(m.gestures||[]).map(g=>'• '+g).join('<br>')}${m.chino_move?`<br><span style="color:var(--gold)">→ Chino: ${m.chino_move}</span>`:''}${(m.names||[]).length?`<br>👤 names: ${m.names.map(n=>n.name+' ('+(n.to==='opponent'?'to opponent':n.to==='chat'?'to chat':'?')+')').join(', ')}`:''}`;}if(m.type==='studyline'){llRow({t:Date.now(),kind:'heard',text:(m.who==='HOST'?'סטרימר: ':'יריב: ')+m.text});}if(m.type==='opponent'){$('oppName').value=m.name||'';}if(m.type==='tiktok')ttUI(m);if(m.type==='heard')addConvo('opponent',m.text);if(m.type==='ready')showReady(m);if(m.type==='spauth')spStatus();if(m.type==='status'){$('status').textContent=m.msg;log(m.msg);} if(['bank','songs','idles'].includes(m.type))refresh(); if(m.type==='spotify'){$('spNow').textContent=(m.playing?`🎵 מתנגן: ${m.title} — ${m.learned?'יודע אותו ✓':'עוד לא למד'}`:'ספוטיפיי לא מנגן')+(m.learning?' — 🎧 מקשיב ולומד…':'');if('learnPlaylist' in m)lpUI(!!m.learnPlaylist);}};
+refresh();
+
+// ---------- tabs ----------
+(function(){
+  const TABS=[['live','🎥 שידור'],['talk','🦁 האריה מדבר'],['music','🎵 מוזיקה'],['opp','👤 יריב וסרטונים'],['learn','🎓 למידה'],['set','⚙️ הגדרות']];
+  const MAP=[['האריה ב-Live Studio','live'],['האריה אומר','talk'],['בנק המשפטים','talk'],['נגן ספוטיפיי','music'],['שירים','music'],['ראש היריב','opp'],['שיחה עם היריב','opp'],['צ׳אט הלייב','talk'],['למידה מלייב','learn'],['מצב LEARNING','learn'],['מחלקת ניתוח','learn'],['האזנה קבועה','learn'],['לייב אוטונומי','learn'],['סרטון של היריב','opp'],['דמויות עם הראש','opp'],['האופי','set'],['מנועים','set'],['יומן','set']];
+  const cards=[...document.querySelectorAll('.card')], body=document.createElement('div'); body.className='tabbody';
+  const nav=document.createElement('div'); nav.className='tabs';
+  const grid=document.querySelector('.grid'); grid.parentNode.insertBefore(nav,grid); grid.parentNode.insertBefore(body,grid);
+  cards.forEach(cd=>{ const h=(cd.querySelector('h2')||{}).textContent||''; const m=MAP.find(([k])=>h.includes(k)); cd.dataset.tab=m?m[1]:'set'; body.appendChild(cd); });
+  grid.remove();
+  const show=id=>{ cards.forEach(cd=>cd.classList.toggle('hiddenTab',cd.dataset.tab!==id)); nav.querySelectorAll('button').forEach(b=>b.classList.toggle('act',b.dataset.t===id)); try{localStorage.setItem('arielTab',id);}catch(e){} };
+  TABS.forEach(([id,he])=>{ const b=document.createElement('button'); b.dataset.t=id; b.textContent=he; b.onclick=()=>show(id); nav.appendChild(b); });
+  let start='live'; try{ start=localStorage.getItem('arielTab')||'live'; }catch(e){}
+  show(start);
+})();
+// ---------- virtual camera + engines ----------
+$('capsOn').onchange=()=>post('/api/caps',{on:$('capsOn').checked});
+fetch('/api/state').then(r=>r.json()).then(s=>{ if(s.caps!==undefined) $('capsOn').checked=!!s.caps; });
+const lbl=()=>post('/api/label',{on:$('lblOn').checked,text:$('lblText').value.trim(),color:$('lblColor').value});
+$('lblOn').onchange=lbl; $('lblText').onchange=lbl; $('lblColor').onchange=lbl;
+fetch('/api/state').then(r=>r.json()).then(s=>{ if(s.label){ $('lblOn').checked=!!s.label.on; $('lblText').value=s.label.text||'test'; $('lblColor').value=s.label.color||'#ff2d2d'; } });
+$('liveWin').onclick=()=>{ post('/api/stage/open',{}); log('נפתח חלון אריה ללייב'); };
+post('/api/vcam',{on:false});
+async function engines(){ const k=await (await fetch('/api/keys')).json(); const L=(ok,name,note)=>`${ok?'✅':'⬜'} <b>${name}</b> — ${note}`;
+  $('engines').innerHTML=[L(k.gemini,'Gemini','המוח, הקול, הווידאו והתמונות (עובד)'),L(k.spotify,'Spotify',k.spotify?'מחובר: '+k.spotifyUser:'לא מחובר'),L(k.tiktools,'tik.tools','צ׳אט, מתנות וקרבות מהלייב'+(k.tiktokUser?' ('+k.tiktokUser+')':'')),L(k.openrouter,'OpenRouter','לא חובה — Gemini כבר עושה את העבודה'),L(k.kling,'Kling','לא חובה — לריקוד לפי סרטון (Motion Control)')].join('<br>'); }
+$('kSave').onclick=async()=>{await post('/api/keys',{tiktoolsKey:$('kTik').value,tiktokUser:$('kTikUser').value,openrouterKey:$('kOR').value,klingAccess:$('kKA').value,klingSecret:$('kKS').value});['kTik','kOR','kKA','kKS'].forEach(i=>$(i).value='');engines();log('המפתחות נשמרו');};
+engines();
+
+// ---------- overlay characters ----------
+async function loadOverlays(){ const _j=await (await fetch('/api/overlays')).json(); const l=_j.list||_j;
+  $('ovBtns').innerHTML=l.length?'':'<span class="small">אין עדיין דמויות</span>';
+  l.forEach(o=>{ const b=document.createElement('button'); b.textContent=o.he; b.style.fontSize='17px'; b.onclick=()=>post('/api/overlay/play',{id:o.id,loop:$('ovLoop').checked}); $('ovBtns').appendChild(b); }); }
+$('ovStop').onclick=()=>post('/api/overlay/stop');
+loadOverlays();
+
+// ---------- conversation with the opponent: listen to the battle audio, transcribe, reply ----------
+let hearStream=null, hearRec=null, hearOn=false;
+function addConvo(who,text,ts){ const d=document.createElement('div'); d.style.cssText='padding:4px 0;border-bottom:1px solid #2a2219;display:flex;gap:8px;align-items:center';
+  d.innerHTML=`<span style="min-width:60px;color:${who==='ariel'?'var(--gold)':'#8ec5ff'}">${who==='ariel'?'🦁 צ׳ינו':'🎙️ יריב'}</span><span style="flex:1">${text}</span>${who!=='ariel'?'<button class="ghost rep" style="padding:4px 10px">ענה</button>':''}`;
+  const b=d.querySelector('.rep'); if(b) b.onclick=once(()=>post('/api/heard/reply',{text}));
+  $('convoList').prepend(d); while($('convoList').children.length>60) $('convoList').lastChild.remove(); }
+async function loadConvo(){ const j=await (await fetch('/api/convo')).json(); $('convoList').innerHTML=''; j.items.forEach(x=>addConvo(x.who,x.text,x.t)); $('autoReply').checked=!!j.settings.autoReply; }
+$('autoReply').onchange=()=>{ post('/api/convo/settings',{autoReply:$('autoReply').checked}); $('autoReply2').checked=$('autoReply').checked; };
+$('quickWarm').onclick=async()=>{ const j=await post('/api/convo/warm'); log('מכין '+j.generating+' תשובות מהירות ברקע'); };
+async function hearStart(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return alert('פתח ב-Chrome');
+  try{ hearStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:{echoCancellation:false,noiseSuppression:false}}); }catch(e){ return alert('בחר את חלון Live Studio וסמן "שתף סאונד"'); }
+  if(!hearStream.getAudioTracks().length){ alert('לא נבחר סאונד — תסמן "שתף סאונד של החלון"'); hearStream.getTracks().forEach(t=>t.stop()); return; }
+  // Chrome's SpeechRecognition only hears the default mic; route the tab/window audio through a loopback: play it into a hidden element the recognizer can't use, so instead we send chunks to the server for Gemini transcription
+  const ctx=new AudioContext(); const src=ctx.createMediaStreamSource(new MediaStream(hearStream.getAudioTracks())); const dst=ctx.createMediaStreamDestination(); src.connect(dst);
+  const rec=new MediaRecorder(dst.stream,{mimeType:'audio/webm;codecs=opus'}); let chunks=[];
+  rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+  rec.onstop=async()=>{ const blob=new Blob(chunks,{type:'audio/webm'}); chunks=[]; if(blob.size>4000){ const b64=await new Promise(r=>{const fr=new FileReader(); fr.onload=()=>r(fr.result.split(',')[1]); fr.readAsDataURL(blob);}); post('/api/heard/audio',{b64}); } if(hearOn) rec.start(); };
+  rec.start(); hearRec=rec; hearOn=true;
+  // every 6 seconds: stop -> send -> restart
+  const tick=()=>{ if(!hearOn) return; try{ rec.stop(); }catch(e){} setTimeout(tick,6000); }; setTimeout(tick,6000);
+  hearStream.getVideoTracks()[0].onended=hearStop;
+  $('hearBtn').classList.add('on'); $('hearBtn').textContent='👂 מקשיב… (לחץ לעצור)'; log('מקשיב לסאונד של הקרב');
+}
+function hearStop(){ hearOn=false; try{ hearRec&&hearRec.stop(); }catch(e){} hearStream&&hearStream.getTracks().forEach(t=>t.stop()); hearStream=null; $('hearBtn').classList.remove('on'); $('hearBtn').textContent='👂 תקשיב ליריב'; }
+$('hearBtn').onclick=()=>hearOn?hearStop():hearStart();
+loadConvo();
+
+// ---------- TikTok chat ----------
+function ttUI(j){ $('ttStat').textContent=(j.status||'')+(j.seen?` · ${j.seen} אירועים`:''); $('ttConnect').textContent=j.on?'⏹ נתק':'🔌 התחבר ללייב'; $('ttConnect').classList.toggle('on',!!j.on); if(j.user&&!$('ttUser').value) $('ttUser').value=j.user; }
+fetch('/api/tiktok').then(r=>r.json()).then(ttUI);
+$('ttConnect').onclick=async()=>{ const j=await (await fetch('/api/tiktok')).json(); if(j.on){ await post('/api/tiktok/disconnect'); } else { const r=await post('/api/tiktok/connect',{user:$('ttUser').value.trim()}); if(r.error) alert(r.error); } fetch('/api/tiktok').then(r=>r.json()).then(ttUI); };
+function addChat(m){ const d=document.createElement('div'); const col=m.kind==='gift'?'#ffd36b':m.kind==='follow'?'#8ef0a0':m.kind==='join'?'#888':'var(--text)'; d.innerHTML=`<span style="color:#8ec5ff">${m.name||''}</span> <span style="color:${col}">${m.text}</span>`; $('chatFeed').prepend(d); while($('chatFeed').children.length>80) $('chatFeed').lastChild.remove(); }
+$('autoReply2').onchange=()=>{ post('/api/convo/settings',{autoReply:$('autoReply2').checked}); $('autoReply').checked=$('autoReply2').checked; log($('autoReply2').checked?'🤖 מצב אוטומט פועל — צ׳ינו עונה לבד':'מצב אוטומט כבוי'); };
+fetch('/api/convo').then(r=>r.json()).then(j=>{ $('autoReply2').checked=!!j.settings.autoReply; });
+
+// ---------- learn from another live ----------
+let stStream=null, stRec=null, stOn=false;
+function stUI(j){ $('stStat').textContent=j.on?`לומד מ-${j.name} · ${j.chunks} קטעים · ${j.lines||0} שורות`:'כבוי'; $('stBtn').textContent=j.on?'⏹ סיים למידה':'🎬 תתחיל ללמוד מהלייב'; $('stBtn').classList.toggle('on',!!j.on); }
+async function stStart(){
+  const name=$('stName').value.trim()||'לייב';
+  try{ stStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:{echoCancellation:false,noiseSuppression:false}}); }catch(e){ return alert('בחר את החלון של הלייב וסמן "שתף סאונד"'); }
+  if(!stStream.getAudioTracks().length){ alert('לא נבחר סאונד — תסמן "שתף סאונד של החלון"'); stStream.getTracks().forEach(t=>t.stop()); return; }
+  await post('/api/study/start',{name});
+  const ctx=new AudioContext(); const src=ctx.createMediaStreamSource(new MediaStream(stStream.getAudioTracks())); const dst=ctx.createMediaStreamDestination(); src.connect(dst);
+  const rec=new MediaRecorder(dst.stream,{mimeType:'audio/webm;codecs=opus'}); let chunks=[];
+  rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+  rec.onstop=async()=>{ const blob=new Blob(chunks,{type:'audio/webm'}); chunks=[]; if(blob.size>6000){ const b64=await new Promise(r=>{const fr=new FileReader(); fr.onload=()=>r(fr.result.split(',')[1]); fr.readAsDataURL(blob);}); post('/api/study/audio',{b64}); } if(stOn) rec.start(); };
+  rec.start(); stRec=rec; stOn=true;
+  const tick=()=>{ if(!stOn) return; try{ rec.stop(); }catch(e){} setTimeout(tick,10000); }; setTimeout(tick,10000);
+  stStream.getVideoTracks()[0].onended=stStop;
+  log('🎓 לומד מהלייב של '+name); fetch('/api/study').then(r=>r.json()).then(stUI);
+}
+async function stStop(){ stOn=false; try{ stRec&&stRec.stop(); }catch(e){} stStream&&stStream.getTracks().forEach(t=>t.stop()); stStream=null; await post('/api/study/stop'); fetch('/api/study').then(r=>r.json()).then(j=>{ stUI(j); showReport(j.lessons); }); }
+$('stBtn').onclick=()=>stOn?stStop():stStart();
+// headless direct listening (no browser, no sound on this PC)
+let sxOn=false;
+function sxUI(j){ sxOn=!!j.on; $('sxBtn').textContent=j.on?'⏹ הפסק האזנה ישירה':'📡 האזנה ישירה (בלי סאונד אצלך)'; $('sxBtn').classList.toggle('on',!!j.on);
+  $('sxStat').innerHTML=j.on?`${j.live?'🟢':'🟡'} <b>${j.user}</b> — ${j.status}${j.title?' · «'+j.title+'»':''}<br>🎧 ${j.chunks} קטעי קול · 🖼 ${j.frames} פריימים${j.opp?` · ⚔️ בקרב מול <b>${j.opp}</b>`:''}`:'כבוי';
+  if(j.user&&!$('stName').value)$('stName').value=j.user; }
+$('sxBtn').onclick=once(async()=>{ if(sxOn){ await post('/api/stream/stop'); } else { const user=$('stName').value.trim(); if(!user) return alert('כתוב שם משתמש בטיקטוק'); const j=await post('/api/stream/start',{user}); if(j.error) alert(j.error); } fetch('/api/stream').then(r=>r.json()).then(sxUI);
+// his music → our Spotify
+function muUI(j){ const S=j.songs||[]; $('muNow').textContent=j.last?`עכשיו אצלו: ${j.last.artist} — ${j.last.title}`:(S.length?'':'עוד לא זוהה שיר'); $('muList').innerHTML=S.slice(0,40).map(x=>`<div>▶ <a href="#" data-t="${encodeURIComponent(x.title)}" data-a="${encodeURIComponent(x.artist)}" data-s="${x.spotify||''}" class="muPlay" style="color:var(--gold);text-decoration:none">${x.artist} — ${x.title}</a> <span style="opacity:.6">×${x.count}${x.genre?' · '+x.genre:''}</span></div>`).join(''); $('muList').querySelectorAll('.muPlay').forEach(a=>a.onclick=async e=>{ e.preventDefault(); const j=await post('/api/music/play',{title:decodeURIComponent(a.dataset.t),artist:decodeURIComponent(a.dataset.a),spotify:a.dataset.s}); log(j.error?('ספוטיפיי: '+j.error):'🎵 מנגן: '+a.textContent); }); }
+$('muQueue').onclick=once(async()=>{ const j=await post('/api/music/queue',{n:10}); log(j.error?('ספוטיפיי: '+j.error):`נכנסו ${j.queued} שירים לתור`); });
+$('muPl').onclick=once(async()=>{ const j=await post('/api/music/playlist',{}); log(j.error?('ספוטיפיי: '+j.error):`נוצר פלייליסט "${j.name}" עם ${j.n} שירים`); });
+fetch('/api/music').then(r=>r.json()).then(muUI); });
+fetch('/api/stream').then(r=>r.json()).then(sxUI);
+function showReport(L){ if(!L) return; const sec=(t,arr,f)=>arr&&arr.length?`<div style="margin-top:8px"><b style="color:var(--gold)">${t}</b><br>${arr.slice(-8).map(f).join('<br>')}</div>`:'';
+  $('stReportBox').innerHTML=`<div class="small">סה"כ: ${L.lines.length} משפטים · ${L.styles.length} תובנות סגנון · ${L.battle.length} טקטיקות קרב · ${L.sessions.length} סבבי ניתוח</div>`
+   + sec('סגנון שנלמד',L.styles,x=>'• '+x.text) + sec('טקטיקות קרב',L.battle,x=>'• '+x.text) + sec('עבודה עם הצ׳אט',L.chat,x=>'• '+x.text)
+   + sec('משפטים חדשים לצ׳ינו',L.lines,x=>`• <b>${x.text}</b> <span class="small">(${x.when})</span>`); }
+$('stReport').onclick=async()=>{ const j=await (await fetch('/api/study')).json(); showReport(j.lessons); };
+$('stWarm').onclick=async()=>{ const j=await post('/api/study/warm',{n:10}); log('הופך '+j.generating+' משפטים שנלמדו לסרטונים ברקע'); };
+fetch('/api/study').then(r=>r.json()).then(j=>{ stUI(j); });
+
+// ---------- opponent name ----------
+$('oppSave').onclick=()=>post('/api/opponent',{name:$('oppName').value.trim(),auto_locked:!!$('oppName').value.trim()}).then(()=>log('היריב: '+$('oppName').value));
+fetch('/api/opponent').then(r=>r.json()).then(j=>{ $('oppName').value=j.name||''; });
+// ---------- department ----------
+function deptUI(j){ $('deptList').innerHTML=(j.watching||[]).map(w=>`<div>👁️ <b>${w.user}</b> — ${w.status||''} · ${w.msgs??w.stats?.msgs??0} הודעות · ${w.diamonds??w.stats?.diamonds??0}💎 · ${w.battles??w.stats?.battles??0} קרבות <button class="ghost" style="padding:2px 8px" onclick="post('/api/dept/unwatch',{user:'${w.user}'})">✕</button></div>`).join('')||'<span class="small">לא עוקבת אחרי אף לייב כרגע</span>'; }
+async function deptKnow(){ const j=await (await fetch('/api/dept')).json(); deptUI({watching:j.watching}); const K=j.knowledge; const sec=(t,arr,f)=>arr&&arr.length?`<div style="margin-top:6px"><b style="color:var(--gold)">${t}</b><br>${arr.slice(-6).map(f).join('<br>')}</div>`:'';
+  $('deptKnow').innerHTML=`<div class="small">ידע: ${K.insights.length} תובנות · ${K.triggers.length} טריגרים · ${K.lines.length} משפטים · ${Object.keys(K.streamers).length} סטרימרים</div>`+sec('תובנות',K.insights,x=>'• '+x.text)+sec('טריגרים',K.triggers,x=>`• <i>${x.when}</i> → ${x.do} — <b>${x.say_he}</b>`)+sec('משפטים (עברית / English)',K.lines,x=>`• <b>${x.he}</b> / ${x.en}`); }
+$('deptWatch').onclick=async()=>{ const users=$('deptUsers').value.split(/[,\s]+/).map(x=>x.replace(/^@/,'').trim()).filter(Boolean); if(!users.length) return; await post('/api/dept/watch',{users}); log('עוקבת אחרי: '+users.join(', ')); setTimeout(deptKnow,1500); };
+$('deptAutoIL').onclick=async()=>{ const j=await post('/api/dept/auto',{region:'IL',n:3}); log('נבחרו: '+(j.picked||[]).join(', ')); setTimeout(deptKnow,1500); };
+$('deptAutoAll').onclick=async()=>{ const j=await post('/api/dept/auto',{n:3}); log('נבחרו: '+(j.picked||[]).join(', ')); setTimeout(deptKnow,1500); };
+$('deptNow').onclick=async()=>{ await post('/api/dept/analyze'); deptKnow(); };
+$('deptWarm').onclick=async()=>{ const j=await post('/api/dept/warm',{n:10}); log('הופך '+j.generating+' משפטים שנלמדו לסרטונים'); };
+deptKnow();
+// ---------- learning log ----------
+const LL_ICON={heard:'👂',reply:'🦁',insight:'💡',line:'✍️',style:'🎯',battle:'⚔️',action:'🎬',body:'🕺',interaction:'🔗',music:'🎵'};
+function llRow(r){ const d=document.createElement('div'); d.style.cssText='padding:3px 0;border-bottom:1px solid #221b14'; const t=new Date(r.t).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  d.innerHTML=`<span class="small">${t}</span> ${LL_ICON[r.kind]||'•'} <b>${r.kind==='reply'?'צ׳ינו ענה:':r.kind==='insight'?'למד:':r.kind==='line'?'משפט חדש:':r.kind==='style'?'סגנון:':r.kind==='battle'?'קרב:':r.kind==='action'?'':r.kind==='body'?'שפת גוף:':r.kind==='interaction'?'מה עובד:':r.kind==='music'?'שיר חדש אצלו:':''}</b> ${r.text}${r.heard?`<div class="small" style="opacity:.7">← על: ${r.heard}</div>`:''}`; $('learnLog').prepend(d); while($('learnLog').children.length>200) $('learnLog').lastChild.remove(); }
+fetch('/api/learnlog').then(r=>r.json()).then(l=>l.forEach(llRow));
+$('llClear').onclick=async()=>{ await post('/api/learnlog/clear'); $('learnLog').innerHTML=''; };
+// ---------- learning mode ----------
+$('trainOn').onchange=()=>{ post('/api/training',{on:$('trainOn').checked}); if($('trainOn').checked){ $('autoReply').checked=true; $('autoReply2').checked=true; post('/api/convo/settings',{autoReply:true}); } log($('trainOn').checked?'🎓 מצב LEARNING פועל — צ׳ינו עונה לסטרימר שהוא לומד ממנו':'מצב LEARNING כבוי'); };
+fetch('/api/training').then(r=>r.json()).then(j=>{ $('trainOn').checked=!!j.on; });
+// ---------- always-on follow ----------
+async function followUI(){ const j=await (await fetch('/api/follow')).json(); $('favUsers').value=(j.favorites||[]).join(', '); $('freeLearn').checked=!!j.freeLearn; $('battlesOnly').checked=!!j.battlesOnly; $('maxWatch').value=j.maxWatch||6; const h=Object.entries(j.hunted||{}); $('followStat').textContent=h.length?('נבדקו: '+h.map(([u,x])=>`${u} (${x.battles} קרבות)`).join(' · ')):''; }
+$('favSave').onclick=()=>post('/api/follow',{favorites:$('favUsers').value.split(/[,\s]+/).filter(Boolean)}).then(()=>{log('סטרימרים קבועים נשמרו'); followUI();});
+['freeLearn','battlesOnly','maxWatch'].forEach(id=>$(id).onchange=()=>post('/api/follow',{freeLearn:$('freeLearn').checked,battlesOnly:$('battlesOnly').checked,maxWatch:+$('maxWatch').value}).then(followUI));
+followUI(); setInterval(followUI,60000);
+// ---------- autonomous live ----------
+$('autoLive').onchange=()=>{ post('/api/autolive',{on:$('autoLive').checked,lang:$('autoLang').value}); if($('autoLive').checked){ $('autoReply').checked=true; $('autoReply2').checked=true; } log($('autoLive').checked?'🤖 צ׳ינו מנחה לבד':'מנחה אוטומטי כבוי'); };
+$('autoLang').onchange=()=>post('/api/autolive',{lang:$('autoLang').value});
+fetch('/api/autolive').then(r=>r.json()).then(j=>{ $('autoLive').checked=!!j.on; $('autoLang').value=j.lang||'he'; });
+// the playbook
+const PH_HE={opening:'פתיחה',warmup:'חימום',battle_start:'קרב התחיל',battle_losing:'מפסידים',battle_winning:'מנצחים',battle_last_30s:'30 שניות אחרונות',battle_won:'ניצחנו',battle_lost:'הפסדנו',gift:'מתנה',lull:'שקט'};
+function pbUI(j){ if(!j.compiled){ $('pbStat').textContent='עוד לא קומפל — נבנה אוטומטית כשיש מספיק ידע (כל 10 דק׳)'; $('pbList').innerHTML=''; return; } $('pbStat').textContent=`עודכן ${new Date(j.compiled).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})} · ${j.material} פריטי ידע · קצב: שם כל ${j.cadence.name_shoutout_s}ש׳, קריאה לפעולה כל ${j.cadence.cta_s}ש׳, היפ בקרב כל ${j.cadence.hype_s}ש׳`; $('pbList').innerHTML=Object.entries(j.phases).map(([k,v])=>`<div><b>${PH_HE[k]||k}</b> — ${v.goal||''} <span style="opacity:.6">(${v.ready}/${v.n} מוכנים)</span></div>`).join('')+(j.rituals?.length?`<div style="margin-top:4px"><b>טקסים:</b> ${j.rituals.slice(0,5).join(' · ')}</div>`:'')+(j.notes?`<div style="margin-top:4px;color:var(--gold)">${j.notes}</div>`:''); }
+$('pbCompile').onclick=once(async()=>{ $('pbStat').textContent='מקמפל…'; const j=await post('/api/playbook/compile',{}); if(j.error) log('ספר משחק: '+j.error); else pbUI(j); });
+$('pbWarm').onclick=once(async()=>{ const j=await post('/api/playbook/warm',{n:12}); log(`מכין ${j.generating} משפטים מספר המשחק ברקע`); });
+fetch('/api/playbook').then(r=>r.json()).then(pbUI);
+</script></body></html>

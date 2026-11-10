@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><title>ARIEL DESK — שולחן הלייב</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0d0b09;--panel:#17130f;--panel2:#120e0a;--line:#3a2f22;--gold:#d9a441;--text:#f3e7d3;--dim:#a8957a;--red:#c0392b;--green:#2ecc71;--blue:#4a90d9}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Segoe UI",Arial,sans-serif}
+body{padding:0 16px 40px}
+h2{margin:0 0 10px;font-size:17px;color:var(--gold)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.small{font-size:13px;color:var(--dim)}
+button{background:var(--gold);color:#1a1208;border:0;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}button.on{background:var(--red);color:#fff}button.big{font-size:18px;padding:14px 20px}
+button:disabled{opacity:.4;cursor:default}
+input[type=text],select{background:#0f0c09;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:16px}
+input[type=range]{accent-color:var(--gold)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+/* top desk */
+#desk{position:sticky;top:0;z-index:30;background:var(--bg);padding:12px 0 10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+#deskBar{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:6px;background:#1f180f;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600}
+.badge .dot{width:10px;height:10px;border-radius:50%;background:#555}
+.badge.auto .dot{background:var(--green);box-shadow:0 0 10px var(--green)}
+.badge.manual .dot{background:#e67e22;box-shadow:0 0 10px #e67e22}
+.badge.ok .dot{background:var(--green)}.badge.bad .dot{background:var(--red)}
+#sayIn{flex:1;min-width:220px;font-size:18px}
+#stopAll{background:var(--red);color:#fff}
+#status{margin-top:6px;color:var(--dim);font-size:13px;min-height:18px;max-height:36px;overflow:hidden;text-overflow:ellipsis}
+/* tabs */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+.tabs button{background:#1d1710;color:var(--text);border:1px solid var(--line);font-size:17px;padding:12px 18px}
+.tabs button.act{background:var(--gold);color:#1a1208}
+.tab{display:none}.tab.act{display:block}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+/* libraries */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.tile{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .1s}
+.tile:hover{transform:translateY(-2px);border-color:var(--gold)}
+.tile.sel{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset}
+.tile .th{width:100%;aspect-ratio:9/16;object-fit:cover;background:#000;display:block}
+.tile.wide .th{aspect-ratio:16/9}
+.tile .nm{padding:6px 8px;font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .tag{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.7);border-radius:8px;padding:2px 7px;font-size:12px}
+.tile .x{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border-radius:8px;padding:2px 7px;font-size:12px;color:#fff;cursor:pointer}
+.tile .x:hover{background:var(--red)}
+.tile .ply{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;opacity:0;background:rgba(0,0,0,.35);transition:opacity .15s;color:#fff;text-shadow:0 2px 8px #000}
+.tile:hover .ply{opacity:1}
+.tile.playing{border-color:var(--green);box-shadow:0 0 0 2px var(--green) inset}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:14px;text-align:center;color:var(--dim);cursor:pointer;margin-top:8px}
+.drop.over{border-color:var(--gold);color:var(--gold)}
+.fx button{font-size:16px}
+.conv{padding:4px 0;border-bottom:1px solid #2a2219;display:flex;gap:8px;align-items:center}
+#log{max-height:160px;overflow:auto;font-size:13px;line-height:1.6;color:var(--dim)}
+.slider{display:grid;grid-template-columns:70px 1fr 48px;gap:8px;align-items:center;margin-top:6px;font-size:14px}
+iframe.old{width:100%;height:calc(100vh - 230px);border:1px solid var(--line);border-radius:12px;background:#0d0b09}
+#preview{width:180px;aspect-ratio:9/16;border:1px solid var(--line);border-radius:10px;background:#000;overflow:hidden}
+#preview iframe{width:1080px;height:1920px;transform:scale(calc(180/1080));transform-origin:0 0;border:0;pointer-events:none}
+.lbl{min-width:70px;color:var(--dim)}
+/* overlays desk: the lion and his talk live in Codex's own dashboard */
+#bAuto,#bMode,#bEng,#bNow,#bScene,#sayIn,#sayGo,#muteBtn,#autoBtn,#convoCard,#headFxCard,#bHear,#autoReply,#quickWarm,#winCapCard,#oppScreenCard,#bOpp{display:none!important}
+#stopAll{background:var(--red)}
+</style></head><body>
+
+<div id="desk"><div id="deskBar">
+  <div class="badges">
+    <span style="font-weight:800;color:var(--gold);font-size:18px">🥊 ARIEL DESK — אוברליים</span>
+    <a href="/players" style="background:var(--gold);color:#1a1208;font-weight:800;text-decoration:none;border-radius:10px;padding:7px 14px;font-size:15px">👥 שחקנים ואפקטים — המסך החדש</a>
+    <span class="badge manual" id="bAuto"><span class="dot"></span><span id="bAutoT">ידני</span></span>
+    <span class="badge" id="bMode"><span>🎞</span><select id="modeSel" style="padding:2px 6px;font-size:14px;border:0;background:transparent;color:var(--text)"><option value="off">בלי אריה — רק יריב + אפקטים</option><option value="video">מצב וידאו (סרטוני האריה)</option><option value="3d">מצב 3D (האריה של Codex)</option></select></span>
+    <span class="badge bad" id="bEng"><span class="dot"></span><span id="bEngT">Codex: לא מחובר</span></span>
+    <span class="badge" id="bNow">▶ <span id="bNowT">—</span></span>
+    <span class="badge" id="bScene">🎭 <span id="bSceneT">בלי סצנה</span></span>
+    <span class="badge" id="bOpp">👤 <span id="bOppT">אין יריב</span></span>
+    <span class="badge" id="bTT">📺 <span id="bTTT">לא מחובר לצ׳אט</span></span>
+    <span class="badge" id="bDir">🦁 <span id="bDirT">צ׳ינו: לא מחובר</span></span>
+  </div>
+  <div class="row">
+    <input type="text" id="sayIn" placeholder="אמור משפט עכשיו… (Enter)">
+    <button id="sayGo" class="big">🦁 אמור</button>
+    <button id="muteBtn" class="ghost big">🔇 השתק</button>
+    <button id="stopAll" class="big">⏹ עצור הכל (אפקטים/סרטונים)</button>
+    <button id="autoBtn" class="ghost big">🤖 אוטומטי</button>
+    <button id="stopClip" class="ghost">⏹ עצור סרטון</button>
+  </div>
+  <div id="status"></div>
+</div>
+<div class="tabs" id="tabs">
+  <button data-t="opp" class="act">👤 היריב</button>
+  <button data-t="clips">🎬 סרטונים</button>
+  <button data-t="set">🖼 הסט</button>
+  <button data-t="test">🧪 בדיקת קרב</button>
+  <button data-t="old">📋 הלוח המלא (ישן)</button>
+</div></div>
+
+
+
+<!-- ================= OPPONENT ENGINE ================= -->
+<div class="tab act" id="tab-opp"><div class="cols">
+  <div>
+    <div class="card" style="border-color:var(--gold)">
+      <h2>🎯 מי היריב?</h2>
+      <div class="row"><button id="ocWho" class="big">👥 מי מולי בלייב עכשיו</button><button id="ocSpec" class="big ghost">✍️ משתמש ספציפי</button><span class="small" id="ocWhoT"></span></div>
+      <div class="row" id="ocSpecRow" style="display:none"><span class="lbl">📡 שם משתמש:</span><input type="text" id="ocUser" placeholder="שם משתמש בטיקטוק — או ריק: בקרב, הלייב של מי שמולך (אוטומטי)" style="flex:1;direction:ltr"><select id="ocSide" title="בלייב של שניים — איזה צד הוא?"><option value="">כל המסך</option><option value="left">הצד השמאלי</option><option value="right">הצד הימני</option></select><button id="ocGo" class="big">🥊 זהה וייצר — הסט הבא (~$0.30)</button><button id="ocGoAll" class="big" style="background:var(--gold)">🎬 ייצר לו הכל — כל הסטים שחסרים (~$0.30 לסט)</button><button id="ocCap" class="ghost">📸 רק תפוס</button><label class="small"><input type="checkbox" id="ocWait" checked> 🎯 לחכות שיסתכל למצלמה (עד דקה)</label></div>
+      <div class="row" id="ocRoster" style="margin-top:6px;gap:6px;flex-wrap:wrap;padding:8px;border:1px dashed var(--line);border-radius:10px"></div><div id="ocLive" class="small" style="margin-top:4px"></div><div id="ocHaveT" class="small" style="margin-top:2px"></div><div id="ocStat" class="small"></div>
+      <div class="row" style="margin-top:6px"><button id="ocDetails" class="ghost" style="padding:4px 10px;font-size:13px">🔧 פרטים טכניים</button></div>
+      <div id="ocView" style="display:none;margin-top:8px;display:none">
+        <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+          <div style="text-align:center"><img id="ocBoxed" style="height:210px;border-radius:8px;background:#000"><div class="small">הפריים שלו — 🟨 ראש · 🟩 גוף</div></div>
+          <div style="text-align:center"><img id="ocHead" style="height:120px;width:120px;border-radius:50%;object-fit:cover;background:repeating-conic-gradient(#222 0 25%,#333 0 50%) 0 0/16px 16px"><div class="small">הפנים שתפסתי</div></div>
+          <div style="text-align:center"><img id="ocAvatar" style="height:120px;width:120px;border-radius:50%;object-fit:cover;background:#000;display:none"><div class="small" id="ocVerifT"></div></div>
+          <div style="text-align:center"><img id="ocGreen" style="height:210px;border-radius:8px;background:#000"><div class="small">מה נשלח לייצור</div></div>
+          <div style="text-align:center"><img id="ocStart" style="height:210px;border-radius:8px;background:#000;display:none"><div class="small" id="ocStartT"></div></div>
+        </div>
+        <div class="row" id="ocPickRow" style="margin-top:6px;display:none"><span class="lbl">👥 מי מהם?</span><span id="ocPickBtns"></span></div>
+        <div class="row" style="margin-top:6px"><button id="ocGoCap" class="big">🥊 ייצר מהתפיסה הזו (~$0.30)</button><span class="small">לא טוב? לחץ "📸 רק תפוס" שוב כשהפנים מול המצלמה</span></div>
+      </div>
+      <div id="ocJobs" style="margin-top:8px"></div>
+      <h2 style="margin-top:12px">🎞 הסרטונים של היריב הזה <button id="ocAllBtn" class="ghost" style="padding:3px 10px;font-size:13px;margin-right:8px">📂 כל היריבים</button></h2>
+      <div id="ocGrid" class="grid"></div>
+      <div class="small"><b>הסטים לכל יריב:</b> 🥊 מרביץ · 🥊 מתחמם ומרביץ · 👊 אגרוף ענק · 👶 תינוק בוכה (על הברכיים של אריאל). "ייצר לו הכל" עושה את כל מה שחסר; יש הכל — לא משלם. הפריים נמשך מהלייב שלו ישר מטיקטוק, RunPod <b>מייצר</b> (הפנים האמיתיות שלו), ~2–3 דק׳, יוצא שקוף — ▶ מנגן על הבמה / ב-Link.</div>
+    </div>
+    <div class="card" style="margin-top:14px;border-color:var(--gold)">
+      <h2>💥 הראש שלו עף ומתפרק — כל לייק = זריקה</h2>
+      <div class="row"><button id="hgOn" class="big">💥 הדלק על היריב שבשדה למעלה</button><button id="hgThrow" class="big ghost">💥 זרוק אחד</button><button id="hgThrow5" class="ghost">💥×5</button><label class="small"><input type="checkbox" id="hgLikes" checked> כל לייק בצ׳אט = זריקה</label><span class="badge" id="bHg"><span class="dot"></span><span id="bHgT">כבוי</span></span></div>
+      <div class="row" style="display:none"><button class="ghost hgMode" data-m="face">💥</button><label class="small"><input type="checkbox" id="hgHead"> ראש</label></div>
+      <div class="slider"><span>גודל הפיצוץ</span><input type="range" id="hgSize" min="0.2" max="0.9" step="0.01" value="0.46"><span id="hgSizeV">46%</span></div>
+      <div class="slider" style="display:none"><span>גובה</span><input type="range" id="hgY" min="0.2" max="0.9" step="0.01" value="0.70"><span id="hgYV">70%</span></div>
+      <div class="small"><b>Link נפרד למשחק</b> (Add source → Link, 1080×1920): <code style="direction:ltr;user-select:all">http://127-0-0-1.nip.io:7777/game</code>. הראש האמיתי שלו (חי מהחלון שלו בשידור, או התפיסה הנקייה) דוהר מהצ׳אט לכיוון המצלמה בתלת-מימד, ממלא את המסך — <b>בום</b>, מתפרק לרסיסים ונמרח. כל לייק = זריקה (עד ~3 בשנייה).</div>
+    </div>
+    <div class="card" style="margin-top:14px" id="winCapCard">
+      <h2>🎯 מנוע היריב — חיבור לקרב</h2>
+      <div class="row"><button id="oppCap" class="big">🎯 התחבר לקרב (בחר חלון)</button><button id="camCap" class="big ghost">📷 המצלמה שלי</button><label class="small"><input type="checkbox" id="hRight" checked> רק צד ימין (היריב)</label><label class="small"><input type="checkbox" id="hMirror"> המצלמה במראה</label><span class="small" id="hStat">לא מחובר</span></div>
+      <div style="position:relative;margin-top:8px"><video id="hVid" muted playsinline style="width:100%;max-height:260px;background:#000;border-radius:8px;object-fit:contain"></video><canvas id="hBox" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></div>
+      <div class="small" style="margin-top:6px"><b>חלון:</b> בוחרים את חלון הטלפון (scrcpy) או את Live Studio ומסמנים "שתף סאונד" — רואים את הראש של היריב ושומעים אותו. <b>מצלמה:</b> הפנים שלך. בשני המקרים מיקום הפנים נשלח חי לשכבת האפקטים (ה-Link source ב-Live Studio) — האגרופים נוחתים על הפנים.</div>
+      <div class="row" style="margin-top:10px"><label class="lbl">👤 היריב:</label><input type="text" id="oppName" placeholder="מזוהה לבד מהקרב, או כתוב ידנית" style="flex:1"><button id="oppSave" class="ghost">שמור</button></div>
+    </div>
+    <div class="card" style="margin-top:14px" id="headFxCard">
+      <h2>🫧 הראש של היריב על המסך</h2>
+      <div class="row"><button id="hShow" class="big ghost">👁️ הצג ראש בלייב: כבוי</button></div>
+      <div class="row fx" id="hFx">
+        <button class="ghost" data-fx="bubble">🫧 בועה</button><button class="ghost" data-fx="crown">👑 כתר</button><button class="ghost" data-fx="bobble">🤪 מתנדנד</button>
+        <button class="ghost" data-fx="cage">🔒 כלוב</button><button class="ghost" data-fx="cry">😭 בוכה</button><button class="ghost" data-fx="shake">💥 רעידה</button>
+      </div>
+      <div class="small">הראש נחתך נקי (סגמנטציה), יושב קטן למעלה במרכז ונעלם לבד כשהפנים יוצאות מהפריים.</div>
+    </div>
+    <div class="card" style="margin-top:14px;border-color:var(--gold)">
+      <h2>🎬 צור דמות / אפקט חדש (RunPod)</h2>
+      <div class="row"><input type="text" id="gDesc" placeholder="תאר: מתאגרף גמד עם כפפות אדומות / עגבנייה עפה / חיתול…" style="flex:1"></div>
+      <div class="row"><select id="gKind"><option value="character">🎭 דמות — לראש החי של היריב (גוף בלי ראש)</option><option value="puncher">🥊 דמות שנותנת מכות</option><option value="effect">💥 אפקט שעף על היריב (עגבנייה, חיתול…)</option></select><select id="gDur"><option value="5">5 שנ׳ ($0.32)</option><option value="8">8 שנ׳ ($0.50)</option></select><input type="text" id="gName" placeholder="שם קצר (לא חובה)" style="width:150px"><button id="gGo" class="big">🎬 צור</button></div>
+      <div class="small">זה רץ בענן של RunPod לפי סרטון (~$0.32 ל-5 שניות), <b>שום דבר לא נשאר דלוק</b>. התהליך: ציור על מסך ירוק → הנעה → הורדה → שקיפות אוטומטית → נכנס לספרייה למטה. 1–3 דקות.</div>
+      <div id="gJobs" class="small" style="margin-top:6px;line-height:1.8"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>🥊 דמויות — המתאגרף שנותן ליריב מכות</h2>
+      <div class="drop" id="dropOv">⬆️ סרטון (למשל: מישהו חוטף אגרופים) — המערכת מוצאת את כל הפנים בו, ואתה בוחר למי מחליפים את הראש<input type="file" id="fileOv" accept="video/*" multiple style="display:none"></div>
+      <div class="row"><label class="small"><input type="radio" name="ovMode" value="keep" checked> סרטון מלא על כל המסך</label><label class="small"><input type="radio" name="ovMode" value="cut"> לחתוך את הדמות מהרקע (שקוף, ליד האריה)</label><label class="small"><input type="checkbox" id="ovLoop"> בלופ</label><button id="ovStop" class="ghost">⏹ עצור</button></div>
+      <div id="ovGrid" class="grid"></div>
+      <div class="small"><b>🥊 דמות נותנת מכה:</b> הדמות (מתאגרף) נכנסת לפריים ליד היריב; בשנייה שכתבת — האגרוף "נוחת": הראש של היריב (שמזוהה בתוך השידור שלו) עף הצידה, POW, רעידה. <b>🎭 עם הראש שלו:</b> במקום זה — הראש החי של היריב יושב על הפנים שבחרת בסרטון.</div>
+    </div>
+  </div>
+  <div>
+    <div class="card" id="convoCard">
+      <h2>👂 מה היריב אומר — ותגובות</h2>
+      <div class="row"><span class="badge" id="bHear"><span class="dot"></span><span id="bHearT">לא מקשיב</span></span><label class="small"><input type="checkbox" id="autoReply"> 🤖 צ׳ינו עונה ליריב לבד</label><button id="quickWarm" class="ghost">⚡ הכן תשובות מהירות</button></div>
+      <div id="convoList" style="max-height:320px;overflow:auto;margin-top:8px;font-size:15px;line-height:1.7"></div>
+      <div class="small">ידני: לוחצים "ענה" ליד שורה. אוטומטי: צ׳ינו מחליט לבד מתי ומה לענות.</div>
+    </div>
+    <div class="card" style="margin-top:14px;border-color:var(--gold)" id="oppScreenCard">
+      <h2>📺 מסך היריב — הלייב שלו על כל המסך שלנו</h2>
+      <div class="row"><input type="text" id="oppUser" placeholder="שם המשתמש של היריב (ריק = מי שמולך בקרב, מזוהה לבד)" style="flex:1;direction:ltr"><button id="oppScreenBtn" class="big">📺 הצג את הלייב שלו</button></div>
+      <div class="row"><span class="badge" id="bOppScr"><span class="dot"></span><span id="bOppScrT">כבוי</span></span><label class="small"><input type="checkbox" id="oppShow" checked> <b>להציג את השידור שלו על המסך</b> (כבוי = לוקחים ממנו רק את הראש, בלי להראות אותו)</label><label class="small"><input type="checkbox" id="oppMute" checked> בלי הסאונד שלו</label></div>
+      <div class="row"><span class="lbl">מה רואים:</span><button class="ghost ov" data-v="full">🖼 כל השידור</button><button class="ghost ov" data-v="right">👉 הצד הימני (היריב בקרב)</button><button class="ghost ov" data-v="left">👈 הצד השמאלי</button></div>
+      <div class="slider"><span>זום</span><input type="range" id="ovScale" min="1" max="3.5" step="0.02" value="1"><span id="ovScaleV">100%</span></div>
+      <div class="slider"><span>ימין/שמאל</span><input type="range" id="ovX" min="-120" max="120" step="1" value="0"><span id="ovXV">0</span></div>
+      <div class="slider"><span>למעלה/למטה</span><input type="range" id="ovY" min="-120" max="120" step="1" value="0"><span id="ovYV">0</span></div>
+      <div class="small">השידור שלו נמשך ישר מטיקטוק ומכסה אותנו לגמרי — האריה מוסתר. "הצד הימני" = היריב שמולו בקרב, ממלא את כל הפריים שלנו. עליו מלבישים אפקטים. "עצור הכל" או כיבוי כאן — חוזרים לאריה.</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>🥊 אפקטים שקופים על היריב</h2>
+      <div class="row"><b>💥 מכה בפנים (בלי סרטון):</b><button id="hitL" class="big">👈 מכה משמאל</button><button id="hitR" class="big">מכה מימין 👉</button><span class="small">הראש החי שלו נזרק הצידה, המסך רועד, POW! וכוכבים — ברגע שיש פנים בשידור.</span></div>
+      <div class="drop" id="dropFx">⬆️ WebM שקוף, או MP4 על מסך ירוק (נהפך לשקוף לבד)<input type="file" id="fileFx" accept="video/webm,video/mp4,video/quicktime" multiple style="display:none"></div>
+      <div id="fxGrid" class="grid"></div>
+      <div class="small">לחיצה = אגרוף אחד. ↔ מהצד השני. 🎯 דלוק = האפקט נוחת <b>על הפנים של היריב</b> (המערכת מוצאת את הפנים בתוך השידור שלו ומכוונת לשם; אין פנים — נוחת במרכז). עד 3 אפקטים במקביל.</div>
+    </div>
+    <div class="card" style="margin-top:14px"><h2>יומן</h2><div id="log"></div></div>
+  </div>
+</div></div>
+
+<!-- ================= CLIPS ================= -->
+<div class="tab" id="tab-clips"><div class="cols">
+  <div>
+    <div class="card">
+      <h2>🎬 סרטונים בלחיצה</h2>
+      <div class="row"><span class="badge" id="bClip"><span class="dot"></span><span id="bClipT">שום סרטון לא מתנגן</span></span><button id="stopClip2" class="ghost">⏹ עצור סרטון</button></div>
+      <div class="drop" id="dropClips">⬆️ גרור לכאן סרטונים (mp4 / webm / mov) או לחץ לבחירה<input type="file" id="fileClips" accept="video/*" multiple style="display:none"></div>
+      <div class="small">לחיצה אחת על סרטון = ניגון אחד (לחיצה כפולה לא משדרת פעמיים). סרטון עם 🔊 עוצר את דיבור האריה ומנמיך את המוזיקה עד שהוא נגמר, ומודיע למנוע הדיבור על התחלה וסיום. "עצור הכל" מבטל גם תגובות שחיכו — האריה לא יחזור עם משפט ישן.</div>
+      <div id="clipGrid" class="grid"></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>תצוגה מקדימה של השידור</h2>
+      <div class="row"><div id="preview"><iframe src="/stage?preview=1&live=1" title="preview"></iframe></div><div class="small" style="flex:1;line-height:1.7">זה בדיוק מה שהמצלמה הווירטואלית משדרת (בלי סאונד כאן).<br>גודל הסרטון בפריים נקבע לכל סרטון בנפרד: מסך מלא / חלון קטן / חלון רחב.</div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ================= THE SET ================= -->
+<div class="tab" id="tab-set"><div class="cols">
+  <div>
+    <div class="card">
+      <h2>🖼 רקע מאחור</h2>
+      <div class="drop" id="dropBg">⬆️ תמונה או וידאו (וילון, אולם, במה…)<input type="file" id="fileBg" accept="image/*,video/*" multiple style="display:none"></div>
+      <div class="row"><b>📷 מצלמה כרקע:</b><select id="camSel" style="min-width:200px"><option value="">— בחר מצלמה —</option></select><button id="camUse" class="ghost">השתמש</button><label class="small"><input type="checkbox" id="camMirror"> מראה</label><span class="small">האפקטים והזיהוי עובדים על המצלמה בדיוק כמו על היריב — כל מצלמה/מצלמה וירטואלית שמותקנת במחשב.</span></div>
+      <div class="slider"><span>החשכה</span><input type="range" id="dimR" min="0" max="0.9" step="0.05" value="0"><span id="dimV">0%</span></div>
+      <div id="bgGrid" class="grid"></div>
+      <div class="small">במצב וידאו סרטוני האריה הנוכחיים מכסים את הרקע (הכיסא צרוב בהם). במצב 3D האריה והכיסא של Codex שקופים מסביב — והרקע נראה.</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>✨ שכבה מלפנים (מסגרות, אפקטים, אלמנטים)</h2>
+      <div class="drop" id="dropFront">⬆️ PNG עם שקיפות / WebM שקוף<input type="file" id="fileFront" accept="image/png,image/webp,image/gif,video/webm,video/mp4" multiple style="display:none"></div>
+      <div id="frontGrid" class="grid"></div>
+      <div class="small">לחיצה מדליקה/מכבה שכבה. אפשר כמה ביחד; השקיפות של כל אחת נשלטת למטה.</div>
+      <div id="frontActive"></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>📐 הפריים — האריה והכיסא זזים יחד</h2>
+      <div class="slider"><span>גודל</span><input type="range" id="fScale" min="0.5" max="2.2" step="0.01" value="1"><span id="fScaleV">100%</span></div>
+      <div class="slider"><span>ימין/שמאל</span><input type="range" id="fX" min="-40" max="40" step="0.5" value="0"><span id="fXV">0</span></div>
+      <div class="slider"><span>למעלה/למטה</span><input type="range" id="fY" min="-40" max="40" step="0.5" value="0"><span id="fYV">0</span></div>
+      <div class="row"><button id="shotFull" class="ghost">🪑 ישיבה מלאה</button><button id="shotClose" class="ghost">🗣 פריים קרוב (שיחה/באטל)</button><button id="fReset" class="ghost">↺ איפוס</button></div>
+      <div class="small">שינוי כאן לא נוגע באריה עצמו — רק איפה ובאיזה גודל הסט כולו יושב בפריים. במצב 3D "פריים קרוב" גם מבקש מהמנוע של Codex את המצלמה הקרובה.</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>🎭 סצנות</h2>
+      <div class="row"><input type="text" id="sceneName" placeholder="שם הסצנה (למשל: במה אדומה)" style="flex:1"><button id="sceneSave">💾 שמור את המצב הנוכחי</button></div>
+      <div id="sceneGrid" class="grid"></div>
+      <div class="small">סצנה = רקע + שכבות קדמיות + פריים + מצב. לחיצה מחליפה הכל בבת אחת, הישיבה והיחס אריה-כיסא נשמרים.</div>
+    </div>
+    <div class="card" style="margin-top:14px;border-color:var(--gold)">
+      <h2>☁️ RunPod — מנוע וידאו משלנו (דמויות שקופות)</h2>
+      <div class="row"><input type="password" id="rpKey" placeholder="הדבק כאן את מפתח ה-API של RunPod" style="flex:1;direction:ltr"><button id="rpSave">שמור</button><span class="small" id="rpStat"></span></div>
+      <div class="small">RunPod → Settings → API Keys → Create. המפתח נשמר רק במחשב הזה (settings.json). אחרי השמירה אני מקים את ה-GPU ומנוע הווידאו, ויופיע כאן כפתור "🎬 צור דמות".</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>🦁 צ׳ינו (Codex, 7780) — מה הצופים רואים</h2>
+      <div class="row"><label class="lbl">💬 טקסט המתנה:</label><input type="text" id="dirHint" placeholder="כתבו שאלה בצ׳אט — צ׳ינו 🦁 עונה" style="flex:1"><button id="dirHintSave" class="ghost">שמור</button></div>
+      <div class="small">מופיע כפס קטן למעלה ב-Link כשאין שיחה. בשיחה: 🟢 "צ׳ינו מקשיב/מדבר" + הזמן שנשאר (מהמנוע), 🟠 "רגע…" כשמחכים לקליפ. נעלם כשסרטון מכסה את המסך או כשהמנוע לא מחובר — אף פעם לא טקסט טכני לצופים.</div>
+      <div id="dirInfo" class="small" style="margin-top:6px"></div>
+      <h2 style="margin-top:14px">🧊 המנוע של Codex (מצב 3D)</h2>
+      <div class="row"><input type="text" id="engUrl" placeholder="כתובת המנוע, למשל http://127.0.0.1:8800" style="flex:1;direction:ltr"><button id="engSave" class="ghost">חבר</button></div>
+      <div class="small" id="engInfo">עוד לא חובר. כש-Codex ימסור כתובת — מדביקים כאן. עד אז מצב 3D לא זמין (המשפטים לא ילכו לשום מקום).</div>
+      <div class="row"><input type="text" id="renderUrl" placeholder="כתובת הרינדור השקוף (אם המנוע לא מדווח לבד)" style="flex:1;direction:ltr"><select id="renderType"><option value="iframe">דף (iframe)</option><option value="video">וידאו/סטרים</option><option value="image">תמונה</option></select><button id="renderSave" class="ghost">הצג</button></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ================= BATTLE TEST ================= -->
+<div class="tab" id="tab-test">
+  <div class="card">
+    <h2>🧪 בדיקת קרב — ככה זה ייראה בלייב (אנחנו תמיד בצד שמאל)</h2>
+    <div class="row"><input type="text" id="tUser" placeholder="שם משתמש של לייב עם שני אנשים (קרב)" style="flex:1;direction:ltr"><button id="tStart" class="big">▶ הבא את הלייב לבדיקה</button><button id="tStop" class="ghost">⏹ סיים בדיקה</button><span class="small" id="tStat"></span></div>
+    <div class="row"><span class="lbl">היריב הוא:</span><button class="ghost tv on" data-v="right">👉 הצד הימני</button><button class="ghost tv" data-v="left">👈 הצד השמאלי</button><button class="ghost tv" data-v="full">🖼 כל השידור</button><label class="small" style="margin-inline-start:12px"><input type="checkbox" id="tHead"> 🫧 הצג את הראש שנתפס</label></div>
+    <div style="display:flex;gap:14px;margin-top:12px;align-items:flex-start;flex-wrap:wrap;direction:ltr">
+      <!-- the phone: TikTok's battle screen as a viewer sees it. left panel = us (the stage), right panel = his real live -->
+      <div style="width:390px;aspect-ratio:9/16;background:#000;border-radius:26px;border:4px solid #222;position:relative;overflow:hidden;flex:none">
+        <div style="position:absolute;top:0;left:0;right:0;height:22%;background:linear-gradient(#111,#000)"></div>
+        <div style="position:absolute;top:21%;left:0;right:0;height:3.5%;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font:700 12px system-ui;color:#fff;background:linear-gradient(90deg,#1e90ff 0 50%,#ff3366 50% 100%)"><span>⚡ 0</span><span style="background:#000a;padding:1px 8px;border-radius:8px">05:00</span><span>0 ⚡</span></div>
+        <div style="position:absolute;top:24.5%;left:0;right:0;height:51%;display:flex">
+          <div style="width:50%;height:100%;overflow:hidden;position:relative;background:#000"><iframe id="tOurs" src="/stage?preview=1&live=1" style="position:absolute;top:0;left:0;width:1080px;height:1920px;transform:scale(calc(195/1080));transform-origin:0 0;border:0;pointer-events:none"></iframe><div style="position:absolute;bottom:4px;left:6px;font:700 11px system-ui;color:#fff;background:#0008;padding:1px 6px;border-radius:6px">👑 אנחנו</div></div>
+          <div style="width:50%;height:100%;overflow:hidden;position:relative;background:#000"><video id="tOpp" muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 50%"></video><div style="position:absolute;bottom:4px;right:6px;font:700 11px system-ui;color:#fff;background:#0008;padding:1px 6px;border-radius:6px" id="tOppName">היריב</div></div>
+        </div>
+        <div style="position:absolute;top:76%;left:0;right:0;bottom:0;background:#000;color:#777;font:12px system-ui;padding:8px 10px">💬 הצ׳אט של הקהל…</div>
+      </div>
+      <div style="flex:1;min-width:260px">
+        <div class="small" style="line-height:1.8">זה מסך הקרב של טיקטוק כמו שצופה רואה אותו: <b>משמאל אנחנו</b> (מה שהמצלמה שלנו משדרת), <b>מימין הוא</b> (הלייב האמיתי שלו). כשמפעילים "מסך היריב" — בצד שלנו מופיע <b>הוא עצמו</b> ועליו האפקטים. בלייב אמיתי יש עיכוב ~3–5 שניות; כאן זה כמעט ביחד.</div>
+        <div class="row" style="margin-top:12px"><b>💥 תן לו:</b><button id="tHitL" class="big">👈 מכה משמאל</button><button id="tHitR" class="big">מכה מימין 👉</button></div>
+        <div class="row"><b>🥊 אפקטים:</b><span id="tFx"></span></div>
+        <div class="row"><b>🥊 דמות מרביצה:</b><span id="tOv"></span></div>
+        <div class="row"><b>🫧 על הראש:</b><button class="ghost thead" data-fx="bubble">בועה</button><button class="ghost thead" data-fx="crown">כתר</button><button class="ghost thead" data-fx="cage">כלוב</button><button class="ghost thead" data-fx="cry">בוכה</button><button class="ghost thead" data-fx="shake">רעידה</button><button class="ghost" id="tHeadOff">כבה</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="tab" id="tab-old"><iframe class="old" src="/old" title="old"></iframe></div>
+
+<script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
+<script type="module">
+import { FilesetResolver, FaceDetector, ImageSegmenter } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs';
+const $=id=>document.getElementById(id);
+const post=(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})}).then(r=>r.json());
+const log=m=>{ $('status').textContent=m; const d=document.createElement('div'); d.textContent=new Date().toLocaleTimeString('he-IL')+' — '+m; $('log').prepend(d); while($('log').children.length>80) $('log').lastChild.remove(); };
+let _lastFire=0; const once=fn=>(...a)=>{ const now=Date.now(); if(now-_lastFire<1200){ log('⏳ כבר נשלח — לחיצה נוספת התעלמה'); return; } _lastFire=now; return fn(...a); };
+
+// ---------- tabs ----------
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('act',x===b)); document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('act',t.id==='tab-'+b.dataset.t)); localStorage.setItem('deskTab',b.dataset.t); });
+try{ const t=new URLSearchParams(location.search).get('tab')||localStorage.getItem('deskTab'); if(t) document.querySelector(`#tabs button[data-t="${t}"]`)?.click(); }catch(e){}
+
+// ---------- the desk strip ----------
+let desk={}, playingClip=null;
+function deskUI(d){ desk=d;
+  $('bAuto').className='badge '+(d.auto?'auto':'manual'); $('bAutoT').textContent=d.auto?'אוטומטי — צ׳ינו מנהל':'ידני — אתה מנהל';
+  $('autoBtn').classList.toggle('on',!!d.auto); $('autoBtn').textContent=d.auto?'✋ עבור לידני':'🤖 אוטומטי';
+  $('modeSel').value=d.mode||'video'; $('bMode').firstElementChild.textContent=d.mode==='3d'?'🧊':d.mode==='off'?'🚫🦁':'🎞';
+  $('bEng').className='badge '+(d.engine?.online?'ok':'bad'); $('bEngT').textContent=d.engine?.online?`Codex: ${d.engine.state||'מחובר'}`:'Codex: לא מחובר';
+  $('bSceneT').textContent=d.scene||'בלי סצנה'; $('bOppT').textContent=d.opponent||'אין יריב'; $('oppName').value=$('oppName').value||d.opponent||'';
+  $('bTTT').textContent=d.tiktok?.on?`${d.tiktok.user}: ${d.tiktok.status}`:'לא מחובר לצ׳אט';
+  $('muteBtn').classList.toggle('on',!!d.muted); $('muteBtn').textContent=d.muted?'🔊 בטל השתקה':'🔇 השתק';
+  $('autoReply').checked=!!d.autoReply;
+  clipUI(d.clip);
+}
+function clipUI(c){ playingClip=c; $('bClip').className='badge '+(c?'ok':''); $('bClipT').textContent=c?('מתנגן: '+(clips.find(x=>x.id===c.id)?.name||'')+(c.audio?' 🔊':'')):'שום סרטון לא מתנגן'; $('bNowT').textContent=c?'סרטון':(desk.oppScreen&&desk.oppScreen.on?'📺 מסך היריב':desk.training?'לומד':desk.auto?'אוטומטי':'—'); document.querySelectorAll('#clipGrid .tile').forEach(t=>t.classList.toggle('playing',!!c&&t.dataset.id===c.id)); }
+fetch('/api/desk').then(r=>r.json()).then(deskUI);
+$('sayGo').onclick=once(async()=>{ const t=$('sayIn').value.trim(); if(!t) return; const j=await post('/api/desk/say',{text:t}); if(j.error) log('❌ '+j.error); else { log('🦁 '+t); $('sayIn').value=''; } });
+$('sayIn').onkeydown=e=>{ if(e.key==='Enter') $('sayGo').click(); };
+$('muteBtn').onclick=async()=>{ deskUI(await post('/api/desk/mute',{})); };
+$('stopAll').onclick=async()=>{ deskUI(await post('/api/desk/stop',{})); };
+$('autoBtn').onclick=async()=>{ deskUI(await post('/api/desk/auto',{on:!desk.auto})); };
+$('modeSel').onchange=async()=>{ await post('/api/set',{mode:$('modeSel').value}); fetch('/api/desk').then(r=>r.json()).then(deskUI); };
+$('stopClip').onclick=$('stopClip2').onclick=()=>post('/api/clip/stop',{});
+$('autoReply').onchange=()=>post('/api/convo/settings',{autoReply:$('autoReply').checked}).then(()=>fetch('/api/desk').then(r=>r.json()).then(deskUI));
+$('quickWarm').onclick=async()=>{ const j=await post('/api/convo/warm'); log('מכין '+j.generating+' תשובות מהירות ברקע'); };
+
+// ---------- OPPONENT ENGINE: one capture feeds the head tracker AND the hearing ----------
+let det=null, seg=null, stream=null, box=null, lastSeen=0, showing=false, curFx='bubble', hearOn=false, hearRec=null;
+const segC=document.createElement('canvas'); segC.width=segC.height=320; const sgc=segC.getContext('2d');
+const crop=document.createElement('canvas'); crop.width=crop.height=320; const cc=crop.getContext('2d');
+const vid=$('hVid'), bc=$('hBox').getContext('2d');
+async function loadDet(){
+  if(det) return det; $('hStat').textContent='טוען זיהוי פנים…';
+  const fs=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+  det=await FaceDetector.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',delegate:'GPU'},runningMode:'VIDEO',minDetectionConfidence:0.45});
+  try{ seg=await ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',delegate:'GPU'},runningMode:'IMAGE',outputConfidenceMasks:true}); }catch(e){ console.log('segmenter',e); }
+  return det;
+}
+$('oppCap').onclick=async()=>{
+  if(stream){ stopCapture(); return; }
+  try{
+    await loadDet();
+    stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:30},audio:{echoCancellation:false,noiseSuppression:false}});
+    vid.srcObject=stream; await vid.play(); box=null;
+    $('hStat').textContent='מחפש פנים…'; $('oppCap').classList.add('on'); $('oppCap').textContent='⏹ נתק מהקרב';
+    stream.getVideoTracks()[0].onended=stopCapture;
+    loop();
+    if(stream.getAudioTracks().length) hearStart(); else log('⚠️ לא סומן "שתף סאונד" — רואים את היריב אבל לא שומעים אותו');
+  }catch(e){ $('hStat').textContent='שגיאה: '+e.message; }
+};
+function stopCapture(){ if(stream) stream.getTracks().forEach(t=>t.stop()); stream=null; box=null; hearStop(); $('hStat').textContent='לא מחובר'; $('oppCap').classList.remove('on'); $('oppCap').textContent='🎯 התחבר לקרב (בחר חלון)'; $('camCap').classList.remove('on'); $('camCap').textContent='📷 המצלמה שלי'; fetch('/api/face',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({on:false})}).catch(()=>{}); }
+$('camCap').onclick=async()=>{
+  if(stream){ stopCapture(); return; }
+  try{ await loadDet(); stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30}},audio:false}); vid.srcObject=stream; await vid.play(); box=null; $('hRight').checked=false;
+    $('hStat').textContent='מחפש פנים…'; $('camCap').classList.add('on'); $('camCap').textContent='⏹ נתק מצלמה'; stream.getVideoTracks()[0].onended=stopCapture; loop(); }
+  catch(e){ $('hStat').textContent='שגיאה: '+e.message; }
+};
+let lastFacePost=0;
+function postFace(vw,vh){ if(Date.now()-lastFacePost<50) return; lastFacePost=Date.now(); const b=box; fetch('/api/face',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b?{on:true,x:(b.x+b.s/2)/vw,y:(b.y+b.s/2)/vh,s:b.s/vw,vw,vh,mirror:$('hMirror').checked}:{on:false,vw,vh})}).catch(()=>{}); }
+let busyUp=false, lastUp=0;
+function loop(){
+  if(!stream || !stream.active) return;
+  const vw=vid.videoWidth, vh=vid.videoHeight;
+  if(vw && det){
+    const r=det.detectForVideo(vid, performance.now());
+    let faces=(r.detections||[]).map(d=>d.boundingBox).filter(b=>!$('hRight').checked || (b.originX+b.width/2)>vw/2);
+    faces.sort((a,b)=>b.width*b.height-a.width*a.height);
+    const f=faces[0];
+    if(f){ const s=Math.max(f.width,f.height)*1.45, cx=f.originX+f.width/2, cy=f.originY+f.height*0.40; const nb={x:cx-s/2,y:cy-s/2,s};
+      box = box ? {x:box.x+(nb.x-box.x)*0.6,y:box.y+(nb.y-box.y)*0.6,s:box.s+(nb.s-box.s)*0.5} : nb; lastSeen=Date.now(); $('hStat').textContent='✓ ראש זוהה'; }
+    else if(Date.now()-lastSeen>1500){ $('hStat').textContent='מחפש פנים…'; box=null; }
+    postFace(vw,vh);
+    const C=$('hBox'); C.width=C.clientWidth; C.height=C.clientHeight; bc.clearRect(0,0,C.width,C.height);
+    if(box){ const sc=Math.min(C.width/vw,C.height/vh), ox=(C.width-vw*sc)/2, oy=(C.height-vh*sc)/2; bc.strokeStyle='#d9a441'; bc.lineWidth=3; bc.strokeRect(ox+box.x*sc,oy+box.y*sc,box.s*sc,box.s*sc); }
+    if(box && Date.now()-lastSeen<800 && !busyUp && Date.now()-lastUp>45){
+      cc.globalCompositeOperation='source-over'; cc.clearRect(0,0,320,320); cc.drawImage(vid, box.x, box.y, box.s, box.s, 0, 0, 320, 320);
+      cc.globalCompositeOperation='destination-in'; let masked=false;
+      if(seg){ try{ const r=seg.segment(crop); const m=r.confidenceMasks&&r.confidenceMasks[0];
+        if(m){ const w=m.width,h=m.height,data=m.getAsFloat32Array(); const img=sgc.createImageData(w,h); for(let i=0;i<w*h;i++){ const v=data[i]; img.data[i*4+3]=v<0.35?0:v>0.7?255:Math.round((v-0.35)/0.35*255); } segC.width=w; segC.height=h; sgc.putImageData(img,0,0); cc.filter='blur(1.2px)'; cc.drawImage(segC,0,0,320,320); cc.filter='none'; masked=true; }
+        r.close&&r.close(); }catch(e){} }
+      if(!masked){ const g=cc.createRadialGradient(160,160,135,160,160,158); g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(1,'rgba(0,0,0,0)'); cc.fillStyle=g; cc.fillRect(0,0,320,320); }
+      else { cc.globalCompositeOperation='destination-in'; const g2=cc.createRadialGradient(160,160,140,160,160,160); g2.addColorStop(0,'rgba(0,0,0,1)'); g2.addColorStop(1,'rgba(0,0,0,0)'); cc.fillStyle=g2; cc.fillRect(0,0,320,320); }
+      busyUp=true; lastUp=Date.now(); crop.toBlob(b=>{ fetch('/api/head/frame',{method:'POST',body:b}).finally(()=>busyUp=false); },'image/webp',0.85);
+    }
+  }
+  setTimeout(loop, 33);
+}
+function paintFx(){ document.querySelectorAll('#hFx button').forEach(b=>b.classList.toggle('on',b.dataset.fx===curFx)); }
+$('hShow').onclick=()=>{ showing=!showing; post('/api/head/state',{on:showing,fx:curFx}); $('hShow').textContent='👁️ הצג ראש בלייב: '+(showing?'פועל':'כבוי'); $('hShow').classList.toggle('on',showing); $('hShow').classList.toggle('ghost',!showing); };
+document.querySelectorAll('#hFx button').forEach(b=>b.onclick=()=>{ curFx=b.dataset.fx; paintFx(); post('/api/head/state',{fx:curFx}); if(!showing) $('hShow').click(); });
+paintFx();
+fetch('/api/state').then(r=>r.json()).then(s=>{ if(s.head){ showing=!!s.head.on; curFx=s.head.fx||curFx; paintFx(); $('hShow').textContent='👁️ הצג ראש בלייב: '+(showing?'פועל':'כבוי'); $('hShow').classList.toggle('on',showing); } });
+$('oppSave').onclick=()=>post('/api/opponent',{name:$('oppName').value.trim(),auto_locked:!!$('oppName').value.trim()}).then(()=>{ log('היריב: '+$('oppName').value); $('bOppT').textContent=$('oppName').value||'אין יריב'; });
+// hearing: 6-second chunks of the captured window's sound → server transcribes → Chino replies (auto) or waits for "ענה"
+function hearStart(){
+  const ctx=new AudioContext(); const src=ctx.createMediaStreamSource(new MediaStream(stream.getAudioTracks())); const dst=ctx.createMediaStreamDestination(); src.connect(dst);
+  const rec=new MediaRecorder(dst.stream,{mimeType:'audio/webm;codecs=opus'}); let chunks=[];
+  rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+  rec.onstop=async()=>{ const blob=new Blob(chunks,{type:'audio/webm'}); chunks=[]; if(blob.size>4000){ const b64=await new Promise(r=>{const fr=new FileReader(); fr.onload=()=>r(fr.result.split(',')[1]); fr.readAsDataURL(blob);}); post('/api/heard/audio',{b64}); } if(hearOn) try{ rec.start(); }catch(e){} };
+  rec.start(); hearRec=rec; hearOn=true;
+  const tick=()=>{ if(!hearOn) return; try{ rec.stop(); }catch(e){} setTimeout(tick,6000); }; setTimeout(tick,6000);
+  $('bHear').className='badge ok'; $('bHearT').textContent='מקשיב ליריב'; log('👂 מקשיב לסאונד של הקרב');
+}
+function hearStop(){ hearOn=false; try{ hearRec&&hearRec.stop(); }catch(e){} hearRec=null; $('bHear').className='badge'; $('bHearT').textContent='לא מקשיב'; }
+function addConvo(who,text){ if(who==='chat') return; const d=document.createElement('div'); d.className='conv';
+  d.innerHTML=`<span style="min-width:60px;color:${who==='ariel'?'var(--gold)':'#8ec5ff'}">${who==='ariel'?'🦁 צ׳ינו':'🎙️ יריב'}</span><span style="flex:1">${text}</span>${who!=='ariel'?'<button class="ghost rep" style="padding:4px 10px">ענה</button>':''}`;
+  const b=d.querySelector('.rep'); if(b) b.onclick=once(()=>post('/api/heard/reply',{text}));
+  $('convoList').prepend(d); while($('convoList').children.length>60) $('convoList').lastChild.remove(); }
+fetch('/api/convo').then(r=>r.json()).then(j=>{ j.items.slice(-40).forEach(x=>addConvo(x.who,x.text)); });
+// head-swap clips (overlays): upload → faces found → pick whose head → play
+async function loadOverlays(){ const j=await (await fetch('/api/overlays')).json(); const list=j.list||j; const jobs=j.jobs||{}; $('ovGrid').innerHTML=''; $('ocGrid').innerHTML=''; if(!list.some(o=>o.kind==='clip')&&!Object.keys(jobs).some(k=>/^ov_turk_vs_/.test(k))) $('ocGrid').innerHTML='<div class="small">עוד אין — לחץ "זהה וייצר" למעלה</div>';
+  const _fu=($('ocUser').value.trim()||'').toLowerCase(); if(!ocAll&&!_fu) $('ocGrid').innerHTML='<div class="small">כתוב שם משתמש (או חכה שהקרב יזהה) — ואז רואים רק את הסרטונים שלו</div>'; else if(_fu&&!ocAll&&!list.some(o=>o.kind==='clip'&&String(o.user||'').toLowerCase()===_fu)) $('ocGrid').innerHTML='<div class="small">אין עדיין סרטונים ל-'+_fu+' — לחץ "זהה וייצר"</div>';
+  for(const [id,job] of Object.entries(jobs)){ const d=document.createElement('div'); d.className='tile'; const grid=/^ov_turk_vs_/.test(id)?$('ocGrid'):$('ovGrid'); const failed=/נכשל/.test(job.status); d.innerHTML=`<div class="th" style="display:flex;align-items:center;justify-content:center;color:${failed?'var(--red)':'var(--gold)'};font-size:13px;padding:8px;text-align:center;overflow:hidden">${failed?'❌ העיבוד נכשל':'⏳ '+job.status}<br>${job.frames?job.frames+' פריימים':''}</div><div class="nm">${id}</div>${failed?'<div class="row" style="margin:0;padding:4px;justify-content:center"><button class="retry ghost" style="padding:4px 10px">↻ נסה שוב</button></div>':''}`; const rb=d.querySelector('.retry'); if(rb) rb.onclick=()=>post('/api/overlay/reprocess',{id,mode:job.keep?'keep':'cut'}); grid.appendChild(d); }
+  for(const o of list){ const d=document.createElement('div'); d.className='tile'; d.dataset.id=o.id;
+    if(o.kind==='clip'){ const fu=($('ocUser').value.trim()||'').toLowerCase(); if(!ocAll && (!fu || String(o.user||'').toLowerCase()!==fu)) continue;   // only the player you named — nobody until you name one
+      d.innerHTML=`<video class="th" src="${'/media/overlays/'+o.id+'.webm'}" muted loop autoplay playsinline style="background:repeating-conic-gradient(#222 0 25%,#333 0 50%) 0 0/24px 24px"></video><span class="tag" style="direction:ltr">👤 ${o.user||''}</span><span class="x">✕</span><div class="nm" contenteditable spellcheck="false">${o.he}</div>
+      <div class="row" style="margin:0;padding:4px;gap:4px;justify-content:center"><button class="play" style="padding:6px 12px">▶ נגן על הבמה</button><select class="sz" style="padding:3px;font-size:12px"><option value="0.5" ${o.size==0.5?'selected':''}>קטן</option><option value="0.7" ${o.size==0.7?'selected':''}>רגיל</option><option value="0.9" ${o.size==0.9?'selected':''}>גדול</option><option value="1" ${o.size==1?'selected':''}>ענק</option></select><select class="bt" style="padding:3px;font-size:12px"><option value="0.01" ${o.bottom==0.01?'selected':''}>למטה</option><option value="0.2" ${o.bottom==0.2?'selected':''}>מעל הצ׳אט</option><option value="0.4" ${o.bottom==0.4?'selected':''}>אמצע</option></select></div>`;
+      const v=d.querySelector('video'); v.play().catch(()=>{});
+      d.querySelector('.play').onclick=once(()=>post('/api/overlay/play',{id:o.id,loop:$('ovLoop').checked,swap:false,pos:'center',size:+d.querySelector('.sz').value,bottom:+d.querySelector('.bt').value}));
+      d.querySelector('.sz').onchange=e=>post('/api/overlay/face',{id:o.id,size:+e.target.value}); d.querySelector('.bt').onchange=e=>post('/api/overlay/face',{id:o.id,bottom:+e.target.value});
+      d.querySelector('.x').onclick=e=>{ e.stopPropagation(); if(confirm('למחוק את "'+o.he+'"? (ייצור מחדש יעלה שוב $0.30)')) post('/api/overlay/delete',{id:o.id}); }; d.querySelector('.nm').onblur=e=>post('/api/overlay/face',{id:o.id,he:e.target.textContent.trim()});
+      $('ocGrid').appendChild(d); continue; }
+    const faces=(o.faces||[]).map((f,k)=>`<img src="${f.thumb}" data-k="${k}" title="ראש מס׳ ${k+1}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:3px solid ${k===o.face?'var(--gold)':'transparent'};cursor:pointer;margin:2px">`).join('');
+    d.innerHTML=`<video class="th" src="${'/media/overlays/'+o.id+'.webm'}" muted loop playsinline style="background:repeating-conic-gradient(#222 0 25%,#333 0 50%) 0 0/24px 24px"></video><span class="tag">${o.full?'🖼 מלא':'✂️ שקוף'}${o.secs?' · '+o.secs+'s':''}</span><span class="x">✕</span><div class="nm" contenteditable spellcheck="false">${o.he}</div>
+      <div class="row" style="margin:0;padding:4px;gap:4px;justify-content:center"><button class="pun" style="padding:6px 10px" title="הדמות נותנת מכה — הראש של היריב חוטף">🥊 דמות נותנת מכה</button></div>
+      <div class="row" style="margin:0;padding:0 6px 4px;gap:6px;justify-content:center;font-size:12px"><span class="small">המכה בשנייה</span><input type="number" class="hitAt" value="${o.hitAt}" step="0.1" min="0" style="width:58px;padding:3px;font-size:13px"><select class="pos" style="padding:3px;font-size:12px"><option value="left" ${o.pos==='left'?'selected':''}>שמאל</option><option value="center" ${o.pos==='center'?'selected':''}>מרכז</option><option value="right" ${o.pos==='right'?'selected':''}>ימין</option></select><select class="sz" style="padding:3px;font-size:12px"><option value="0.4" ${o.size==0.4?'selected':''}>קטן</option><option value="0.56" ${o.size==0.56?'selected':''}>רגיל</option><option value="0.75" ${o.size==0.75?'selected':''}>גדול</option><option value="1" ${o.size==1?'selected':''}>ענק</option></select><select class="hd" style="padding:3px;font-size:12px" title="גודל הראש"><option value="0.8" ${o.head==0.8?'selected':''}>ראש קטן</option><option value="1" ${o.head==1?'selected':''}>ראש רגיל</option><option value="1.3" ${o.head==1.3?'selected':''}>ראש גדול</option><option value="1.6" ${o.head==1.6?'selected':''}>ראש ענק</option></select><select class="bt" style="padding:3px;font-size:12px"><option value="0.01" ${o.bottom==0.01?'selected':''}>למטה</option><option value="0.26" ${o.bottom==0.26?'selected':''}>מעל הצ׳אט</option><option value="0.4" ${o.bottom==0.4?'selected':''}>אמצע</option></select></div>
+      <div style="display:flex;justify-content:center;flex-wrap:wrap;padding:2px">${faces||''}</div><div class="row" style="margin:0;padding:4px;gap:4px;justify-content:center"><button class="newmo ghost" style="padding:5px 10px;font-size:13px" title="RunPod: סרטון חדש של אותה דמות בתנועה אחרת (~$0.30)">🎬 תנועה חדשה</button><button class="go ghost" style="padding:5px 10px;font-size:13px">🎭 עם הראש שלו${o.anchor==='neck'?' (על הצוואר)':faces?'':' (אין פנים בסרטון)'}</button>${o.anchor==='neck'?'<button class="att ghost" style="padding:5px 10px;font-size:13px" title="הגוף נתלה מתחת לראש האמיתי שלו בשידור — צריך שמסך היריב יהיה מוצג">🧍 הגוף עליו</button>':''}</div>`;
+    const v=d.querySelector('video'); d.onmouseenter=()=>v.play().catch(()=>{}); d.onmouseleave=()=>v.pause();
+    d.querySelectorAll('img[data-k]').forEach(im=>im.onclick=()=>post('/api/overlay/face',{id:o.id,face:+im.dataset.k}).then(()=>log('🎭 הראש של היריב יוחלף על ראש מס׳ '+(+im.dataset.k+1))));
+    d.querySelector('.go').onclick=once(()=>post('/api/overlay/play',{id:o.id,loop:$('ovLoop').checked,swap:true,pos:d.querySelector('.pos').value,size:+d.querySelector('.sz').value,bottom:+d.querySelector('.bt').value,head:+d.querySelector('.hd').value}));
+    d.querySelector('.newmo').onclick=once(async()=>{ const motion=prompt('מה הדמות עושה בסרטון החדש? (באנגלית או בעברית)','throws fast boxing punches toward the camera, bouncing on his feet, then one huge haymaker'); if(!motion) return; const j=await post('/api/gen',{fromOverlay:o.id,kind:'puncher',dur:5,he:o.he+' ✦',motion}); if(j.error) log('❌ '+j.error); else log('🎬 יוצר תנועה חדשה של '+o.he+' (~$0.30)'); });
+    const att=d.querySelector('.att'); if(att) att.onclick=once(()=>post('/api/overlay/play',{id:o.id,loop:$('ovLoop').checked,swap:false,attach:'face',head:+d.querySelector('.hd').value}));
+    d.querySelector('.bt').onchange=e=>post('/api/overlay/face',{id:o.id,bottom:+e.target.value}); d.querySelector('.hd').onchange=e=>post('/api/overlay/face',{id:o.id,head:+e.target.value});
+    d.querySelector('.pun').onclick=once(()=>post('/api/overlay/play',{id:o.id,loop:$('ovLoop').checked,swap:false,hitAt:+d.querySelector('.hitAt').value,pos:d.querySelector('.pos').value,size:+d.querySelector('.sz').value,bottom:+d.querySelector('.bt').value,dir:d.querySelector('.pos').value==='right'?'left':'right'}));
+    d.querySelector('.hitAt').onchange=e=>post('/api/overlay/face',{id:o.id,hitAt:+e.target.value}); d.querySelector('.pos').onchange=e=>post('/api/overlay/face',{id:o.id,pos:e.target.value}); d.querySelector('.sz').onchange=e=>post('/api/overlay/face',{id:o.id,size:+e.target.value});
+    d.querySelector('.x').onclick=e=>{ e.stopPropagation(); if(confirm('למחוק את "'+o.he+'"?')) post('/api/overlay/delete',{id:o.id}); };
+    d.querySelector('.nm').onblur=e=>post('/api/overlay/face',{id:o.id,he:e.target.textContent.trim()});
+    $('ovGrid').appendChild(d); }
+  if(!list.length&&!Object.keys(jobs).length) $('ovGrid').innerHTML='<div class="small">עוד אין סרטונים — העלה למעלה</div>'; }
+$('ovStop').onclick=()=>post('/api/overlay/stop'); loadOverlays();
+const _lo=loadOverlays; loadOverlays=async function(){ await _lo(); try{ const j=await (await fetch('/api/gen')).json(); ocHave=j.have||{}; ocHaveUI(); }catch(e){} ocRoster(); };
+(function(){ const drop=$('dropOv'), inp=$('fileOv'); drop.dataset.txt=drop.textContent; drop.onclick=()=>inp.click(); drop.ondragover=e=>{ e.preventDefault(); drop.classList.add('over'); }; drop.ondragleave=()=>drop.classList.remove('over'); drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('over'); up([...e.dataTransfer.files]); }; inp.onchange=()=>{ up([...inp.files]); inp.value=''; };
+  async function up(files){ const mode=document.querySelector('input[name=ovMode]:checked').value; for(const f of files){ drop.textContent=`⬆️ מעלה ${f.name}…`; try{ const j=await (await fetch(`/api/overlay/upload?name=${encodeURIComponent(f.name)}&mode=${mode}`,{method:'PUT',body:f})).json(); if(j.error) log('❌ '+j.error); else log('🎭 מעבד את '+f.name+' — כשיהיה מוכן תבחר למי מחליפים את הראש'); }catch(e){ log('❌ '+e.message); } } drop.textContent=drop.dataset.txt; } })();
+
+// 🦁 Chino's director (7780)
+function dirUI(d){ const on=!!d.online; $('bDir').className='badge '+(on?(d.conv&&d.conv.active?'ok':''):'bad'); const c=d.conv||{}; const st=String(c.state||''); $('bDirT').textContent=on?('צ׳ינו: '+(c.active?(st||'בשיחה')+(c.secondsLeft!=null?' · '+Math.round(c.secondsLeft)+'s':''):'ממתין')):'צ׳ינו: לא מחובר (7780)'; if(d.hint!=null && document.activeElement!==$('dirHint') && !$('dirHint').value) $('dirHint').value=d.hint||''; $('dirInfo').innerHTML=on?`לייב: ${d.live&&d.live.active?'🟢':'⚪'} · אודיו: ${d.live&&d.live.audio?'🟢':'⚪'} · במה מוכנה: ${d.stageReady?'✓':'—'} · מושתק: ${d.muted?'כן':'לא'}${d.queue&&d.queue.length?' · תור: '+d.queue.join(', '):''}`:('המנהל של צ׳ינו לא עונה ב-7780'+(d.lastErr?' ('+d.lastErr+')':'')); }
+$('dirHintSave').onclick=()=>post('/api/director/hint',{hint:$('dirHint').value.trim()}).then(()=>log('💬 טקסט ההמתנה נשמר'));
+fetch('/api/director').then(r=>r.json()).then(dirUI).catch(()=>{});
+// 🍅 head game
+function hgUI(g){ const on=!!g.on; $('bHg').className='badge '+(on?'ok':''); $('bHgT').textContent=on?('דלוק: '+g.user+(g.thrown?' · '+g.thrown+' 🍅':'')):'כבוי'; $('hgOn').textContent=on?'⏹ כבה את המשחק':'💥 הדלק על היריב שבשדה למעלה'; $('hgOn').classList.toggle('on',on); if(g.likes!=null) $('hgLikes').checked=!!g.likes; if(g.size){ $('hgSize').value=g.size; $('hgSizeV').textContent=Math.round(g.size*100)+'%'; } if(g.y){ $('hgY').value=g.y; $('hgYV').textContent=Math.round(g.y*100)+'%'; } if(g.mode){ document.querySelectorAll('.hgMode').forEach(b=>b.classList.toggle('on',b.dataset.m===g.mode)); } if(g.showHead!=null) $('hgHead').checked=!!g.showHead; }
+$('hgOn').onclick=once(async()=>{ const cur=await (await fetch('/api/headgame')).json(); if(cur.on){ hgUI(await post('/api/headgame',{on:false})); return; } const u=$('ocUser').value.trim(); if(!u) return alert('כתוב למעלה את שם המשתמש של היריב'); $('bHgT').textContent='מתחבר לשידור של '+u+'…'; const j=await post('/api/headgame',{on:true,user:u}); if(j.error){ log('❌ '+j.error); $('bHgT').textContent='❌ '+j.error; } else hgUI(j); });
+document.querySelectorAll('.hgMode').forEach(b=>b.onclick=()=>post('/api/headgame',{mode:b.dataset.m}).then(hgUI)); $('hgHead').onchange=e=>post('/api/headgame',{showHead:e.target.checked}).then(hgUI);
+$('hgThrow').onclick=()=>post('/api/headgame/throw',{n:1}); $('hgThrow5').onclick=()=>post('/api/headgame/throw',{n:5});
+$('hgLikes').onchange=e=>post('/api/headgame',{likes:e.target.checked});
+$('hgSize').oninput=e=>{ $('hgSizeV').textContent=Math.round(e.target.value*100)+'%'; post('/api/headgame',{size:+e.target.value}); }; $('hgY').oninput=e=>{ $('hgYV').textContent=Math.round(e.target.value*100)+'%'; post('/api/headgame',{y:+e.target.value}); };
+fetch('/api/headgame').then(r=>r.json()).then(hgUI);
+// detect & generate (the Turkish boxer punches the opponent)
+let ocCap=null;
+function ocShow(c){ if(!c) return; ocCap=c; $('ocView').style.display=ocDet?'block':'none'; if(c.avatar){ $('ocAvatar').src=c.avatar+'?'+c.t; $('ocAvatar').style.display='inline-block'; $('ocVerifT').innerHTML=c.verified?'<b style="color:#7ed37e">✓ מזוהה לפי תמונת הפרופיל</b>':'תמונת הפרופיל של '+c.user+(c.faces&&c.faces.length>1?' — לא זוהה, בחר מספר':''); } else { $('ocAvatar').style.display='none'; $('ocVerifT').textContent=''; }
+  const F=c.faces||[]; $('ocPickRow').style.display=(F.length>1&&!c.verified)?'flex':'none'; /* numbers only when the profile picture did NOT settle who he is */ $('ocPickBtns').innerHTML=F.map((f,k)=>`<button class="${k===c.pick||(c.pick<0&&k===c.match)?'big':'ghost'} ocPk" data-k="${k}" style="padding:6px 14px;margin:0 3px;font-size:16px">${k+1}${c.sims&&c.sims[k]!=null?` <span class="small">${Math.round(c.sims[k]*100)}%</span>`:''}</button>`).join(''); $('ocPickBtns').querySelectorAll('.ocPk').forEach(b=>b.onclick=once(async()=>{ $('ocStat').textContent='👤 בוחר את מס׳ '+(+b.dataset.k+1)+'…'; const j=await post('/api/opp/pick',{capId:c.id,pick:+b.dataset.k}); if(j.error){ $('ocStat').textContent='❌ '+j.error; } else ocShow(j); })); $('ocBoxed').src=c.boxed+'?'+c.t; $('ocHead').src=c.head?c.head+'?'+c.t:''; $('ocGreen').src=c.green?c.green+'?'+c.t:''; $('ocStart').style.display='none'; $('ocStartT').textContent=''; const many=(c.faces||[]).length>1&&(c.pick??-1)<0&&!c.verified; $('ocStat').textContent=many?('👥 יש '+c.faces.length+' אנשים בלייב — לחץ על המספר של '+c.user+' בפריים'):(c.ok?'✓ פנים ברורות של '+c.user+' (איכות '+(c.q||0)+') — אפשר לייצר':'⚠️ '+(c.why||'לא מצאתי פנים')+' (לא חויבת)')+(c.body?' · ✓ גוף':''); $('ocGoCap').disabled=!c.ok||many; if(c.user&&!$('ocUser').value) $('ocUser').value=c.user; }
+$('ocCap').onclick=once(async()=>{ $('ocStat').textContent='📸 לוקח פריים מהשידור שלו…'; const j=await post('/api/opp/capture',{user:$('ocUser').value.trim()||undefined,side:$('ocSide').value,wait:$('ocWait').checked}); if(j.error){ $('ocStat').textContent='❌ '+j.error; log('❌ '+j.error); return; } ocShow(j); });
+async function ocGen(capId,again){ const j=await post('/api/gen/opponent',{capId,user:$('ocUser').value.trim()||undefined,side:$('ocSide').value,dur:5,again:!!again,wait:$('ocWait').checked}); if(j.error){ log('❌ '+j.error); $('ocStat').textContent='❌ '+j.error; }
+  else if(j.exists&&j.running){ $('ocStat').textContent='⏳ '+j.msg; log('⏳ '+j.msg); }
+  else if(j.exists){ $('ocStat').innerHTML='✅ '+j.msg+' '+j.clips.map(c=>`<button class="ghost ocHave" data-id="${c.id}" style="padding:3px 10px;margin:0 3px">▶ ${c.he}</button>`).join('')+`<button class="ghost ocAgain" style="padding:3px 10px;margin:0 3px">🎬 גרסה נוספת ($0.30)</button>`; $('ocStat').querySelectorAll('.ocHave').forEach(b=>b.onclick=once(()=>post('/api/overlay/play',{id:b.dataset.id,loop:false,swap:false,pos:'center',size:0.75,bottom:0.2}))); $('ocStat').querySelector('.ocAgain').onclick=once(()=>ocGen(capId,true)); log('✅ '+j.msg); }
+  else log('🥊 מייצר: הטורקי מרביץ ל-'+(j.user||'היריב')); }
+$('ocGo').onclick=once(()=>ocGen(undefined));
+$('ocGoAll').onclick=once(async()=>{ $('ocStat').textContent='🎯 תופס ומתחיל את כל הסטים…'; const j=await post('/api/gen/opponent/all',{capId:ocCap&&ocCap.user===($('ocUser').value.trim()||ocCap.user)?ocCap.id:undefined,user:$('ocUser').value.trim()||undefined,side:$('ocSide').value,wait:$('ocWait').checked,dur:5}); if(j.cap) ocShow(j.cap); if(j.error){ $('ocStat').textContent='❌ '+j.error; log('❌ '+j.error); } else if(j.exists){ $('ocStat').textContent='✅ '+j.msg; } else { $('ocStat').textContent='🎬 התחילו '+j.started+' סטים ל-'+j.user+' (~'+(j.started*0.3).toFixed(2)+'$)'; log('🎬 '+j.started+' סטים ל-'+j.user); } }); $('ocGoCap').onclick=once(()=>{ if(!ocCap) return alert('קודם 📸 תפוס'); ocGen(ocCap.id); });
+function ocJobsUI(J){ const my=J.filter(x=>x.kind==='opponent'); $('ocJobs').innerHTML=my.map(x=>`<div class="row" style="margin:4px 0;padding:6px;border:1px solid var(--line);border-radius:8px;align-items:center">${x.imgs?.head?`<img src="${x.imgs.head}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">`:''}${x.imgs?.start?`<img src="${x.imgs.start}" style="height:44px;border-radius:6px">`:''}<b>${x.he||x.user||''}</b><span class="small">${x.step>=5?'✅ מוכן':x.error?'❌':'⏳'} ${x.status}${x.cost?` · $${x.cost.toFixed(2)}`:''}</span>${x.ovId?`<button class="ghost ocPlay" data-id="${x.ovId}" style="padding:4px 10px">▶ נגן על הבמה</button>`:''}</div>`).join(''); $('ocJobs').querySelectorAll('.ocPlay').forEach(b=>b.onclick=once(()=>post('/api/overlay/play',{id:b.dataset.id,loop:false,swap:false,pos:'center',size:0.75,bottom:0.2}))); const last=my.find(x=>x.imgs?.start); if(last&&ocCap&&last.user===ocCap.user){ $('ocStart').src=last.imgs.start; $('ocStart').style.display='block'; $('ocStartT').textContent='תמונת הפתיחה שנשלחה'; } }
+// character factory (RunPod)
+let ocHave={}, ocAll=false, ocDet=false;
+$('ocDetails').onclick=()=>{ ocDet=!ocDet; $('ocView').style.display=ocDet&&ocCap?'block':'none'; $('ocDetails').textContent=ocDet?'🔧 הסתר פרטים':'🔧 פרטים טכניים'; };
+$('ocSpec').onclick=()=>{ $('ocSpecRow').style.display='flex'; $('ocUser').focus(); $('ocWhoT').textContent=''; };
+$('ocWho').onclick=async()=>{ $('ocWhoT').textContent='🔎 בודק מי מולך…'; try{ const j=await (await fetch('/api/gen')).json(); const tt=await (await fetch('/api/tiktok')).json(); if(!tt.on||!/מחובר/.test(tt.status||'')){ $('ocWhoT').textContent='אתה לא בלייב עכשיו — אין אף אחד מולך. בחר "משתמש ספציפי".'; return; } if(j.opponent){ $('ocUser').value=j.opponent; $('ocSpecRow').style.display='flex'; ocAll=false; loadOverlays(); ocAlive(); ocHaveUI(); $('ocWhoT').textContent='מולך: '+j.opponent; } else $('ocWhoT').textContent='אין קרב פעיל כרגע — כשמישהו יעלה מולך הוא ייכנס לכאן לבד.'; }catch(e){ $('ocWhoT').textContent='❌ '+e.message; } };
+async function ocRoster(){ try{ const j=await (await fetch('/api/opp/roster')).json(); const L=j.list||[]; $('ocRoster').innerHTML=L.length?('<span class="lbl">👥 היריבים שלי (לחיצה = הכל עובר אליו — סרטונים, משחק, ייצור):</span>'+L.map(x=>`<button class="ghost ocR" data-u="${x.user}" style="padding:4px 10px;font-size:13px;direction:ltr" title="${x.alive?'בלייב עכשיו':'לא בלייב — הסרטונים שלו עובדים בכל מקרה'}">${x.alive?'🟢':'⚪'} ${x.user} <span class="small">${x.sets}/${x.total}</span></button>`).join('')):''; $('ocRoster').querySelectorAll('.ocR').forEach(b=>b.onclick=()=>{ $('ocSpecRow').style.display='flex'; $('ocUser').value=b.dataset.u; ocAll=false; $('ocAllBtn').textContent='📂 כל היריבים'; loadOverlays(); ocAlive(); ocHaveUI(); }); }catch(e){} }
+ocRoster(); setInterval(ocRoster, 90000);
+$('ocAllBtn').onclick=()=>{ ocAll=!ocAll; $('ocAllBtn').textContent=ocAll?'👤 רק היריב הזה':'📂 כל היריבים'; loadOverlays(); };
+let _ocT=null, _ocA=null; $('ocUser').addEventListener('input',()=>{ ocAll=false; $('ocAllBtn').textContent='📂 כל היריבים'; clearTimeout(_ocT); _ocT=setTimeout(loadOverlays,300); clearTimeout(_ocA); _ocA=setTimeout(ocAlive,700); });
+async function ocAlive(){ const u=$('ocUser').value.trim(); if(!u){ $('ocLive').textContent=''; return; } $('ocLive').textContent='🔎 בודק אם '+u+' בלייב…'; try{ const j=await (await fetch('/api/opp/alive?user='+encodeURIComponent(u))).json(); if(j.error){ $('ocLive').textContent='❌ '+j.error; return; } const sv=Object.values(ocHave).some(x=>String(x.user||'').toLowerCase()===j.user.toLowerCase()); $('ocLive').innerHTML=j.alive?`🟢 <b>${j.user}</b> בלייב — מחובר ✓${j.title?' · '+j.title.slice(0,40):''}`:(sv?`💾 <b>${j.user}</b> לא בלייב — יש לי את הפנים שלו שמורות, אפשר לייצר`:`🔴 <b>${j.user}</b> לא בלייב עכשיו`); $('ocGo').disabled=!j.alive&&!sv; $('ocGoAll').disabled=!j.alive&&!sv; }catch(e){ $('ocLive').textContent=''; } }
+$('ocUser').addEventListener('keydown',e=>{ if(e.key==='Enter') ocAlive(); });
+function ocHaveUI(){ const u=($('ocUser').value.trim()||'').toLowerCase(); const el=$('ocHaveT'); if(!u){ el.textContent=''; return; } const n=new Set(Object.values(ocHave).filter(x=>String(x.user||'').toLowerCase()===u).map(x=>x.boxer||'boxer1')).size; el.innerHTML=n>=3?`<b style="color:var(--gold)">יש לו את כל 3 הסטים</b> — ▶ ברשימה למטה`:n?`יש לו <b>${n}/3</b> סטים — הלחיצה תייצר את הסט הבא`:`<b>אין לו סרטונים</b> — הלחיצה תייצר סט 1/3`; }
+$('ocUser').addEventListener('input',ocHaveUI);
+function genUI(j){ ocJobsUI(j.jobs||[]); if(j.have){ ocHave=j.have; } ocHaveUI(); const J=(j.jobs||[]).filter(x=>x.kind!=='opponent'); $('gJobs').innerHTML=J.length?J.map(x=>`<div>${x.step>=4?'✅':x.error?'❌':'⏳'} <b>${x.he||x.desc.slice(0,40)}</b> — ${x.status}${x.cost?` · $${x.cost.toFixed(2)}`:''}</div>`).join(''):(j.runpod===false?'<span style="color:var(--red)">אין מפתח RunPod — הסט → RunPod</span>':''); }
+$('gGo').onclick=once(async()=>{ const desc=$('gDesc').value.trim(); if(!desc) return alert('תאר את הדמות'); const kind=$('gKind').value; const d2=kind==='character'?desc+', the character has NO head — an empty neck opening where a head should be':desc; const j=await post('/api/gen',{desc:d2,kind,dur:+$('gDur').value,he:$('gName').value.trim()||desc.slice(0,24)}); if(j.error) log('❌ '+j.error); else log('🎬 התחלתי ליצור: '+desc); });
+fetch('/api/gen').then(r=>r.json()).then(genUI);
+// opponent screen + transparent effects
+let fxList=[];
+function oppViewUI(v){ if(!v) return; document.querySelectorAll('.ov').forEach(b=>b.classList.toggle('on',b.dataset.v===v.preset)); $('ovScale').value=v.scale||1; $('ovScaleV').textContent=Math.round((v.scale||1)*100)+'%'; $('ovX').value=v.x||0; $('ovXV').textContent=v.x||0; $('ovY').value=v.y||0; $('ovYV').textContent=v.y||0; }
+document.querySelectorAll('.ov').forEach(b=>b.onclick=()=>post('/api/opp/screen',{view:{preset:b.dataset.v}}).then(j=>oppViewUI(j.view)));
+let ovT=null; function ovSend(){ clearTimeout(ovT); ovT=setTimeout(()=>post('/api/opp/screen',{view:{scale:+$('ovScale').value,x:+$('ovX').value,y:+$('ovY').value}}).then(j=>oppViewUI(j.view)),120); }
+for(const [id,vv,fmt] of [['ovScale','ovScaleV',v=>Math.round(v*100)+'%'],['ovX','ovXV',v=>v],['ovY','ovYV',v=>v]]){ $(id).oninput=e=>{ $(vv).textContent=fmt(+e.target.value); ovSend(); }; }
+function oppScrUI(o){ const on=!!o.on; oppViewUI(o.view); if(o.show!=null) $('oppShow').checked=o.show!==false; $('bOppScr').className='badge '+(on?'ok':''); $('bOppScrT').textContent=o.status||(on?'פועל':'כבוי'); $('oppScreenBtn').classList.toggle('on',on); $('oppScreenBtn').textContent=on?'⏹ חזור לאריה':'📺 הצג את הלייב שלו'; $('oppMute').checked=o.muted!==false; if(o.user&&!$('oppUser').value) $('oppUser').value=o.user; }
+$('oppScreenBtn').onclick=once(async()=>{ const cur=await (await fetch('/api/opp/screen')).json(); if(cur.on){ oppScrUI(await post('/api/opp/screen',{on:false})); } else { $('bOppScrT').textContent='מחפש את השידור…'; const j=await post('/api/opp/screen',{on:true,user:$('oppUser').value.trim()||undefined}); if(j.error) log('❌ '+j.error); else oppScrUI(j); } });
+$('oppMute').onchange=()=>post('/api/opp/screen',{muted:$('oppMute').checked}).then(oppScrUI);
+$('oppShow').onchange=()=>post('/api/opp/screen',{show:$('oppShow').checked}).then(oppScrUI);
+fetch('/api/opp/screen').then(r=>r.json()).then(oppScrUI);
+function fxUI(list){ fxList=list||[]; $('fxGrid').innerHTML=''; for(const f of fxList){ const d=document.createElement('div'); d.className='tile'; d.dataset.id=f.id;
+    d.innerHTML=`<img class="th" src="${f.thumb||''}" style="background:repeating-conic-gradient(#222 0 25%,#333 0 50%) 0 0/24px 24px"><div class="ply">🥊</div><span class="tag">${f.alpha?'✓ שקוף':'⚠️ לא שקוף'}${f.secs?' · '+Math.round(f.secs*10)/10+'s':''}</span><span class="x">✕</span><div class="nm" contenteditable spellcheck="false">${f.name}</div><div class="row" style="margin:0;padding:4px;gap:4px;justify-content:center"><button class="ghost go" style="padding:4px 10px">▶</button><button class="ghost flip" style="padding:4px 10px">↔</button><button class="ghost aim ${f.aim==='full'?'':'on'}" style="padding:4px 8px" title="לכוון לפנים">🎯</button></div>`;
+    const fire=flip=>post('/api/fx/play',{id:f.id,flip}).then(j=>{ if(j.error) log('❌ '+j.error); });
+    d.querySelector('.th').onclick=()=>fire(false); d.querySelector('.ply').onclick=()=>fire(false); d.querySelector('.go').onclick=()=>fire(false); d.querySelector('.flip').onclick=()=>fire(true);
+    d.querySelector('.aim').onclick=()=>post('/api/fx/update',{id:f.id,aim:f.aim==='full'?'face':'full'});
+    d.querySelector('.x').onclick=e=>{ e.stopPropagation(); if(confirm('למחוק את "'+f.name+'"?')) post('/api/fx/delete',{id:f.id}); };
+    d.querySelector('.nm').onblur=e=>post('/api/fx/update',{id:f.id,name:e.target.textContent.trim()});
+    $('fxGrid').appendChild(d); }
+  if(!fxList.length) $('fxGrid').innerHTML='<div class="small">עוד אין אפקטים — העלה למעלה</div>'; }
+fetch('/api/fx').then(r=>r.json()).then(j=>{ fxUI(j.fx); tButtons(); });
+$('hitL').onclick=()=>post('/api/hit',{dir:'left'}); $('hitR').onclick=()=>post('/api/hit',{dir:'right'});
+(function(){ const drop=$('dropFx'), inp=$('fileFx'); drop.dataset.txt=drop.textContent; drop.onclick=()=>inp.click(); drop.ondragover=e=>{ e.preventDefault(); drop.classList.add('over'); }; drop.ondragleave=()=>drop.classList.remove('over'); drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('over'); up([...e.dataTransfer.files]); }; inp.onchange=()=>{ up([...inp.files]); inp.value=''; };
+  async function up(files){ for(const f of files){ drop.textContent=`⬆️ מעלה ${f.name}… (מסך ירוק נהפך לשקוף — יכול לקחת דקה)`; try{ const j=await (await fetch(`/api/fx/upload?name=${encodeURIComponent(f.name)}`,{method:'PUT',body:f})).json(); if(j.error) log('❌ '+j.error); else log('✓ אפקט נוסף: '+j.name+(j.converted?' (הומר לשקוף)':'')); }catch(e){ log('❌ '+e.message); } } drop.textContent=drop.dataset.txt; } })();
+
+// ---------- CLIPS library ----------
+let clips=[];
+function uploader(dropId, fileId, kind, after){
+  const drop=$(dropId), inp=$(fileId); drop.onclick=()=>inp.click();
+  drop.ondragover=e=>{ e.preventDefault(); drop.classList.add('over'); }; drop.ondragleave=()=>drop.classList.remove('over');
+  drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('over'); upload([...e.dataTransfer.files]); }; inp.onchange=()=>{ upload([...inp.files]); inp.value=''; };
+  async function upload(files){ for(const f of files){ drop.textContent=`⬆️ מעלה ${f.name}…`; try{ const r=await fetch(`/api/upload?kind=${kind}&name=${encodeURIComponent(f.name)}`,{method:'PUT',body:f}); const j=await r.json(); if(j.error) log('❌ '+j.error); else log('✓ נוסף: '+j.name); }catch(e){ log('❌ '+e.message); } } drop.textContent=drop.dataset.txt; after&&after(); }
+  drop.dataset.txt=drop.textContent;
+}
+function clipsUI(list){ clips=list||[]; $('clipGrid').innerHTML=''; for(const c of clips){ const d=document.createElement('div'); d.className='tile'; d.dataset.id=c.id;
+    d.innerHTML=`<img class="th" src="${c.thumb||''}"><div class="ply">▶</div><span class="tag">${c.audio?'🔊 ':''}${c.secs?Math.round(c.secs)+'s':''}</span><span class="x">✕</span><div class="nm" contenteditable spellcheck="false">${c.name}</div><select style="width:100%;font-size:12px;padding:4px;border:0;border-top:1px solid var(--line);border-radius:0"><option value="full" ${c.size==='full'?'selected':''}>מסך מלא</option><option value="inset" ${c.size==='inset'?'selected':''}>חלון קטן</option><option value="insetWide" ${c.size==='insetWide'?'selected':''}>חלון רחב</option></select>`;
+    d.querySelector('.th').onclick=once(()=>post('/api/clip/play',{id:c.id}).then(j=>{ if(j.error) log('❌ '+j.error); }));
+    d.querySelector('.ply').onclick=d.querySelector('.th').onclick;
+    d.querySelector('.x').onclick=e=>{ e.stopPropagation(); if(confirm('למחוק את "'+c.name+'"?')) post('/api/asset/delete',{kind:'clips',id:c.id}); };
+    d.querySelector('.nm').onblur=e=>post('/api/clip/update',{id:c.id,name:e.target.textContent.trim()});
+    d.querySelector('select').onchange=e=>post('/api/clip/update',{id:c.id,size:e.target.value});
+    $('clipGrid').appendChild(d); }
+  if(!clips.length) $('clipGrid').innerHTML='<div class="small">עוד אין סרטונים — העלה למעלה</div>'; clipUI(playingClip); }
+uploader('dropClips','fileClips','clips');
+
+// ---------- THE SET ----------
+let setS={}, assets={bg:[],front:[]}, scenes=[];
+function setUI(s){ setS=s;
+  $('dimR').value=s.dim||0; $('dimV').textContent=Math.round((s.dim||0)*100)+'%';
+  const f=s.frame||{}; $('fScale').value=f.scale??1; $('fScaleV').textContent=Math.round((f.scale??1)*100)+'%'; $('fX').value=f.x||0; $('fXV').textContent=f.x||0; $('fY').value=f.y||0; $('fYV').textContent=f.y||0;
+  $('shotFull').classList.toggle('on',f.shot!=='close'); $('shotClose').classList.toggle('on',f.shot==='close');
+  $('modeSel').value=s.mode||'video';
+  document.querySelectorAll('#bgGrid .tile').forEach(t=>t.classList.toggle('sel',!!s.bg&&s.bg.type!=='camera'&&t.dataset.file===s.bg.file)); if(s.bg&&s.bg.type==='camera'){ $('camSel').value=s.bg.label||''; $('camMirror').checked=!!s.bg.mirror; }
+  document.querySelectorAll('#frontGrid .tile').forEach(t=>t.classList.toggle('sel',(s.front||[]).some(x=>x.file===t.dataset.file)));
+  frontActiveUI();
+  if(s.render&&s.render.url&&!s.render.auto){ $('renderUrl').value=s.render.url; $('renderType').value=s.render.type||'iframe'; }
+  document.querySelectorAll('#sceneGrid .tile').forEach(t=>t.classList.toggle('sel',t.dataset.id===s.scene));
+}
+function tile(it, kind){ const d=document.createElement('div'); d.className='tile'+(kind==='bg'?' wide':''); d.dataset.file=it.file; d.dataset.id=it.id;
+  d.innerHTML=`<img class="th" src="${it.thumb||it.file}"><span class="tag">${it.type==='video'?'🎞':'🖼'}</span><span class="x">✕</span><div class="nm">${it.name}</div>`;
+  d.querySelector('.x').onclick=e=>{ e.stopPropagation(); if(confirm('למחוק את "'+it.name+'"?')) post('/api/asset/delete',{kind,id:it.id}); }; return d; }
+function assetsUI(a){ assets=a;
+  $('bgGrid').innerHTML=''; const none=document.createElement('div'); none.className='tile wide'; none.dataset.file=''; none.innerHTML='<div class="th" style="display:flex;align-items:center;justify-content:center;color:var(--dim)">בלי רקע</div><div class="nm">שחור</div>'; none.onclick=()=>post('/api/set',{bg:null}); $('bgGrid').appendChild(none);
+  for(const it of (a.bg||[])){ const d=tile(it,'bg'); d.onclick=()=>post('/api/set',{bg:{file:it.file,type:it.type,thumb:it.thumb}}); $('bgGrid').appendChild(d); }
+  $('frontGrid').innerHTML=''; for(const it of (a.front||[])){ const d=tile(it,'front'); d.onclick=()=>{ const cur=(setS.front||[]).slice(); const i=cur.findIndex(x=>x.file===it.file); if(i>=0) cur.splice(i,1); else cur.push({file:it.file,type:it.type,opacity:1,name:it.name,thumb:it.thumb}); post('/api/set',{front:cur}); }; $('frontGrid').appendChild(d); }
+  if(!(a.front||[]).length) $('frontGrid').innerHTML='<div class="small">עוד אין שכבות קדמיות</div>';
+  setUI(setS); }
+function frontActiveUI(){ const F=setS.front||[]; $('frontActive').innerHTML=F.length?'<div class="small" style="margin-top:8px">שכבות דלוקות (שקיפות):</div>':''; F.forEach((x,i)=>{ const d=document.createElement('div'); d.className='slider'; d.innerHTML=`<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.name||x.file.split('/').pop()}</span><input type="range" min="0.05" max="1" step="0.05" value="${x.opacity??1}"><span>${Math.round((x.opacity??1)*100)}%</span>`; d.querySelector('input').oninput=e=>{ d.lastElementChild.textContent=Math.round(e.target.value*100)+'%'; }; d.querySelector('input').onchange=e=>{ const cur=setS.front.slice(); cur[i]={...cur[i],opacity:+e.target.value}; post('/api/set',{front:cur}); }; $('frontActive').appendChild(d); }); }
+uploader('dropBg','fileBg','bg'); uploader('dropFront','fileFront','front');
+async function listCams(){ try{ let devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'); if(devs.some(d=>!d.label)){ try{ const st=await navigator.mediaDevices.getUserMedia({video:true}); st.getTracks().forEach(t=>t.stop()); devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'); }catch(e){} } const cur=$('camSel').value; $('camSel').innerHTML='<option value="">— בחר מצלמה —</option>'+devs.map(d=>`<option value="${d.label.replace(/"/g,'')}">${d.label||'מצלמה'}</option>`).join(''); if(cur) $('camSel').value=cur; }catch(e){} }
+$('camSel').onfocus=listCams; listCams();
+$('camUse').onclick=()=>{ const label=$('camSel').value; if(!label) return alert('בחר מצלמה'); post('/api/set',{bg:{type:'camera',label,mirror:$('camMirror').checked,name:label}}).then(()=>log('📷 מצלמה כרקע: '+label)); };
+$('dimR').oninput=e=>{ $('dimV').textContent=Math.round(e.target.value*100)+'%'; }; $('dimR').onchange=e=>post('/api/set',{dim:+e.target.value});
+let frameT=null; function frameSend(){ clearTimeout(frameT); frameT=setTimeout(()=>post('/api/set',{frame:{scale:+$('fScale').value,x:+$('fX').value,y:+$('fY').value}}),120); }
+for(const [id,vid2,fmt] of [['fScale','fScaleV',v=>Math.round(v*100)+'%'],['fX','fXV',v=>v],['fY','fYV',v=>v]]){ $(id).oninput=e=>{ $(vid2).textContent=fmt(+e.target.value); frameSend(); }; }
+$('shotFull').onclick=()=>post('/api/set',{frame:{shot:'full',scale:1,x:0,y:0}});
+$('shotClose').onclick=()=>post('/api/set',{frame:{shot:'close',scale:1.6,x:0,y:14}});
+$('fReset').onclick=()=>post('/api/set',{frame:{shot:'full',scale:1,x:0,y:0},dim:0});
+function scenesUI(list){ scenes=list||[]; $('sceneGrid').innerHTML=''; for(const sc of scenes){ const d=document.createElement('div'); d.className='tile wide'; d.dataset.id=sc.id;
+    d.innerHTML=`${sc.thumb?`<img class="th" src="${sc.thumb}">`:'<div class="th" style="display:flex;align-items:center;justify-content:center;color:var(--dim)">🎭</div>'}<span class="tag">${sc.mode==='3d'?'🧊':'🎞'}${sc.frame?.shot==='close'?' 🗣':''}</span><span class="x">✕</span><div class="nm" contenteditable spellcheck="false">${sc.name}</div>`;
+    d.querySelector('.th').onclick=()=>post('/api/scene/apply',{id:sc.id}).then(()=>log('🎭 סצנה: '+sc.name));
+    d.querySelector('.x').onclick=e=>{ e.stopPropagation(); if(confirm('למחוק את הסצנה "'+sc.name+'"?')) post('/api/scene/delete',{id:sc.id}); };
+    d.querySelector('.nm').onblur=e=>post('/api/scene/rename',{id:sc.id,name:e.target.textContent.trim()});
+    $('sceneGrid').appendChild(d); }
+  if(!scenes.length) $('sceneGrid').innerHTML='<div class="small">עוד אין סצנות — סדר רקע ופריים ולחץ "שמור"</div>'; setUI(setS); }
+$('sceneSave').onclick=async()=>{ const j=await post('/api/scene/save',{name:$('sceneName').value.trim()}); log('💾 נשמרה סצנה: '+j.name); $('sceneName').value=''; };
+// RunPod key (stored locally by the server; never shown back)
+$('rpSave').onclick=async()=>{ const k=$('rpKey').value.trim(); if(!k) return; await post('/api/keys',{runpodKey:k}); $('rpKey').value=''; $('rpStat').textContent='✓ נשמר'; log('☁️ מפתח RunPod נשמר'); };
+fetch('/api/keys').then(r=>r.json()).then(j=>{ $('rpStat').textContent=j.runpod?'✓ יש מפתח':''; });
+// engine (Codex)
+function engUI(e){ $('engUrl').value=$('engUrl').value||e.url||''; $('engInfo').textContent=e.url?(e.online?`🟢 מחובר · מצב: ${e.state||'?'}${e.auto!=null?' · '+(e.auto?'אוטומטי':'ידני'):''}${e.info?.version?' · v'+e.info.version:''}`:`🔴 לא עונה (${e.lastErr||'אין תשובה'})`):'עוד לא חובר. כש-Codex ימסור כתובת — מדביקים כאן.'; }
+$('engSave').onclick=async()=>{ engUI(await post('/api/engine',{url:$('engUrl').value.trim()})); fetch('/api/desk').then(r=>r.json()).then(deskUI); };
+$('renderSave').onclick=()=>post('/api/set',{render:$('renderUrl').value.trim()?{type:$('renderType').value,url:$('renderUrl').value.trim(),auto:false}:null});
+fetch('/api/set').then(r=>r.json()).then(j=>{ clipsUI(j.clips); assetsUI(j.assets); scenesUI(j.scenes); setUI(j.set); engUI(j.engine); clipUI(j.clip); });
+
+// ---------- BATTLE TEST: our side (the stage) next to his real live ----------
+let tP=null, tSrc='';
+function tView(v){ const el=$('tOpp'); if(!v) return; el.style.transform=`translate(${+v.x||0}%, ${+v.y||0}%) scale(${+v.scale||1})`; document.querySelectorAll('.tv').forEach(b=>b.classList.toggle('on',b.dataset.v===v.preset)); }
+function tName(u){ if(u) $('tOppName').textContent=u; }
+function tPlay(src){ if(src===tSrc&&tP) return; tSrc=src; if(tP){ try{ tP.destroy(); }catch(e){} tP=null; } if(!src) { $('tOpp').removeAttribute('src'); return; } if(!(window.flvjs&&flvjs.isSupported())) return; tP=flvjs.createPlayer({type:'flv',isLive:true,url:src},{enableStashBuffer:false,liveBufferLatencyChasing:true,liveBufferLatencyMaxLatency:2.5,liveBufferLatencyMinRemain:0.6}); tP.attachMediaElement($('tOpp')); tP.load(); tP.play().catch(()=>{}); }
+function tUI(o){ $('tStat').textContent=o.status||''; if(o.user&&!$('tUser').value) $('tUser').value=o.user; tName(o.user); tView(o.view); tPlay(o.on?o.src:''); }
+$('tStart').onclick=once(async()=>{ const user=$('tUser').value.trim(); if(!user) return alert('כתוב שם משתמש של לייב'); $('tStat').textContent='מחפש את השידור…'; const j=await post('/api/opp/screen',{on:true,user,view:{preset:document.querySelector('.tv.on')?.dataset.v||'right'}}); if(j.error) log('❌ '+j.error); else { tUI({...j,src:j.token?'/proxy/flv/'+j.token:''}); oppScrUI(j); } });
+$('tStop').onclick=async()=>{ const j=await post('/api/opp/screen',{on:false}); tUI({...j,src:''}); oppScrUI(j); };
+document.querySelectorAll('.tv').forEach(b=>b.onclick=()=>post('/api/opp/screen',{view:{preset:b.dataset.v}}).then(j=>{ tView(j.view); oppViewUI(j.view); }));
+$('tHitL').onclick=()=>post('/api/hit',{dir:'left'}); $('tHitR').onclick=()=>post('/api/hit',{dir:'right'});
+$('tHead').onchange=()=>post('/api/head/state',{on:$('tHead').checked});
+document.querySelectorAll('.thead').forEach(b=>b.onclick=()=>{ post('/api/head/state',{on:true,fx:b.dataset.fx}); $('tHead').checked=true; }); $('tHeadOff').onclick=()=>{ post('/api/head/state',{on:false}); $('tHead').checked=false; };
+function tButtons(){ $('tFx').innerHTML=fxList.length?'':'<span class="small">אין אפקטים עדיין — העלה בלשונית "היריב"</span>'; fxList.forEach(f=>{ const b=document.createElement('button'); b.className='ghost'; b.textContent='🥊 '+f.name; b.onclick=()=>post('/api/fx/play',{id:f.id}); $('tFx').appendChild(b); });
+  fetch('/api/overlays').then(r=>r.json()).then(j=>{ const list=j.list||j; $('tOv').innerHTML=list.length?'':'<span class="small">אין סרטונים עדיין</span>'; list.forEach(o=>{ const b=document.createElement('button'); b.className='ghost'; b.textContent='🥊 '+o.he; b.onclick=once(()=>post('/api/overlay/play',{id:o.id,swap:false,hitAt:o.hitAt,pos:o.pos,size:o.size,dir:o.pos==='right'?'left':'right'})); $('tOv').appendChild(b); }); }); }
+fetch('/api/opp/screen').then(r=>r.json()).then(tUI);
+
+// ---------- live events ----------
+const es=new EventSource('/api/events');
+es.onmessage=ev=>{ const m=JSON.parse(ev.data);
+  if(m.type==='hello'){ if(window.__boot&&m.boot&&window.__boot!==m.boot) location.reload(); window.__boot=m.boot; }
+  if(m.type==='status'){ log(m.msg); }
+  if(m.type==='desk') deskUI(m);
+  if(m.type==='set') setUI(m);
+  if(m.type==='assets') assetsUI(m);
+  if(m.type==='clips') clipsUI(m.clips);
+  if(m.type==='scenes') scenesUI(m.scenes);
+  if(m.type==='clip') clipUI({id:m.id,audio:m.audio});
+  if(m.type==='clipState') clipUI(m.playing);
+  if(m.type==='engine'){ engUI(m); desk.engine=m; $('bEng').className='badge '+(m.online?'ok':'bad'); $('bEngT').textContent=m.online?`Codex: ${m.state||'מחובר'}`:'Codex: לא מחובר'; }
+  if(m.type==='convo') addConvo(m.who,m.text);
+  if(m.type==='heard') addConvo('opponent',m.text);
+  if(m.type==='opponent'){ $('oppName').value=m.name||''; $('bOppT').textContent=m.name||'אין יריב'; }
+  if(m.type==='autolive'||m.type==='mute'||m.type==='tiktok') fetch('/api/desk').then(r=>r.json()).then(deskUI);
+  if(m.type==='fxlib') fxUI(m.fx);
+  if(m.type==='genjobs') genUI(m);
+  if(m.type==='oppcap') ocShow(m.cap);
+  if(m.type==='headgame') hgUI(m);
+  if(m.type==='director') dirUI(m);
+  if(m.type==='oppcap_wait') $('ocStat').textContent='🎯 '+m.msg;
+  if(m.type==='overlays') loadOverlays();
+  if(m.type==='oppLive'){ oppScrUI(m); tUI(m); }
+  if(m.type==='fxlib'||m.type==='overlays') setTimeout(tButtons,300);
+  if(m.type==='head'){ $('tHead').checked=!!m.on; }
+  if(m.type==='opponent'&&m.handle&&!$('oppUser').value) $('oppUser').value=m.handle;
+  if(m.type==='opponent'&&m.handle&&m.detected&&Date.now()-m.detected<60000){ $('ocSpecRow').style.display='flex'; $('ocUser').value=m.handle; ocAll=false; loadOverlays(); ocAlive(); log('🥊 היריב בקרב: '+m.handle); }
+  if(m.type==='head'){ showing=!!m.on; $('hShow').textContent='👁️ הצג ראש בלייב: '+(showing?'פועל':'כבוי'); $('hShow').classList.toggle('on',showing); }
+};
+</script>
+</body></html>

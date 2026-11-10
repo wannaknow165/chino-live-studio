@@ -1,0 +1,595 @@
+{
+  "ov_baby": {
+    "size": 0.34,
+    "face": 0,
+    "bottom": 0.27,
+    "pos": "center",
+    "he": "תינוק (ראש חי)",
+    "head": 1.5
+  },
+  "boxer1": {
+    "he": "🥊 מתאגרף"
+  },
+  "boxer3": {
+    "he": "👊 אגרוף למצלמה"
+  },
+  "boxer2": {
+    "he": "🥊 מתאגרף מתחמם"
+  },
+  "ov____________mw8xhz0d": {
+    "he": "מתאגרף גמד",
+    "face": 0,
+    "hitAt": 1.2,
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.26
+  },
+  "ov_turk_vs_marc": {
+    "he": "🥊 הטורקי מרביץ ל-marc",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.524,
+    "bottom": 0.2,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_deja": {
+    "he": "🥊 הטורקי מרביץ ל-dejabsiwve",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.7,
+    "bottom": 0.2,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_oneill": {
+    "he": "🥊 הטורקי מרביץ ל-oneillcohen",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.571,
+    "bottom": 0.2,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_oneillcohenlive_mw905ckp": {
+    "he": "🥊 הטורקי מרביץ ל-oneillcohenlive",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.516,
+    "bottom": 0.2,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_camelia_mkp_mw908ho8": {
+    "he": "🥊 הטורקי מרביץ ל-camelia.mkp",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.532,
+    "bottom": 0.2,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_linoy_cohen_a_t_mw90xda4": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-linoy.cohen.a.t (2/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.534,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_ahmadmardwi_mw9242bd": {
+    "he": "👊 הטורקי — אגרוף ענק ל-ahmadmardwi (3/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.552,
+    "bottom": 0,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_ahmadmardwi_mw92gkqk": {
+    "he": "🥊 הטורקי מרביץ ל-ahmadmardwi (1/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_ahmadmardwi_mw92gkqs": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-ahmadmardwi (2/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_benbn90_mw92god0": {
+    "he": "🥊 הטורקי מרביץ ל-benbn90 (1/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.536,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_benbn90_mw92k8gt": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-benbn90 (2/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0.01,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_benbn90_mw92k8h5": {
+    "he": "👊 הטורקי — אגרוף ענק ל-benbn90 (3/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0.01,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_miri12tiktok_com_mw93i9q0": {
+    "he": "🥊 הטורקי מרביץ ל-miri12tiktok.com (1/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.614,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_miri12tiktok_com_mw93i9qa": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-miri12tiktok.com (2/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.594,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_miri12tiktok_com_mw93i9ql": {
+    "he": "👊 הטורקי — אגרוף ענק ל-miri12tiktok.com (3/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.586,
+    "bottom": 0.2,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_erezhayut_8_mw93mwx4": {
+    "he": "🥊 הטורקי מרביץ ל-erezhayut_8 (1/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.619,
+    "bottom": 0.2,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_erezhayut_8_mw93mwxb": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-erezhayut_8 (2/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.593,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_erezhayut_8_mw93mwxg": {
+    "he": "👊 הטורקי — אגרוף ענק ל-erezhayut_8 (3/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.582,
+    "bottom": 0.2,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_michaelpopopoom_mw98ux3u": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-michaelpopopoom (2/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.612,
+    "bottom": 0.2,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_michaelpopopoom_mw98ux45": {
+    "he": "👊 הטורקי — אגרוף ענק ל-michaelpopopoom (3/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.578,
+    "bottom": 0,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_michaelpopopoom_mw98v32t": {
+    "he": "🥊 הטורקי מרביץ ל-michaelpopopoom (1/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.629,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_ginush2213_mw98ypb1": {
+    "he": "🥊 הטורקי מרביץ ל-ginush2213 (1/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.629,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_ginush2213_mw98ypbl": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-ginush2213 (2/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.593,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_ginush2213_mw98ypc2": {
+    "he": "👊 הטורקי — אגרוף ענק ל-ginush2213 (3/3)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.592,
+    "bottom": 0,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_ronbiton11_mw9a3pa8": {
+    "he": "🥊 הטורקי מרביץ ל-ronbiton11 (1/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.629,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_ronbiton11_mw9a3wbm": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-ronbiton11 (2/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.578,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_ronbiton11_mw9a3wbw": {
+    "he": "👊 הטורקי — אגרוף ענק ל-ronbiton11 (3/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_ronbiton11_mw9a3wc4": {
+    "he": "👶 תינוק בוכה ל-ronbiton11 (4/4)",
+    "kind": "clip_rejected",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_ronbiton11_mw9c0o4v": {
+    "he": "👶 תינוק בוכה ל-ronbiton11 (4/4)",
+    "kind": "clip_rejected",
+    "pos": "center",
+    "size": 0.577,
+    "bottom": 0.27,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_michaelpopopoom_mw9c8zbk": {
+    "he": "👶 תינוק בוכה ל-michaelpopopoom (4/4)",
+    "kind": "clip_rejected",
+    "pos": "center",
+    "size": 0.577,
+    "bottom": 0.27,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_ronbiton11_mw9cphpm": {
+    "he": "👶 תינוק בוכה ל-ronbiton11 (Veo)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_ronbiton11_mw9cpihe": {
+    "he": "👶 תינוק בוכה ל-ronbiton11 (Grok)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_ronbiton11_mw9cpj96": {
+    "he": "👶 תינוק בוכה ל-ronbiton11 (HeyGen)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_michaelpopopoom_mw9cqao2": {
+    "he": "👶 תינוק בוכה ל-michaelpopopoom (4/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_ahmadmardwi_mw9cqbln": {
+    "he": "👶 תינוק בוכה ל-ahmadmardwi (4/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_erezhayut_8_mw9cqjjm": {
+    "he": "👶 תינוק בוכה ל-erezhayut_8 (4/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_ginush2213_mw9cqkm3": {
+    "he": "👶 תינוק בוכה ל-ginush2213 (4/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_ronbiton11_mw9cqz08": {
+    "he": "🥊 הטורקי מרביץ ל-ronbiton11 (HeyGen)",
+    "kind": "clip_rejected",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_ronbiton11_mw9crra1": {
+    "he": "👶 תינוק בוכה ל-ronbiton11 (4/4)",
+    "kind": "clip_rejected",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_ronbiton11_mw9d1ap6": {
+    "he": "🥊 הטורקי מרביץ ל-ronbiton11 (Veo)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.629,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_talgabay98_mw9dl9ay": {
+    "he": "👶 תינוק בוכה ל-talgabay98 (4/4)",
+    "kind": "clip_rejected",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_talgabay98_mw9dll2g": {
+    "he": "👊 הטורקי — אגרוף ענק ל-ronbiton11 (3/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.596,
+    "bottom": 0,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_talgabay98_mw9dm6w8": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-ronbiton11 (2/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.609,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_talgabay98_mw9e0fmv": {
+    "he": "🥊 הטורקי מרביץ ל-ronbiton11 (1/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.664,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_michaelpopopoom_mw9enur9": {
+    "he": "🥊 הטורקי מרביץ ל-michaelpopopoom (1/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.68,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_michaelpopopoom_mw9enwmn": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-michaelpopopoom (2/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.705,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_michaelpopopoom_mw9eo7dk": {
+    "he": "👊 הטורקי — אגרוף ענק ל-michaelpopopoom (3/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.637,
+    "bottom": 0,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_michaelpopopoom_mw9eo8s5": {
+    "he": "👶 תינוק בוכה ל-michaelpopopoom (4/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.3,
+    "boxer": "ov_baby"
+  },
+  "ov_turk_vs_shavit_rahum_mw9f009g": {
+    "he": "🥊 הטורקי מרביץ ל-shavit.rahum (1/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.697,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_shavit_rahum_mw9f01pk": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-shavit.rahum (2/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.61,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_shavit_rahum_mw9f02hh": {
+    "he": "👊 הטורקי — אגרוף ענק ל-shavit.rahum (3/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.713,
+    "bottom": 0,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_ahmadmardwi_mw9fp6s1": {
+    "he": "💃 רקדנית בטן ל-ahmadmardwi",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.62,
+    "bottom": 0.02,
+    "boxer": "fx_belly"
+  },
+  "ov_turk_vs_ahmadmardwi_mw9fsfu1": {
+    "he": "🐔 תרנגולת ל-ahmadmardwi",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.02,
+    "boxer": "fx_chicken"
+  },
+  "ov_turk_vs_ahmadmardwi_mw9g3rjc": {
+    "he": "🥊 הטורקי מרביץ ל-ahmadmardwi (1/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.626,
+    "bottom": 0,
+    "boxer": "boxer1"
+  },
+  "ov_turk_vs_talgabay98_mw9i3dhx": {
+    "he": "🐔 תרנגולת ל-talgabay98",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.02,
+    "boxer": "fx_chicken"
+  },
+  "ov_turk_vs_khaledashur_mw9izgtx": {
+    "he": "🐔 תרנגולת ל-khaledashur",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.02,
+    "boxer": "fx_chicken"
+  },
+  "ov_turk_vs_khaledashur_mw9j2qgc": {
+    "he": "💃 רקדנית בטן ל-khaledashur",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.62,
+    "bottom": 0.02,
+    "boxer": "fx_belly"
+  },
+  "ov_turk_vs_khaledashur_mw9ll6c4": {
+    "he": "🦁🐔 צ׳ינו מרים את התרנגולת ל-khaledashur",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0,
+    "boxer": "lion_chicken"
+  },
+  "ov_turk_vs_ahmadmardwi_mw9mbbjz": {
+    "he": "🦁🩰 צ׳ינו רוקד עם הבלרינה ל-ahmadmardwi",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0,
+    "boxer": "lion_ballet"
+  },
+  "ov_turk_vs_ahmadmardwi_mw9mhxbu": {
+    "he": "🦁🩰 צ׳ינו רוקד עם הבלרינה ל-ahmadmardwi",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.75,
+    "bottom": 0,
+    "boxer": "lion_ballet"
+  },
+  "ov_turk_vs_michaelpopopoom_mw9o07c8": {
+    "he": "💃 רקדנית בטן ל-michaelpopopoom",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.62,
+    "bottom": 0.02,
+    "boxer": "fx_belly"
+  },
+  "ov_turk_vs_miriam_00005_mw9ogf5l": {
+    "he": "🐔 תרנגולת ל-miriam.00005",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.02,
+    "boxer": "fx_chicken"
+  },
+  "ov_turk_vs_miriam_00005_mw9oluff": {
+    "he": "🍼 תינוק לבקבוק של צ׳ינו (📡 לשרת) ל-miriam.00005",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.62,
+    "bottom": 0.02,
+    "boxer": "fx_bottle"
+  },
+  "ov_turk_vs_miriam_00005_mw9oojpo": {
+    "he": "👊 הטורקי — אגרוף ענק ל-miriam.00005 (3/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.616,
+    "bottom": 0,
+    "boxer": "boxer3"
+  },
+  "ov_turk_vs_ronbiton11_mw9p0gis": {
+    "he": "💃 רקדנית בטן ל-ronbiton11",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.62,
+    "bottom": 0.02,
+    "boxer": "fx_belly"
+  },
+  "ov_turk_vs_miriam_00005_mw9p87z6": {
+    "he": "🤏 קטן על הכף של צ׳ינו (📡 לשרת) ל-miriam.00005",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.02,
+    "boxer": "fx_tiny"
+  },
+  "ov_turk_vs_ahmadmardwi_mw9pk1sp": {
+    "he": "🩰 בלרינה ל-ahmadmardwi",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.62,
+    "bottom": 0.02,
+    "boxer": "fx_ballet"
+  },
+  "ov_turk_vs_khaledashur_mw9plswu": {
+    "he": "🍼 תינוק לבקבוק של צ׳ינו (📡 לשרת) ל-khaledashur",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.62,
+    "bottom": 0.02,
+    "boxer": "fx_bottle"
+  },
+  "ov_turk_vs_iruuamir0_mw9qkmhi": {
+    "he": "💃 רקדנית בטן ל-iruuamir0",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.62,
+    "bottom": 0.02,
+    "boxer": "fx_belly"
+  },
+  "ov_turk_vs_iruuamir0_mw9qkysh": {
+    "he": "🥊 הטורקי מתחמם ומרביץ ל-iruuamir0 (2/4)",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.643,
+    "bottom": 0,
+    "boxer": "boxer2"
+  },
+  "ov_turk_vs_iruuamir0_mw9ql2m8": {
+    "he": "👶 תינוק בידיים של צ׳ינו (📡 לשרת) ל-iruuamir0",
+    "kind": "clip",
+    "pos": "center",
+    "size": 0.5,
+    "bottom": 0.02,
+    "boxer": "fx_babyarm"
+  }
+}

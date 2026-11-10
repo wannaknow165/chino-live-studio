@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "migration-prior-reservations",
+      "kind": "prior_machine_reservations",
+      "usd": 11.4,
+      "state": "reserved"
+    }
+  ]
+}

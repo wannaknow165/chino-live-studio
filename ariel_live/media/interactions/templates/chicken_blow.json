@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "preset": "chicken_blow",
+  "enabled": true,
+  "approvalScope": "operator_approved_output",
+  "approvedForIntegratedOutput": true,
+  "publicApproved": false,
+  "baseVideoUrl": "/media/generated/chino-chicken-blow-openrouter.mp4",
+  "baseVideoSha256": "e8033619a2eb51779f9266724b5091bcc0c87f0b1a7bb9e9caf4ddbb028b7cd8",
+  "profile": {
+    "version": 1,
+    "kind": "chicken_blow",
+    "reviewed": true,
+    "sourceFile": "chino-chicken-blow-openrouter.mp4",
+    "duration": 6,
+    "blowAt": 2.8,
+    "exitAt": 3.8,
+    "enterFrom": 0.4,
+    "standAt": 2,
+    "groundY": 0.65,
+    "standX": 0.22,
+    "width": 0.28
+  },
+  "generationReview": {
+    "provider": "openrouter",
+    "model": "google/veo-3.1-lite",
+    "actualCostUSD": 0.3,
+    "status": "operator_approved_visual_review",
+    "approvedAt": "2026-11-09T19:47:33.513102+00:00"
+  },
+  "audioContract": {
+    "overlayVolume": 0.9,
+    "roosterSource": "incoming_webm",
+    "roosterWindow": [
+      2,
+      2.7
+    ],
+    "lionPuffAt": 2.8
+  }
+}

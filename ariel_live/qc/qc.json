@@ -1,0 +1,122 @@
+[
+ {
+  "file": "media/bank/25afcdfafd.mp4",
+  "n": 240,
+  "start": 0.971,
+  "end": 0.97,
+  "maxjump": 7.43,
+  "medjump": 2.47,
+  "maxfacejump": 18.43,
+  "minface": 0.245
+ },
+ {
+  "file": "media/bank/26a2d1f5b5.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.97,
+  "maxjump": 5.57,
+  "medjump": 1.23,
+  "maxfacejump": 13.63,
+  "minface": 0.428
+ },
+ {
+  "file": "media/bank/64bf3b0fc6.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.969,
+  "maxjump": 5.15,
+  "medjump": 1.5,
+  "maxfacejump": 12.07,
+  "minface": 0.586
+ },
+ {
+  "file": "media/bank/6f502f16d6.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.969,
+  "maxjump": 5.35,
+  "medjump": 0.82,
+  "maxfacejump": 12.08,
+  "minface": 0.424
+ },
+ {
+  "file": "media/bank/841b7f29d6.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.969,
+  "maxjump": 6.16,
+  "medjump": 1.96,
+  "maxfacejump": 14.16,
+  "minface": 0.535
+ },
+ {
+  "file": "media/bank/c38929deaa.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.969,
+  "maxjump": 6.61,
+  "medjump": 2.12,
+  "maxfacejump": 19.88,
+  "minface": 0.511
+ },
+ {
+  "file": "media/bank/e346bb3781.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.97,
+  "maxjump": 5.28,
+  "medjump": 1.83,
+  "maxfacejump": 13.89,
+  "minface": 0.509
+ },
+ {
+  "file": "media/bank/e5d377895a.mp4",
+  "n": 240,
+  "start": 0.776,
+  "end": 0.78,
+  "maxjump": 4.74,
+  "medjump": 0.99,
+  "maxfacejump": 9.56,
+  "minface": 0.387
+ },
+ {
+  "file": "media/bank/ef7e749eee.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.969,
+  "maxjump": 4.29,
+  "medjump": 1.37,
+  "maxfacejump": 11.82,
+  "minface": 0.607
+ },
+ {
+  "file": "media/bank/t0001.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.969,
+  "maxjump": 5.84,
+  "medjump": 2.39,
+  "maxfacejump": 16.54,
+  "minface": 0.604
+ },
+ {
+  "file": "media/idle/idle_01.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.97,
+  "maxjump": 5.1,
+  "medjump": 1.32,
+  "maxfacejump": 15.88,
+  "minface": 0.005
+ },
+ {
+  "file": "media/idle/idle_02.mp4",
+  "n": 240,
+  "start": 0.97,
+  "end": 0.97,
+  "maxjump": 5.31,
+  "medjump": 1.31,
+  "maxfacejump": 19.76,
+  "minface": -0.003
+ }
+]

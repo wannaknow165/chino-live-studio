@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "preset": "baby_bottle_feed",
+  "enabled": true,
+  "approvedForIntegratedOutput": true,
+  "approvalScope": "operator_approved_output",
+  "baseVideoUrl": "/media/generated/chino-baby-feeding-home.mp4",
+  "baseVideoSha256": "61e5c112106e07aa6dcc6d9d223995412f010a54300e514cfdef2c38f75a257d",
+  "profile": {
+    "version": 1,
+    "reviewed": true,
+    "sourceFile": "chino-baby-feeding-home.mp4",
+    "duration": 8,
+    "pickupTime": 0,
+    "holdUntil": 4.2,
+    "overlayStartTime": 0,
+    "holdBaseLoop": {
+      "from": 3.9,
+      "to": 4.1
+    },
+    "handTrack": [
+      [
+        0,
+        0.199,
+        0.535
+      ],
+      [
+        8,
+        0.199,
+        0.535
+      ]
+    ],
+    "groundAnchor": {
+      "x": 0.199,
+      "y": 0.535
+    },
+    "assetScale": 0.32,
+    "maxUnobservedGapFrames": 0,
+    "occluderTrack": [
+      [
+        0,
+        [
+          [
+            0.198,
+            0.533
+          ],
+          [
+            0.24,
+            0.518
+          ],
+          [
+            0.39,
+            0.518
+          ],
+          [
+            0.4,
+            0.556
+          ],
+          [
+            0.24,
+            0.556
+          ],
+          [
+            0.198,
+            0.538
+          ]
+        ]
+      ],
+      [
+        8,
+        [
+          [
+            0.198,
+            0.533
+          ],
+          [
+            0.24,
+            0.518
+          ],
+          [
+            0.39,
+            0.518
+          ],
+          [
+            0.4,
+            0.556
+          ],
+          [
+            0.24,
+            0.556
+          ],
+          [
+            0.198,
+            0.538
+          ]
+        ]
+      ]
+    ],
+    "sourceWindow": {
+      "from": 0,
+      "to": 3.25
+    },
+    "repeatCount": 2,
+    "reviewedScope": "Private preview only; generated bottle outward, contact alignment pending visual review",
+    "foregroundWindow": {
+      "from": 3.85,
+      "to": 4.15
+    }
+  },
+  "generationReview": {
+    "status": "reviewed_contact_preview_and_user_conditional_audio_approval",
+    "correctionVideoCostUSD": 0.3,
+    "provider": "openrouter"
+  }
+}

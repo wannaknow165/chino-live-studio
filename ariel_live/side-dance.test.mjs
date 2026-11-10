@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {dancerRect,validateSideDance} from './media/interactions/runtime/side-dance.js';
+const p={version:1,kind:'side_dance',reviewed:true,duration:10,place:{x:.2,y:.78,width:.42},fadeIn:.4,fadeOut:.6};
+test('side dancer stays at fixed left placement, scales proportionately and fades at ends',()=>{const a=dancerRect(p,1,720,1280,400,736),b=dancerRect(p,8,1080,1920,400,736);assert.equal(a.width,302.4);assert.equal(a.x+a.width/2,144);assert.equal(a.y+a.height,998.4000000000001);assert.equal(a.alpha,1);assert.equal(b.width/a.width,1.5);assert.equal(dancerRect(p,0,720,1280,400,736).alpha,0);assert.equal(dancerRect(p,10,720,1280,400,736).alpha,0);});
+test('unreviewed or invalid side layout cannot render',()=>{assert.throws(()=>validateSideDance({...p,reviewed:false}));assert.throws(()=>validateSideDance({...p,place:{x:.8,y:.78,width:.42}}));assert.throws(()=>dancerRect(p,2,720,1280,0,736));});

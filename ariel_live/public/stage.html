@@ -1,0 +1,471 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>ARIEL STAGE</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;cursor:none}
+#wrap{position:absolute;inset:0;margin:auto;height:100vh;width:calc(100vh*9/16);max-width:100vw;max-height:calc(100vw*16/9)}
+video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0}
+video.on{opacity:1}
+#poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* --- the three layers --- */
+#bg{position:absolute;inset:0;z-index:0;background:#000;overflow:hidden}
+#bg img,#bg video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1;display:none}
+#bgDim{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
+#set{position:absolute;inset:0;z-index:1;transform-origin:50% 100%;will-change:transform}
+#lion3d{position:absolute;inset:0;display:none;background:transparent}
+#lion3d iframe,#lion3d video,#lion3d img{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;object-fit:contain;opacity:1;display:block}
+body.m3d #A,body.m3d #B,body.m3d #poster{display:none}
+body.m3d #lion3d{display:block}
+body.noLion #set{display:none}   /* effects-only: no lion at all — the camera carries just the opponent screen + effects (+ background) */
+#oppLive{position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:cover;display:none;background:#000;opacity:1;transform-origin:50% 50%}
+body.oppScreen #oppLive{display:block}
+body.oppHidden #oppLive{display:block;opacity:0;pointer-events:none}   /* his live keeps playing invisibly — only his head is taken from it */
+body.oppScreen #set{visibility:hidden}
+#fxPool{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+#fxPool video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;display:block;background:transparent}
+#fxPool video.on{opacity:1}
+#fxPool video.flip{transform:scaleX(-1)}
+#front{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+#front img,#front video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1;display:block}
+#clip{position:absolute;z-index:6;display:none;object-fit:contain;opacity:1;background:#000}
+#clip.full{inset:0;width:100%;height:100%}
+#clip.inset{left:auto;top:auto;right:3%;bottom:19%;width:48%;height:auto;aspect-ratio:9/16;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.7);border:3px solid rgba(217,164,65,.9);background:#000}
+#clip.insetWide{left:auto;top:auto;right:3%;bottom:19%;width:60%;height:auto;aspect-ratio:16/9;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.7);border:3px solid rgba(217,164,65,.9);background:#000}
+#clip.on{display:block}
+#mute{position:absolute;top:2.2%;right:3%;z-index:8;display:none;font:700 clamp(12px,1.8vh,20px) system-ui;color:#fff;background:rgba(192,57,43,.9);padding:4px 10px;border-radius:10px}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+#learn{position:absolute;top:2.2%;left:3%;z-index:8;pointer-events:none;display:none;align-items:center;gap:8px;direction:rtl}
+#learn .badge{background:rgba(217,164,65,.92);color:#1a1208;font:800 clamp(12px,1.8vh,20px) system-ui;padding:4px 10px;border-radius:10px;letter-spacing:.06em}
+#learn .src{color:#fff;font:600 clamp(11px,1.6vh,18px) system-ui;text-shadow:0 1px 4px #000}
+#ticker{position:absolute;left:3%;right:3%;bottom:16%;z-index:8;pointer-events:none;display:none;direction:rtl;color:#ffe9b8;font:600 clamp(13px,2vh,24px) system-ui;text-shadow:0 1px 4px #000;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:12px}
+#caps{position:absolute;left:3%;right:3%;bottom:7%;z-index:8;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:flex-start;direction:rtl}
+.cap{max-width:92%;padding:6px 12px;border-radius:14px;font:700 clamp(15px,2.3vh,28px) system-ui,Arial;line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.9);background:rgba(0,0,0,.55);color:#fff;animation:capin .25s ease-out;transition:opacity .6s}
+.cap.ariel{background:rgba(217,164,65,.88);color:#1a1208;text-shadow:none;align-self:flex-end}
+.cap.opp{background:rgba(40,90,160,.85)}
+.cap .who{opacity:.75;font-size:.72em;margin-inline-end:6px}
+@keyframes capin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#label{position:absolute;top:2.2%;left:0;right:0;text-align:center;z-index:8;pointer-events:none;color:#ff2d2d;font:700 clamp(14px,2.2vh,26px) system-ui,Arial;letter-spacing:.12em;text-shadow:0 1px 6px rgba(0,0,0,.8);display:none}
+#start{z-index:10;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#f3d27a;font:700 28px system-ui;cursor:pointer;text-align:center}
+body.live #wrap{width:100vw;height:100vh;max-width:none;max-height:none}
+/* OVERLAY mode: a transparent layer for TikTok LIVE Studio's "Link source" — only effects, captions, labels. The camera lives in Live Studio. */
+html.overlay,body.overlay,body.overlay #wrap,body.overlay #bg{background:transparent !important}
+body.overlay #bg,body.overlay #set,body.overlay #start{display:none !important}
+body.live #fx{object-fit:cover}
+body.vcam #wrap::after{content:'';position:absolute;inset:0;border:4px solid #ff00ff;z-index:9;pointer-events:none}
+</style></head>
+<body><div id="wrap">
+<div id="bg"><img id="bgImg"><video id="bgVid" muted loop playsinline></video><div id="bgDim"></div></div>
+<div id="set">
+<img id="poster" src="/media/master.png">
+<video id="A" playsinline preload="auto"></video>
+<video id="B" playsinline preload="auto"></video>
+<div id="lion3d"></div>
+</div>
+<video id="oppLive" playsinline preload="auto"></video>
+<div id="front"></div>
+<div id="fxPool"><video playsinline preload="auto" muted></video><video playsinline preload="auto" muted></video><video playsinline preload="auto" muted></video></div>
+<video id="clip" playsinline preload="auto"></video>
+<div id="mute">🔇</div>
+<audio id="song"></audio>
+<video id="ov" muted playsinline style="display:none"></video>
+<canvas id="fx" width="1080" height="1920"></canvas>
+<div id="label"></div>
+<div id="caps"></div>
+<div id="learn"><span class="badge">🎓 LEARNING</span><span class="src" id="learnSrc"></span></div>
+<div id="ticker"></div>
+<div id="start">לחץ פעם אחת<br>כדי להפעיל את האריה 🦁</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
+<script>
+const QS=new URLSearchParams(location.search);
+if(QS.get('vcam')) document.body.classList.add('vcam');
+if(QS.get('live')) document.body.classList.add('live');
+const PREVIEW=!!QS.get('preview');   // the dashboard's silent preview: same picture, no sound, no side effects
+const PATHN=location.pathname; const OVERLAY=!!QS.get('overlay')||PATHN==='/overlay'||PATHN==='/game'; if(OVERLAY){ document.documentElement.classList.add('overlay'); document.body.classList.add('overlay','live'); }
+const LAYER=QS.get('layer')||(PATHN==='/game'?'game':'');   // 'game' = a separate Link source that shows ONLY the 🍅 head game; '' = clips, boxers, effects
+const A=document.getElementById('A'), B=document.getElementById('B'), song=document.getElementById('song');
+let front=A, back=B, idles=[], lastIdle=-1, mode='idle', talkQueue=[], dances=[], danceI=0, spDances=[], spSong=null, ducked=false, curSong=null, plOn=false, plList=[], plI=-1;
+const pickFrom=l=>l[Math.floor(Math.random()*l.length)];
+
+async function loadIdles(){ const s=await (await fetch('/api/state')).json(); idles=s.idles; idles.forEach(blobOf); }
+function pickIdle(){ if(!idles.length) return null; let i; do{ i=Math.floor(Math.random()*idles.length);}while(idles.length>1&&i===lastIdle); lastIdle=i; return idles[i]; }
+
+const R=msg=>PREVIEW?null:fetch('/api/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({msg})}).catch(()=>{});
+window.onerror=(m)=>R('ERR '+m);
+const AC=new (window.AudioContext||window.webkitAudioContext)();
+const gains={};
+function wire(el,name){ try{ const src=AC.createMediaElementSource(el); const g=AC.createGain(); src.connect(g); if(!PREVIEW) g.connect(AC.destination); gains[name]=g; }catch(e){ R('wire '+name+' '+e.message); } }
+const CLIP=document.getElementById('clip'); wire(A,'A'); wire(B,'B'); wire(song,'song'); wire(CLIP,'clip');
+let holdTalk=false, muted=false, lionOff=false;
+function keepAudioAlive(){ if(AC.state!=='running'){ AC.resume().then(()=>R('audiocontext '+AC.state)).catch(e=>R('resume '+e.message)); } }
+keepAudioAlive(); setInterval(keepAudioAlive, 2000);
+const blobs=new Map();
+async function blobOf(src){ if(blobs.has(src)) return blobs.get(src); const u=src.replace('/media/','/v/'); const b=await (await fetch(u)).blob(); const url=URL.createObjectURL(new Blob([b],{type: src.endsWith('.webm')?'video/webm':'video/mp4'})); blobs.set(src,url); return url; }
+async function play(src,{muted=false,loop=false}={}){
+  const v=back; v.src=await blobOf(src); v.muted=false; const gn=gains[v===A?'A':'B']; if(gn) gn.gain.value=muted?0:1; v.loop=loop; v.currentTime=0; keepAudioAlive();
+  return v.play().then(()=>{ if(!muted) R('playing talk '+src); v.classList.add('on'); front.classList.remove('on'); const old=front; old.pause(); old.playbackRate=1; back=front; front=v; v.onended=onEnded; }).catch(e=>{ R('play failed '+src+' '+e.name+': '+e.message); if(!muted && e.name==='NotAllowedError'){ document.getElementById('wrap').insertAdjacentHTML('beforeend','<div id="start" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#f3d27a;font:700 28px system-ui;cursor:pointer">לחץ כדי להפעיל סאונד</div>'); document.getElementById('start').onclick=e2=>{ e2.target.remove(); v.play(); }; } });
+}
+function songOn(){ return curSong && !song.paused && !song.ended; }
+function inChorus(){ const x=song.currentTime; return (curSong.chorus||[]).some(([s,e])=> x>=s-4 && x<e-2); }
+function onEnded(){
+  if(lionOff){ try{ front.pause(); }catch(e){} return; }
+  if(talkQueue.length && !holdTalk && !muted) return playTalk(talkQueue.shift());
+  fadeSong(1); if(ducked){ ducked=false; if(!PREVIEW) fetch('/api/duck',{method:'POST',body:JSON.stringify({on:false})}); }
+  if(songOn()){ mode='song'; const sing=inChorus() && curSong.sings.length; const l=sing?curSong.sings:curSong.dances; if(l.length) return play(pickFrom(l),{muted:true}); }
+  if(spSong && spSong.dances.length){ mode='dance'; const pos=(Date.now()-spSong.since)/1000; const sing=spSong.sings.length && (spSong.chorus||[]).some(([s,e])=>pos>=s-4&&pos<e-2); return play(pickFrom(sing?spSong.sings:spSong.dances),{muted:true}); }
+  mode='idle'; const s=pickIdle(); if(s) play(s,{muted:true});
+}
+let fadeT=null;
+function fadeSong(to){ clearInterval(fadeT); const g=gains.song; if(!g){ song.volume=to; return; } fadeT=setInterval(()=>{ const v=g.gain.value+(to-g.gain.value)*0.3; g.gain.value=Math.abs(v-to)<0.02?to:v; if(g.gain.value===to) clearInterval(fadeT); },60); }
+function startSong(s){ curSong=s; [...s.dances,...s.sings].forEach(blobOf); song.src=s.audio; song.currentTime=0; song.volume=1; song.play().then(()=>R('song '+s.name)).catch(e=>R('song failed '+e.message));
+  song.onended=()=>{ curSong=null; if(plOn) setTimeout(nextPl, 6000); }; if(front.paused||!front.src) onEnded(); }
+function nextPl(){ if(!plOn||!plList.length) return; plI=(plI+1)%plList.length; startSong(plList[plI]); }
+function playTalk(file){ mode='talk'; if(songOn()) fadeSong(0.55); if(spSong && !ducked && !PREVIEW){ ducked=true; fetch('/api/duck',{method:'POST',body:JSON.stringify({on:true})}); } play(file,{muted:false}); }
+
+
+
+// ---------- opponent head overlay (fixed effects) ----------
+const FX=document.getElementById('fx'), fc=FX.getContext('2d');
+let capsOn=true, trainingOn=false, tickerT=null;
+function setTraining(m){ trainingOn=!!m.on; document.getElementById('learn').style.display=trainingOn?'flex':'none'; if(!trainingOn){ document.getElementById('ticker').style.display='none'; } }
+function showTicker(txt){ const k=document.getElementById('ticker'); k.textContent='💡 '+txt; k.style.display='block'; clearTimeout(tickerT); tickerT=setTimeout(()=>k.style.display='none',8000); }
+function addCap(who,text){ if(who==='chat') return; const box=document.getElementById('caps'); const d=document.createElement('div'); d.className='cap '+(who==='ariel'?'ariel':'opp'); d.innerHTML=`<span class="who">${who==='ariel'?'צ׳ינו':'היריב'}</span>${text}`; box.appendChild(d); while(box.children.length>3) box.firstChild.remove(); setTimeout(()=>{ d.style.opacity='0'; setTimeout(()=>d.remove(),700); }, 9000); }
+let ovOn=false, ovTrack=null, ovFade=0, ovHead=null, ovAttached=null, ovT0=0, ovOffT0=0, ovLastOn=false; const OV=document.getElementById('ov');
+// ---- 🍅 the head game: the opponent's REAL head, big, on our stage; tomatoes (and whatever else) land on it, it squashes, the splat stays ----
+let game={on:false,user:'',still:'',x:0.5,y:0.70,size:0.46}, gameImg=null, gameSq={t0:0,p:0,dir:1}, splats=[], gameFade=0;
+function gameHit(power=1,dir=1){ gameSq={t0:performance.now(),p:Math.min(1.6,power),dir}; const W=FX.width,H=FX.height; const r=W*game.size*0.5; flashUntil=performance.now()+90;
+  for(let i=0;i<3;i++) splats.push({t0:performance.now()+i*40, dx:(Math.random()-.5)*r*0.9, dy:(Math.random()-.5)*r*0.9, r:r*(0.22+Math.random()*0.22), drips:[...Array(3+Math.floor(Math.random()*3))].map(()=>({x:(Math.random()-.5)*0.8, len:0.4+Math.random()*1.1, w:0.08+Math.random()*0.1}))}); }
+// ---- Chino's conversation state (from Codex's director, via our server): a small pill for the viewers — never technical text ----
+let director={online:false,conv:{active:false,state:'',secondsLeft:null},hint:''}, dirFade=0, dirPulse=0;
+function drawDirector(now){
+  if(LAYER==='game' || !OVERLAY || !QS.has('hint')) return;   // Shahak 2026-11-09: the Link layer is CLEAN by default (no 'write a question' banner); ?hint=1 brings the banner back
+  const show=director.online && !(CLIP && CLIP.classList.contains('on'));   // hidden while a full-screen clip covers the camera
+  dirFade+=((show?1:0)-dirFade)*0.12; if(dirFade<0.02) return;
+  const W=FX.width,H=FX.height; const c=director.conv||{}; const st=String(c.state||'').toLowerCase();
+  const speaking=/speak|talk|say|מדבר/.test(st), waiting=/wait|pending|missing|clip|מחכה/.test(st)&&!speaking;
+  let text, dot; if(c.active){ if(waiting){ text='⏳ רגע, צ׳ינו חושב…'; dot='#f0a030'; } else if(speaking){ text='צ׳ינו מדבר'; dot='#4cd964'; } else { text='צ׳ינו מקשיב'; dot='#4cd964'; } }
+  else { text=director.hint||'כתבו שאלה בצ׳אט — צ׳ינו 🦁 עונה'; dot=''; }
+  const secs=c.active && c.secondsLeft!=null ? Math.max(0,Math.round(+c.secondsLeft)) : null;
+  fc.save(); fc.globalAlpha=Math.min(1,dirFade)*(c.active?0.95:0.78); fc.direction='rtl'; fc.textAlign='center'; fc.textBaseline='middle';
+  const fs=Math.round(H*0.021); fc.font=`600 ${fs}px "Heebo","Segoe UI","Arial",sans-serif`;
+  const label=text+(secs!=null?`  ·  ${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`:''); const tw=fc.measureText(label).width; const padX=fs*0.9, h=fs*2.1, w=tw+padX*2+(dot?fs*1.3:0);
+  const x=W/2-w/2, y=H*0.205-h/2;
+  fc.fillStyle=c.active?'rgba(10,12,16,0.72)':'rgba(10,12,16,0.55)'; fc.beginPath(); fc.roundRect(x,y,w,h,h/2); fc.fill();
+  if(c.active){ fc.lineWidth=2; fc.strokeStyle=dot; fc.globalAlpha*=0.9; fc.stroke(); fc.globalAlpha=Math.min(1,dirFade)*0.95; }
+  if(dot){ dirPulse=(now/600)%(Math.PI*2); const r=fs*0.32*(1+0.18*Math.sin(dirPulse)); fc.fillStyle=dot; fc.beginPath(); fc.arc(x+w-padX-fs*0.3, y+h/2, r, 0, Math.PI*2); fc.fill(); }
+  fc.fillStyle='#fff'; fc.fillText(label, x+w/2-(dot?fs*0.65:0), y+h/2+1);
+  fc.restore();
+}
+let tomatoHeads=[], smears=[], chunks=[];
+function faceTomato(){ const W=FX.width,H=FX.height; const live=headBmp && Date.now()-headSeenAt<1200; const img=live?headBmp:(gameImg&&gameImg.complete&&gameImg.naturalWidth?gameImg:null); if(!img) return;
+  // a frozen copy of her face at throw time (so each tomato keeps its own face)
+  const c=document.createElement('canvas'); c.width=c.height=256; c.getContext('2d').drawImage(img,0,0,256,256);
+  const x1=W*(0.35+Math.random()*0.3), y1=H*(0.36+Math.random()*0.18); const big=W*(0.5+(game.size||0.46)*0.9);
+  tomatoHeads.push({t0:performance.now(), dur:1100, img:c, x0:W*(0.3+Math.random()*0.4), y0:H*0.92, x1, y1, s0:W*0.05, s1:big, spin:(Math.random()-0.5)*1.6, wob:Math.random()*6}); }
+function drawTomatoHead(img, x, y, s, rot){ fc.save(); fc.translate(x,y); fc.rotate(rot);
+  // HIS REAL HEAD, as it is (the cut-out already has its own transparency) — a soft shadow so it pops off the camera picture
+  fc.shadowColor='rgba(0,0,0,.45)'; fc.shadowBlur=s*0.08; fc.shadowOffsetY=s*0.04;
+  fc.drawImage(img,-s/2,-s/2,s,s); fc.restore(); }
+function drawFaceTomatoes(now){ const W=FX.width,H=FX.height;
+  tomatoHeads=tomatoHeads.filter(t=>{ const p=(now-t.t0)/t.dur; if(p>=1){ // BOOM: chunks of her face fly out, the face smears down the screen, juice everywhere
+      for(let i=0;i<16;i++){ const a=Math.random()*Math.PI*2, v=(0.35+Math.random()*0.9)*W*0.012; const n=3+Math.floor(Math.random()*3); const poly=[...Array(n)].map((_,k)=>{ const an=k/n*Math.PI*2+Math.random()*0.6, rr=0.55+Math.random()*0.45; return [Math.cos(an)*rr, Math.sin(an)*rr]; }); chunks.push({t0:now, img:t.img, x:t.x1, y:t.y1, vx:Math.cos(a)*v, vy:Math.sin(a)*v-W*0.006, r:t.s1*(0.07+Math.random()*0.12), u:Math.random()*0.75, w:Math.random()*0.75, rot:Math.random()*6, vr:(Math.random()-0.5)*0.3, poly}); }
+      smears.push({t0:now, img:t.img, x:t.x1, y:t.y1, s:t.s1*1.1}); gameHit(1.2, Math.random()<0.5?-1:1); flashUntil=now+100; shakeUntil=now+300; return false; }
+    const e=1-Math.pow(1-p,2.0); const x=t.x0+(t.x1-t.x0)*e + Math.sin(p*9+t.wob)*W*0.015*(1-p), y=t.y0+(t.y1-t.y0)*e - Math.sin(p*Math.PI)*H*0.06, s=t.s0+(t.s1-t.s0)*Math.pow(p,2.6);   // perspective: slow far away, rushing at the camera at the end
+    drawTomatoHead(t.img,x,y,s,t.spin*p + Math.sin(p*14+t.wob)*0.06*(1-p)); return true; });
+  // the smear: her face, stretched and dripping down like a tomato on a window, fading out
+  smears=smears.filter(sm=>{ const a=(now-sm.t0)/1000; if(a>2.8) return false; const fade=a<1.6?1:1-(a-1.6)/1.2; fc.save(); fc.globalAlpha=0.9*fade;
+    const S=sm.s*(1+a*0.08), cols=18; const cw=S/cols;
+    for(let i=0;i<cols;i++){ const u=i/cols; const drop=Math.pow(Math.sin(u*Math.PI*3.1+i)*0.5+0.5,2)*S*a*0.9; const sx=i*256/cols; fc.save(); fc.beginPath(); fc.ellipse(sm.x, sm.y+drop*0.5, S/2, S/2+drop, 0, 0, Math.PI*2); fc.clip();
+      fc.drawImage(sm.img, sx,0,256/cols,256, sm.x-S/2+i*cw, sm.y-S/2, cw+1, S+drop); fc.restore(); }
+    fc.globalCompositeOperation='source-atop'; fc.fillStyle=`rgba(230,35,30,${0.22*fade})`; fc.beginPath(); fc.ellipse(sm.x, sm.y+S*a*0.15, S*0.5, S*0.52+S*a*0.3, 0, 0, Math.PI*2); fc.fill(); fc.restore(); return true; });
+  chunks=chunks.filter(ch=>{ const a=(now-ch.t0)/1000; if(a>1.6) return false; ch.x+=ch.vx; ch.y+=ch.vy; ch.vy+=W*0.0007; ch.rot+=ch.vr; fc.save(); fc.globalAlpha=a<1.1?1:1-(a-1.1)/0.5; fc.translate(ch.x,ch.y); fc.rotate(ch.rot); fc.beginPath(); ch.poly.forEach(([px,py],k)=>k?fc.lineTo(px*ch.r,py*ch.r):fc.moveTo(px*ch.r,py*ch.r)); fc.closePath(); fc.clip(); fc.drawImage(ch.img, ch.u*256, ch.w*256, 64, 64, -ch.r, -ch.r, ch.r*2, ch.r*2); fc.restore(); return true; }); }
+function drawGame(now){
+  if(LAYER!=='game') return;
+  try{ drawFaceTomatoes(now); }catch(e){}
+  if(!game.on && gameFade<0.02) return; gameFade+=((game.on?1:0)-gameFade)*0.2;
+  const W=FX.width,H=FX.height; const cx=W*game.x, cy=H*game.y, S=W*game.size;
+  if(game.showHead===false) return;
+  const live=headBmp && Date.now()-headSeenAt<1200; const img=live?headBmp:(gameImg&&gameImg.complete&&gameImg.naturalWidth?gameImg:null); if(!img) return;
+  // squash: wide & flat right at the impact, bounces back
+  const age=(now-gameSq.t0)/1000; let sx=1, sy=1, rot=0; if(age<0.55){ const k=Math.exp(-age*6)*Math.cos(age*22)*gameSq.p; sx=1+0.42*k; sy=1-0.36*k; rot=0.12*k*gameSq.dir; }
+  fc.save(); fc.globalAlpha=Math.min(1,gameFade); fc.translate(cx,cy+S*0.5); fc.rotate(rot); fc.scale(sx,sy); fc.translate(0,-S*0.5);
+  fc.shadowColor='rgba(0,0,0,.5)'; fc.shadowBlur=S*0.06; fc.shadowOffsetY=S*0.03;
+  fc.drawImage(img,-S/2,-S/2,S,S); fc.shadowColor='transparent';
+  // the splats stick to the head (they move and squash with it)
+  splats=splats.filter(sp=>now-sp.t0<2600); for(const sp of splats){ const a=now-sp.t0; if(a<0) continue; const grow=Math.min(1,a/120); const fadeA=a<1800?1:1-(a-1800)/800; fc.globalAlpha=Math.min(1,gameFade)*0.92*fadeA;
+    fc.fillStyle='#c8191c'; fc.beginPath(); fc.arc(sp.dx, sp.dy, sp.r*grow, 0, Math.PI*2); fc.fill();
+    fc.fillStyle='#e8342e'; fc.beginPath(); fc.arc(sp.dx-sp.r*0.25, sp.dy-sp.r*0.25, sp.r*grow*0.45, 0, Math.PI*2); fc.fill();
+    for(const d of sp.drips){ const L=sp.r*d.len*Math.min(1,a/900); fc.fillStyle='#b5141a'; fc.beginPath(); fc.roundRect(sp.dx+d.x*sp.r-sp.r*d.w/2, sp.dy, sp.r*d.w, L, sp.r*d.w/2); fc.fill(); fc.beginPath(); fc.arc(sp.dx+d.x*sp.r, sp.dy+L, sp.r*d.w*0.7, 0, Math.PI*2); fc.fill(); } }
+  fc.restore();
+}
+const easeBack=t=>{ const c1=1.70158, c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); };   // comes up with a little overshoot
+let head={on:false,fx:'bubble'}, headBmp=null, lastTs='', fade=0, tears=[], headSeenAt=0, remoteFace=null, hits=[];
+fetch('/api/state').then(r=>r.json()).then(s=>{ if(s.training) setTraining(s.training); if(s.caps!==undefined) capsOn=!!s.caps; if(s.head) head=s.head; if(s.label){ const L=document.getElementById('label'); L.textContent=s.label.text||''; L.style.display=(s.label.on&&s.label.text)?'block':'none'; L.style.color=s.label.color||'#ff2d2d'; } });
+async function pullHead(){
+  const remoteOn=!!(remoteFace&&remoteFace.on&&Date.now()-remoteFace.t<1500);
+  if((head.on||ovOn||remoteOn||hits.length) && !localHead){ try{ const r=await fetch('/api/head/frame',{cache:'no-store'}); if(r.ok){ const ts=r.headers.get('X-Ts'); if(ts!==lastTs){ lastTs=ts; headSeenAt=Date.now(); const b=await createImageBitmap(await r.blob()); if(headBmp) headBmp.close(); headBmp=b; } } }catch(e){} }
+  setTimeout(pullHead, (head.on||ovOn||remoteOn)?45:300);
+}
+pullHead();
+function circleHead(cx,cy,r,ring){
+  fc.save(); fc.beginPath(); fc.arc(cx,cy,r,0,Math.PI*2); fc.closePath(); fc.clip();
+  fc.drawImage(headBmp,cx-r,cy-r,r*2,r*2); fc.restore();
+  if(ring){ const g=fc.createLinearGradient(cx-r,cy-r,cx+r,cy+r); g.addColorStop(0,'#fff1b8'); g.addColorStop(.5,'#d9a441'); g.addColorStop(1,'#8a5a12');
+    fc.lineWidth=14; fc.strokeStyle=g; fc.beginPath(); fc.arc(cx,cy,r,0,Math.PI*2); fc.stroke(); }
+}
+function drawFx(now){
+  const t=now/1000, W=FX.width, H=FX.height;
+  const fresh=Date.now()-headSeenAt<1200; const target=(head.on&&headBmp&&fresh)?1:0; fade+=(target-fade)*(target?0.12:0.25);
+  fc.clearRect(0,0,W,H);
+
+  // ---- overlay character with the opponent's live head on its face ----
+  if(ovOn!==ovLastOn){ if(ovOn) ovT0=now; else ovOffT0=now; ovLastOn=ovOn; }
+  const ovIn=Math.min(1,(now-ovT0)/460), ovOut=ovOn?0:Math.min(1,(now-ovOffT0)/320);
+  ovFade = ovOn ? 1 : 1-ovOut;                       // no fade-in: the character POPS up from below; a quick drop + fade on the way out
+  if(ovFade>0.02 && OV.readyState>=2 && ovTrack){
+    if(ovTrack.mx===undefined) ovTrack.mx=ovTrack.frames.reduce((a,f)=>a+f[0],0)/ovTrack.frames.length;
+    let dh=H*(ovTrack.size||0.56), dw=dh*ovTrack.w/ovTrack.h, x=W*0.27-ovTrack.mx*dw, y=H-dh-H*(ovTrack.bottom!=null?ovTrack.bottom:0.01);
+    if(ovTrack.pos==='right') x=W*0.73-ovTrack.mx*dw; else if(ovTrack.pos==='center') x=W*0.5-ovTrack.mx*dw;
+    const i0=Math.min(ovTrack.frames.length-1, Math.floor(OV.currentTime*ovTrack.fps)); const tr0=ovTrack.frames[i0];
+    if(ovTrack.attach==='face' && tr0){ const f=faceScreen(); if(f){ const WR=document.getElementById('wrap'); const kx=W/(WR.clientWidth||W), ky=H/(WR.clientHeight||H); const hs=f.size*kx*(ovTrack.head||1);   // his head size on the canvas
+        const neckW=hs/2.4; dw=neckW/Math.max(0.02,tr0[2]); dh=dw*ovTrack.h/ovTrack.w; const nx=f.x*kx, ny=f.y*ky+hs*(ovTrack.neckDrop!=null?+ovTrack.neckDrop:0.27);   // the body's neck hole sits right under his chin
+        x=nx-tr0[0]*dw; y=ny-tr0[1]*dh; ovAttached={x:nx,y:ny,hs}; } }
+    if(ovTrack.full){ const k=Math.max(W/ovTrack.w, H/ovTrack.h); dw=ovTrack.w*k; dh=ovTrack.h*k; x=(W-dw)/2; y=(H-dh)/2; }   // a full-frame clip covers the whole picture
+    if(ovTrack.attach!=='face' && !ovTrack.full){ y += (1-easeBack(ovIn))*dh*0.95 + ovOut*ovOut*dh*0.7; }   // entrance: rises from under the bottom edge with a bounce; exit: drops back down
+    fc.save(); fc.globalAlpha=Math.min(1,ovFade);
+    fc.drawImage(OV,x,y,dw,dh);
+    // a CHARACTER clip (no head swap): when his punch lands, the opponent's face takes the hit
+    if(ovTrack.hitAt!=null && !ovTrack.hitDone && OV.currentTime>=ovTrack.hitAt){ ovTrack.hitDone=true; hitFace(ovTrack.dir||1, 1); }
+    if(ovTrack.hitAt!=null && OV.loop && OV.currentTime<0.2) ovTrack.hitDone=false;
+    const i=Math.min(ovTrack.frames.length-1, Math.floor(OV.currentTime*ovTrack.fps));
+    const tr=ovTrack.frames[i];
+    if(tr && headBmp && ovTrack.swap!==false && ovTrack.attach!=='face'){ const neck=ovTrack.anchor==='neck'; const hk=+ovTrack.head||1; const fw=tr[2]*dw, s=(neck?fw*0.95:fw*1.45)*hk, cx=x+tr[0]*dw, cy=neck?(y+tr[1]*dh-s*0.40):(y+tr[1]*dh-fw*0.06); ovHead={x:cx,y:cy,size:s,t:performance.now()}; const flying=hits.some(h=>h.ov && now-h.t0<520); if(!flying){
+      fc.save();
+      // 1) soft contact shadow under the head so it sits ON the body
+      fc.shadowColor='rgba(0,0,0,.55)'; fc.shadowBlur=s*0.10; fc.shadowOffsetY=s*0.06; fc.drawImage(headBmp,cx-s/2,cy-s/2,s,s);
+      fc.shadowColor='transparent'; fc.shadowBlur=0; fc.shadowOffsetY=0;
+      // 2) warm scene tint + gentle vignette on the edge so skin matches the lion's golden lighting
+      fc.globalCompositeOperation='source-atop';
+      fc.globalAlpha=0.14; fc.fillStyle='#d9a441'; fc.fillRect(cx-s/2,cy-s/2,s,s); fc.globalAlpha=1;
+      fc.globalCompositeOperation='source-over'; fc.restore(); } }
+    fc.restore();
+  }
+  if(fade>0.01 && headBmp){
+    fc.save(); fc.globalAlpha=Math.min(1,fade);
+    let cx=W*0.5, cy=H*0.115, r=W*0.085;   // small, top-center, above the crown
+    if(trainingOn){ cx=W*0.13; cy=H*0.19; r=W*0.10; }   // learning mode: the studied streamer, small, top-left
+    const fx=head.fx;
+    if(fx==='bubble'){ circleHead(cx, cy+Math.sin(t*1.6)*14, r, true); }
+    else if(fx==='bobble'){ const b=Math.abs(Math.sin(t*4.2)); fc.save(); fc.translate(cx, cy+40-b*60); fc.rotate(Math.sin(t*3.1)*0.18); circleHead(0,0,r*1.35,false); fc.restore(); }
+    else if(fx==='shake'){ fc.save(); fc.translate((Math.random()-.5)*26,(Math.random()-.5)*26); fc.rotate((Math.random()-.5)*0.12); circleHead(cx,cy,r*1.1,true); fc.restore(); }
+    else if(fx==='crown'){ const y=cy+Math.sin(t*1.6)*10; circleHead(cx,y,r,true); fc.save(); fc.translate(cx,y-r*0.98); fc.rotate(Math.sin(t*2)*0.12); fc.font=`${r*0.95}px "Segoe UI Emoji",sans-serif`; fc.textAlign='center'; fc.textBaseline='middle'; fc.fillText('👑',0,0); fc.restore(); }
+    else if(fx==='cage'){ const s=r*2.1, x=cx-s/2, y=cy-s/2; fc.save(); fc.beginPath(); fc.rect(x,y,s,s); fc.clip(); fc.drawImage(headBmp,x,y,s,s); fc.restore();
+      for(let i=0;i<=7;i++){ const bx=x+i*s/7; const g=fc.createLinearGradient(bx-8,0,bx+8,0); g.addColorStop(0,'#3a2a10'); g.addColorStop(.5,'#e8c070'); g.addColorStop(1,'#3a2a10'); fc.fillStyle=g; fc.fillRect(bx-8,y-10,16,s+20); }
+      fc.fillStyle='#b8860b'; fc.fillRect(x-14,y-22,s+28,22); fc.fillRect(x-14,y+s,s+28,22); }
+    else if(fx==='cry'){ circleHead(cx,cy,r,true);
+      if(Math.random()<0.35) tears.push({x:cx+(Math.random()<.5?-1:1)*r*0.28,y:cy-r*0.05,v:4+Math.random()*3});
+      fc.font=`${r*0.28}px "Segoe UI Emoji",sans-serif`; fc.textAlign='center'; tears=tears.filter(d=>{ d.y+=d.v; d.v+=0.35; fc.fillText('💧',d.x,d.y); return d.y<cy+r*1.8; }); }
+    fc.restore();
+  }
+  try{ drawGame(now); }catch(e){}
+  try{ drawHits(now); }catch(e){}
+  try{ drawDirector(now); }catch(e){}
+  requestAnimationFrame(drawFx);
+}
+requestAnimationFrame(drawFx);
+
+// ---------- THE SET: back layer, lion+chair frame, front layer, click-to-play clips ----------
+const bgImg=document.getElementById('bgImg'), bgVid=document.getElementById('bgVid'), bgDim=document.getElementById('bgDim'), SET=document.getElementById('set'), FRONT=document.getElementById('front'), L3=document.getElementById('lion3d');
+let curBg='', curRender='', frontKeys='', curCam='', camStream=null;
+async function applySet(s){
+  if(!s) return;
+  document.body.classList.toggle('m3d', s.mode==='3d'); const wasOff=lionOff; lionOff=(s.mode==='off')||OVERLAY; document.body.classList.toggle('noLion', lionOff);
+  if(lionOff){ talkQueue=[]; try{ A.pause(); B.pause(); }catch(e){} } else if(wasOff && (front.paused||!front.src)) onEnded();
+  // back layer
+  const bg=s.bg; const key=bg?bg.file:'';
+  const camKey=bg&&bg.type==='camera'?('cam|'+(bg.label||'')):'';
+  if(key!==curBg || camKey!==curCam){ curBg=key; curCam=camKey; bgImg.style.display='none'; bgVid.style.display='none'; bgVid.pause(); if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; bgVid.srcObject=null; }
+    if(bg){ if(bg.type==='camera'){ try{ const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'); const d=devs.find(x=>bg.label&&x.label===bg.label)||devs.find(x=>bg.label&&x.label.toLowerCase().includes(String(bg.label).toLowerCase()))||devs[0]; camStream=await navigator.mediaDevices.getUserMedia({video:{deviceId:d?{exact:d.deviceId}:undefined,width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:false}); bgVid.srcObject=camStream; bgVid.style.display='block'; bgVid.style.transform=bg.mirror?'scaleX(-1)':''; if(bg.mirror) bgVid.dataset.mirror='1'; else delete bgVid.dataset.mirror; await bgVid.play(); R('camera: '+(d?d.label:'?')); }catch(e){ R('camera failed '+e.message); } }
+      else if(bg.type==='video'){ bgVid.srcObject=null; bgVid.style.transform=''; bgVid.src=await blobOf(bg.file); bgVid.style.display='block'; bgVid.play().catch(()=>{}); } else { bgImg.src=bg.file; bgImg.style.display='block'; } } }
+  bgDim.style.opacity=String(Math.min(0.9, Math.max(0, +s.dim||0)));
+  // the lion + chair move and scale together
+  const f=s.frame||{x:0,y:0,scale:1}; SET.style.transform=`translate(${+f.x||0}%, ${+f.y||0}%) scale(${+f.scale||1})`;
+  // Codex's transparent render (3D mode)
+  const r=s.render; const rk=r?(r.type+'|'+r.url):'';
+  if(rk!==curRender){ curRender=rk; L3.innerHTML=''; if(r&&r.url){ let el; if(r.type==='video'){ el=document.createElement('video'); el.src=r.url; el.muted=true; el.autoplay=true; el.loop=!!r.loop; el.playsInline=true; } else if(r.type==='image'){ el=document.createElement('img'); el.src=r.url; } else { el=document.createElement('iframe'); el.src=r.url; el.allow='autoplay'; el.setAttribute('allowtransparency','true'); } L3.appendChild(el); } }
+  // front layer: frames / effects / overlays with alpha, in order
+  const fk=JSON.stringify((s.front||[]).map(x=>[x.file,x.opacity]));
+  if(fk!==frontKeys){ frontKeys=fk; FRONT.innerHTML=''; for(const x of (s.front||[])){ let el; if(x.type==='video'||/\.(webm|mp4|mov)$/i.test(x.file)){ el=document.createElement('video'); el.src=await blobOf(x.file); el.muted=true; el.loop=true; el.autoplay=true; el.playsInline=true; el.play().catch(()=>{}); } else { el=document.createElement('img'); el.src=x.file; } el.style.opacity=String(x.opacity==null?1:x.opacity); FRONT.appendChild(el); } }
+}
+fetch('/api/set').then(r=>r.json()).then(j=>applySet(j.set)).catch(()=>{});
+// click-to-play clip: in FRONT of everything; with sound it holds the lion's talks and the music until it ends
+async function clipPlay(m){
+  CLIP.className=(m.size==='inset'?'inset':m.size==='insetWide'?'insetWide':'full'); CLIP.src=await blobOf(m.file); CLIP.loop=false; CLIP.currentTime=0; CLIP.muted=false; const g=gains.clip; if(g) g.gain.value=m.audio?1:0;
+  if(m.audio){ holdTalk=true; fadeSong(0.2); }
+  keepAudioAlive();
+  CLIP.play().then(()=>{ CLIP.classList.add('on'); R('clip '+m.file); }).catch(e=>{ R('clip failed '+e.message); clipDone(); });
+  CLIP.onended=clipDone;
+}
+function clipDone(){ if(!CLIP.classList.contains('on') && CLIP.paused) return; CLIP.classList.remove('on'); CLIP.pause(); holdTalk=false; fadeSong(1); if(!PREVIEW) fetch('/api/clip/ended',{method:'POST'}).catch(()=>{}); if(talkQueue.length) onEnded(); }
+function setMuted(on){ muted=!!on; document.getElementById('mute').style.display=muted?'block':'none'; for(const n of ['A','B']){ if(gains[n]&&mode==='talk') gains[n].gain.value=muted?0:1; } if(muted && mode==='talk'){ talkQueue=[]; onEnded(); } }
+
+// ---------- OPPONENT SCREEN: his live fills the frame; our set hides underneath ----------
+const OPPV=document.getElementById('oppLive'); let flvP=null, oppSrc='', oppOn=false, oppShow=true;
+function oppScreen(m){
+  if(OVERLAY){ m={...m, show:false}; }   // the Live Studio Link layer is ONLY the transparent effects — the opponent's stream never shows there
+  const want=m.on&&m.src; oppOn=!!want; oppShow=m.show!==false; document.body.classList.toggle('oppScreen', oppOn&&oppShow); document.body.classList.toggle('oppHidden', oppOn&&!oppShow);
+  OPPV.muted=m.muted!==false; if(gains.opp) gains.opp.gain.value=m.muted!==false?0:1;
+  if(m.view){ const v=m.view; curView=v; OPPV.style.transform=`translate(${+v.x||0}%, ${+v.y||0}%) scale(${+v.scale||1})`; }
+  if(!want){ if(flvP){ try{ flvP.pause(); flvP.unload(); flvP.detachMediaElement(); flvP.destroy(); }catch(e){} flvP=null; } oppSrc=''; OPPV.removeAttribute('src'); return; }
+  if(m.src===oppSrc && flvP) return; oppSrc=m.src;
+  if(flvP){ try{ flvP.destroy(); }catch(e){} flvP=null; }
+  if(!(window.flvjs&&flvjs.isSupported())){ R('flv.js not supported'); return; }
+  flvP=flvjs.createPlayer({type:'flv',isLive:true,url:m.src,hasAudio:true,hasVideo:true},{enableStashBuffer:false,stashInitialSize:128,lazyLoad:false,autoCleanupSourceBuffer:true,liveBufferLatencyChasing:true,liveBufferLatencyMaxLatency:2.5,liveBufferLatencyMinRemain:0.6});
+  flvP.attachMediaElement(OPPV); flvP.load(); flvP.play().then(()=>R('opp live playing')).catch(e=>R('opp live play failed '+e.message));
+  flvP.on(flvjs.Events.ERROR,(t,d)=>{ R('opp live error '+t+' '+d); setTimeout(()=>{ if(oppSrc) { const src=oppSrc; oppSrc=''; oppScreen({on:true,src,muted:OPPV.muted}); } },3000); });
+}
+try{ wire(OPPV,'opp'); }catch(e){}
+fetch('/api/opp/screen').then(r=>r.json()).then(j=>oppScreen({on:j.on,src:j.src,muted:j.muted,show:j.show,view:j.view})).catch(()=>{});
+// ---------- FACE IN THE OPPONENT'S LIVE: found inside our own stage (no window capture). Punches aim at it; the head effects use it. ----------
+let oppFace=null, oppFaceAt=0, faceDet=null, faceBusy=false, localHead=false, lastHeadShare=0;
+const HR=512; const headC=document.createElement('canvas'); headC.width=headC.height=HR; const hcc=headC.getContext('2d');
+let faceSeg=null; const segC2=document.createElement('canvas'); segC2.width=segC2.height=320; const sg2=segC2.getContext('2d');
+async function loadFaceDet(){ if(faceDet) return faceDet; try{ const v=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs'); const fs=await v.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'); faceDet=await v.FaceDetector.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',delegate:'GPU'},runningMode:'VIDEO',minDetectionConfidence:0.4}); R('face detector ready');
+    try{ faceSeg=await v.ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',delegate:'GPU'},runningMode:'IMAGE',outputConfidenceMasks:true}); }catch(e){ R('segmenter failed '+e.message); } }catch(e){ R('face detector failed '+e.message); } return faceDet; }
+function maskHead(){   // cut the person out of the 320px head crop; a soft circle caps whatever leaks in
+  let masked=false;
+  if(faceSeg){ try{ const r=faceSeg.segment(headC); const m=r.confidenceMasks&&r.confidenceMasks[0]; if(m){ const w=m.width,h=m.height,data=m.getAsFloat32Array(); const img=sg2.createImageData(w,h); for(let i=0;i<w*h;i++){ const v=data[i]; img.data[i*4+3]=v<0.35?0:v>0.7?255:Math.round((v-0.35)/0.35*255); } segC2.width=w; segC2.height=h; sg2.putImageData(img,0,0); hcc.globalCompositeOperation='destination-in'; hcc.filter='blur(1.5px)'; hcc.drawImage(segC2,0,0,HR,HR); hcc.filter='none'; masked=true; } r.close&&r.close(); }catch(e){} }
+  hcc.globalCompositeOperation='destination-in'; const c=HR/2; const g=hcc.createRadialGradient(c,c,(masked?0.43:0.39)*HR,c,c,0.494*HR); g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(1,'rgba(0,0,0,0)'); hcc.fillStyle=g; hcc.fillRect(0,0,HR,HR); hcc.globalCompositeOperation='source-over';
+}
+let curView={scale:1,x:0,y:0,preset:'full'};
+// video pixel → screen (wrap) pixel, through object-fit:cover and the view transform (translate %, scale about the center)
+function vidToScreen(px,py){ const FV=faceSrc()||OPPV; const W=FV.clientWidth,H=FV.clientHeight,vw=FV.videoWidth,vh=FV.videoHeight; const k=Math.max(W/vw,H/vh); const ox=(W-vw*k)/2, oy=(H-vh*k)/2; let ex=ox+px*k, ey=oy+py*k; if(FV===OPPV){ const s=+curView.scale||1; ex=W/2+(ex-W/2)*s+(+curView.x||0)/100*W; ey=H/2+(ey-H/2)*s+(+curView.y||0)/100*H; return {x:ex,y:ey,k:k*s}; } if(FV===bgVid && bgVid.style.transform){ ex=W-ex; } return {x:ex,y:ey,k}; }
+function faceSrc(){ if(oppOn && OPPV.readyState>=2) return OPPV; if(camStream && bgVid.readyState>=2) return bgVid; return null; }
+async function faceLoop(){
+  const FV=faceSrc(); const on=!!FV && FV.readyState>=2 && FV.videoWidth;
+  if(on && !faceBusy){ faceBusy=true; try{ const det=await loadFaceDet(); if(det){ const r=det.detectForVideo(FV, performance.now()); const vw=FV.videoWidth; let faces=(r.detections||[]).map(d=>d.boundingBox);
+      if(FV===OPPV){ if(curView.preset==='right') faces=faces.filter(b=>b.originX+b.width/2>vw/2); else if(curView.preset==='left') faces=faces.filter(b=>b.originX+b.width/2<vw/2); }
+      faces.sort((a,b)=>b.width*b.height-a.width*a.height); let f=faces[0];
+      if(game.on && game.face && FV===OPPV && faces.length){ const vh=FV.videoHeight; const gx=(game.face.x+game.face.w/2)*vw, gy=(game.face.y+game.face.h/2)*vh; const near=faces.map(b=>({b,d:Math.hypot(b.originX+b.width/2-gx, b.originY+b.height/2-gy)})).sort((a,b)=>a.d-b.d)[0]; const lim=faces.length>1?Math.max(vw,vh)*0.22:Math.max(vw,vh)*0.45; if(near && near.d<lim) f=near.b; else f=null; }   // nobody in his window → fall back to the still
+      if(f){ let cx=f.originX+f.width/2, cy=f.originY+f.height*0.42, sz=Math.max(f.width,f.height)*1.45; const vh=FV.videoHeight; sz=Math.min(sz, vw, vh); cx=Math.min(Math.max(cx, sz/2), vw-sz/2); cy=Math.min(Math.max(cy, sz/2), vh-sz/2);   // keep the head square inside the frame — no hard edge from outside the picture
+        const nb={cx,cy,sz}; oppFace=oppFace&&Date.now()-oppFaceAt<600?{cx:oppFace.cx+(nb.cx-oppFace.cx)*0.5,cy:oppFace.cy+(nb.cy-oppFace.cy)*0.5,sz:oppFace.sz+(nb.sz-oppFace.sz)*0.4}:nb; oppFaceAt=Date.now();
+        // the head cut-out for bubbles/crowns/characters comes straight from his live (soft round mask)
+        hcc.globalCompositeOperation='source-over'; hcc.clearRect(0,0,HR,HR); hcc.drawImage(FV, oppFace.cx-oppFace.sz/2, oppFace.cy-oppFace.sz/2, oppFace.sz, oppFace.sz, 0,0,HR,HR); maskHead();
+        const bmp=await createImageBitmap(headC); if(headBmp) headBmp.close(); headBmp=bmp; headSeenAt=Date.now(); localHead=true;
+        // the main stage shares what it found, so the dashboard preview and the Live Studio overlay show the same head without detecting again
+        if(!PREVIEW && !OVERLAY && Date.now()-lastHeadShare>80){ lastHeadShare=Date.now(); const WR=document.getElementById('wrap'); const fs=faceScreen(); headC.toBlob(b=>{ if(b) fetch('/api/head/frame',{method:'POST',body:b}).catch(()=>{}); },'image/webp',0.86); if(fs) fetch('/api/face',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({on:true,x:fs.x/WR.clientWidth,y:fs.y/WR.clientHeight,s:fs.size/WR.clientWidth,vw:1080,vh:1920,mirror:false})}).catch(()=>{}); } }
+      else if(Date.now()-oppFaceAt>1200){ if(oppFace && !PREVIEW && !OVERLAY) fetch('/api/face',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({on:false})}).catch(()=>{}); oppFace=null; localHead=false; } } }catch(e){} faceBusy=false; }
+  else if(!on){ oppFace=null; localHead=false; }
+  setTimeout(faceLoop, on?66:400);
+}
+faceLoop();
+function remoteScreen(){ const f=remoteFace; if(!f||!f.on||Date.now()-f.t>1200||!f.vw) return null; const W=document.getElementById('wrap').clientWidth, H=document.getElementById('wrap').clientHeight; const k=Math.max(W/f.vw,H/f.vh); const ox=(W-f.vw*k)/2, oy=(H-f.vh*k)/2; const fx=f.mirror?1-f.x:f.x; return {x:ox+fx*f.vw*k, y:oy+f.y*f.vh*k, size:f.s*f.vw*k}; }
+function faceScreen(){ if(game.on && LAYER==='game'){ const WR=document.getElementById('wrap'); const W=WR.clientWidth||FX.width, H=WR.clientHeight||FX.height; return {x:W*game.x, y:H*game.y, size:W*game.size*0.72, game:true}; } if(oppFace&&Date.now()-oppFaceAt<=1200){ const p=vidToScreen(oppFace.cx,oppFace.cy); return {x:p.x,y:p.y,size:oppFace.sz*p.k}; } return remoteScreen(); }
+// ---------- one-shot transparent effects (punches…): up to 3 at once; by default they land ON THE FACE ----------
+const FXP=[...document.querySelectorAll('#fxPool video')]; let fxI=0;
+async function fxPlay(m){
+  const v=FXP[fxI]; fxI=(fxI+1)%FXP.length;
+  v.className=''; v.onended=null; v.pause(); v.src=await blobOf(m.file); v.currentTime=0; v.muted=true; v.loop=false;
+  v.style.objectPosition='center'; v.style.transformOrigin='50% 50%';
+  const WR=document.getElementById('wrap'); const W=WR.clientWidth, H=WR.clientHeight; const sc=+m.scale||1; const ix=m.impact&&m.impact.x!=null?+m.impact.x:0.5, iy=m.impact&&m.impact.y!=null?+m.impact.y:0.42;
+  const face=(m.aim!=='full')?faceScreen():null;
+  let dx=0, dy=0, fs=sc;
+  if(face){ if(face.game) fs=Math.min(0.9, Math.max(0.25, (face.size*1.6)/Math.min(W,H)))*sc;             // on the game head: about two heads wide, never the whole screen
+    else if(m.fit!==false) fs=Math.min(1.6, Math.max(0.45, (face.size*2.6)/(W*0.75)))*sc;              // the glove ends up about 2.6 heads wide
+    const ixx=m.flip?1-ix:ix; const px=W/2+(ixx*W-W/2)*fs, py=H/2+(iy*H-H/2)*fs; dx=face.x-px; dy=face.y-py; }
+  v.style.transition='none';
+  const finalT=`translate(${dx}px, ${dy}px) ${m.flip?'scaleX(-1) ':''}scale(${fs})`;
+  if(face && face.game){   // thrown FROM THE CHAT: starts small at the bottom, flies up to the face and lands exactly when the splat starts
+    const secs0=+m.secs||1; const fly=Math.max(250, (m.hitAt!=null?+m.hitAt:0.2)*secs0*1000);
+    const sx=(Math.random()-0.5)*W*0.6; v.style.transform=`translate(${dx+sx}px, ${H*0.62}px) ${m.flip?'scaleX(-1) ':''}scale(${fs*0.22})`;
+    void v.offsetWidth; v.style.transition=`transform ${fly}ms cubic-bezier(.25,.6,.35,1)`; }
+  v.style.transform=finalT;
+  R('fx '+(face?'→ face':'center')+' '+m.file);
+  v.play().then(()=>{ v.classList.add('on'); if(face && m.hit!==false){ const secs=+m.secs||v.duration||1; const at=(m.hitAt!=null?+m.hitAt:0.6)*secs*1000; setTimeout(()=>hitFace(m.flip?-1:1, m.power||1), Math.max(60,at)); } }).catch(e=>R('fx failed '+e.message));
+  v.onended=()=>{ v.classList.remove('on'); };
+}
+// ---------- THE HIT: when the glove lands, his live head whips sideways, the frame shakes, stars fly ----------
+let shakeUntil=0, flashUntil=0;
+function hitFace(dir=1, power=1){
+  if(LAYER==='game'){ if(game.on) gameHit(power,dir); return; }
+  const WR=document.getElementById('wrap'); const kx=(WR.clientWidth||1)/FX.width, ky=(WR.clientHeight||1)/FX.height;
+  const ovH=(ovOn && ovTrack && ovTrack.swap!==false && ovHead && performance.now()-ovHead.t<300) ? {x:ovHead.x*kx, y:ovHead.y*ky, size:ovHead.size*kx, ov:true} : null;
+  const f=ovH||faceScreen(); if(!f||!headBmp) return;
+  // a snapshot of the head at impact time, so the whipped head is HIS head of this very moment
+  const snap=document.createElement('canvas'); snap.width=snap.height=HR; snap.getContext('2d').drawImage(headBmp,0,0,HR,HR);
+  const loc=!f.ov && oppFace&&Date.now()-oppFaceAt<=1200; hits.push({t0:performance.now(), dir, power, ov:!!f.ov, x:f.x, y:f.y, size:f.size, snap, vx:loc?oppFace.cx:0, vy:loc?oppFace.cy:0, vs:loc?oppFace.sz:0});
+  shakeUntil=performance.now()+320; flashUntil=performance.now()+140; R('HIT face dir='+dir);
+}
+function drawHits(now){
+  hits=hits.filter(h=>now-h.t0<520);
+  const WR=document.getElementById('wrap'); const W=FX.width, H=FX.height, sx=W/(WR.clientWidth||W), sy=H/(WR.clientHeight||H);
+  // frame shake on the opponent's live
+  if(now<shakeUntil){ const k=(shakeUntil-now)/320; const ox=(Math.random()-.5)*26*k, oy=(Math.random()-.5)*18*k; if(document.body.classList.contains('oppScreen')) OPPV.style.transform=`translate(calc(${+curView.x||0}% + ${ox}px), calc(${+curView.y||0}% + ${oy}px)) scale(${+curView.scale||1})`; else if(camStream) bgVid.style.transform=(bgVid.dataset.mirror?'scaleX(-1) ':'')+`translate(${ox}px,${oy}px)`; }
+  else if(OPPV.dataset.shook){ delete OPPV.dataset.shook; OPPV.style.transform=`translate(${+curView.x||0}%, ${+curView.y||0}%) scale(${+curView.scale||1})`; if(camStream) bgVid.style.transform=bgVid.dataset.mirror?'scaleX(-1)':''; }
+  if(now<shakeUntil) OPPV.dataset.shook='1';
+  if(now<flashUntil){ fc.save(); fc.globalAlpha=0.35*((flashUntil-now)/140); fc.fillStyle='#fff'; fc.fillRect(0,0,W,H); fc.restore(); }
+  for(const h of hits){
+    const age=(now-h.t0)/520, p=Math.sin(Math.min(1,age)*Math.PI);           // out and back
+    const cx=h.x*sx, cy=h.y*sy, r=h.size*sx/2;
+    // 1) smear the real face (motion blur) so the original head isn't seen twice
+    const SV=faceSrc(); if(SV && SV.videoWidth && h.vs){ fc.save(); fc.beginPath(); fc.arc(cx,cy,r*1.15,0,Math.PI*2); fc.clip(); fc.filter=`blur(${Math.round(10+14*p)}px)`; fc.globalAlpha=0.95; fc.drawImage(SV, h.vx-h.vs*0.75, h.vy-h.vs*0.75, h.vs*1.5, h.vs*1.5, cx-r*1.5, cy-r*1.5, r*3, r*3); fc.restore(); }
+    // 2) the whipped head: thrown sideways, rotated, squashed, with a ghost trail
+    const off=r*0.9*p*h.power*h.dir, rot=0.5*p*h.dir*h.power, up=-r*0.25*p;
+    for(let g=3;g>=0;g--){ const q=Math.max(0,p-g*0.12); const ox=r*0.9*q*h.power*h.dir, oy=-r*0.25*q; fc.save(); fc.globalAlpha=g?0.18:1; fc.translate(cx+ox, cy+oy); fc.rotate(0.5*q*h.dir*h.power); fc.scale(1-0.18*q, 1+0.1*q); fc.drawImage(h.snap, -r, -r, r*2, r*2); fc.restore(); }
+    // 3) stars + impact burst at the contact point
+    const ex=cx-h.dir*r*0.8, ey=cy-r*0.1, a=1-Math.min(1,age);
+    fc.save(); fc.globalAlpha=a; fc.translate(ex,ey); fc.rotate(age*2);
+    fc.fillStyle='#ffe14d'; star(fc, 0,0, r*(0.9+0.8*age), 10); fc.fillStyle='#fff'; star(fc, 0,0, r*(0.45+0.4*age), 8);
+    fc.font=`700 ${Math.round(r*0.55)}px Impact, "Arial Black", system-ui`; fc.textAlign='center'; fc.textBaseline='middle'; fc.fillStyle='#c0392b'; fc.lineWidth=r*0.06; fc.strokeStyle='#fff'; fc.strokeText('POW!',0,0); fc.fillText('POW!',0,0); fc.restore();
+    for(let i=0;i<6;i++){ const an=i/6*Math.PI*2+age*1.5, d=r*(0.6+1.6*age); fc.save(); fc.globalAlpha=a; fc.font=`${Math.round(r*0.35)}px "Segoe UI Emoji",sans-serif`; fc.textAlign='center'; fc.fillText(i%2?'⭐':'💫', ex+Math.cos(an)*d, ey+Math.sin(an)*d); fc.restore(); }
+  }
+}
+function star(c,cx,cy,R,n){ c.beginPath(); for(let i=0;i<n*2;i++){ const a=Math.PI*i/n, rr=i%2?R*0.45:R; c.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr); } c.closePath(); c.fill(); }
+
+const es=new EventSource('/api/events');
+es.onmessage=async ev=>{
+  const m=JSON.parse(ev.data);
+  if(m.type==='hello'){ if(window.__boot&&m.boot&&window.__boot!==m.boot){ R('server restarted → reload'); location.reload(); } window.__boot=m.boot; }
+  if(m.type==='oppLive'){ oppScreen(m); }
+  if(m.type==='fx'){ if(!!m.game===(LAYER==='game')) fxPlay(m); }   // tomatoes → the game layer only; punches/effects → the main layer only
+  if(m.type==='director'){ director={...director,...m}; }
+  if(m.type==='tomatoface'){ if(LAYER==='game' && game.on) for(let i=0;i<(m.n||1);i++) setTimeout(faceTomato, i*140); }
+  if(m.type==='headgame'){ game={...game,...m}; if(m.still){ gameImg=new Image(); gameImg.src=m.still+'?'+Date.now(); } else gameImg=null; if(!m.on) splats=[]; }
+  if(m.type==='hit'){ if(LAYER!=='game') hitFace(m.dir||1, m.power||1); }
+  if(m.type==='face'){ remoteFace=m; }
+  if(m.type==='set'){ applySet(m); }
+  if(m.type==='clip'){ clipPlay(m); }
+  if(m.type==='clipStop'){ clipDone(); }
+  if(m.type==='mute'){ setMuted(m.on); }
+  if(m.type==='head'){ head={on:m.on,fx:m.fx}; }
+  if(m.type==='convo' && capsOn){ addCap(m.who, m.text); }
+  if(m.type==='trainingMode'){ setTraining(m); }
+  if(m.type==='training'){ if(m.learned) showTicker(m.learned); }
+  if(m.type==='study'){ document.getElementById('learnSrc').textContent=m.on&&m.name?('לומד מ: '+m.name):''; }
+  if(m.type==='caps'){ capsOn=!!m.on; if(!capsOn) document.getElementById('caps').innerHTML=''; }
+  if(m.type==='label'){ const L=document.getElementById('label'); L.textContent=m.text||''; L.style.display=(m.on&&m.text)?'block':'none'; L.style.color=m.color||'#ff2d2d'; }
+  if(m.type==='overlay' && LAYER!=='game'){ ovTrack=m.track; ovTrack.hitDone=false; OV.src=await blobOf(m.webm); OV.loop=!!m.loop; OV.currentTime=0; OV.play().then(()=>{ ovOn=true; R('overlay '+m.id); }).catch(e=>R('overlay failed '+e.message)); OV.onended=()=>{ ovOn=false; }; }
+  if(m.type==='overlayStop'){ ovOn=false; setTimeout(()=>{ if(!ovOn) OV.pause(); },400); }
+  if(m.type==='play'){ R('got play '+m.file+' mode='+mode); if(muted||lionOff) return; blobOf(m.file);
+    talkQueue.push(m.file);
+    // a talk interrupts whatever muted clip (idle/dance) is on screen right now — unless a clip with sound is playing (then it waits)
+    if(holdTalk) return; if(mode!=='talk' || front.paused || !front.src) onEnded(); }
+  if(m.type==='spotify'){ R('spotify '+m.title+' playing='+m.playing+' dances='+m.dances.length); spSong=(m.playing&&m.dances.length)?m:null; spDances=m.dances||[]; [...(m.dances||[]),...(m.sings||[])].forEach(blobOf); if(front.paused||!front.src) onEnded(); }
+  if(m.type==='idles'){ await loadIdles(); }
+  if(m.type==='song'){ plOn=false; startSong(m); }
+  if(m.type==='playlist'){ plOn=m.on; plList=m.songs||[]; if(plOn){ if(!songOn()) { plI=-1; nextPl(); } } else { song.pause(); curSong=null; } }
+  if(m.type==='stop'){ talkQueue=[]; song.pause(); curSong=null; plOn=false; spDances=[]; mode='idle'; if(CLIP.classList.contains('on')) clipDone(); onEnded(); }
+};
+if(QS.get('vcam')||QS.get('live')||PREVIEW||OVERLAY) setTimeout(()=>{ const s=document.getElementById('start'); if(s) s.click(); },600);
+// send the lion's sound only to a chosen output (e.g. the headset's "Game" channel) so Live Studio can take just that
+async function routeAudio(label){
+  try{ const s=await navigator.mediaDevices.getUserMedia({audio:true}); s.getTracks().forEach(t=>t.stop()); }catch(e){ R('mic permission: '+e.message); }
+  const outs=(await navigator.mediaDevices.enumerateDevices()).filter(x=>x.kind==='audiooutput');
+  const m=outs.filter(x=>x.label.toLowerCase().includes(label.toLowerCase())); const d=m.find(x=>!/^(default|communications)/i.test(x.label))||m[0];
+  if(!d){ R('no audio output matching '+label+' — have: '+outs.map(o=>o.label).join(' / ')); return; }
+  for(const el of [A,B,song,CLIP]) { try{ await el.setSinkId(d.deviceId); }catch(e){ R('setSinkId: '+e.message); } }
+  R('audio -> '+d.label);
+}
+if(QS.get('out')) routeAudio(QS.get('out'));
+setInterval(()=>{ for(const el of [A,B]){ if(!el.paused && el.muted===false && el.volume<1) el.volume=1; } R('audio: ctx='+AC.state+' gainA='+(gains.A?gains.A.gain.value:'?')+' gainB='+(gains.B?gains.B.gain.value:'?')+' A.paused='+A.paused+' B.paused='+B.paused); }, 15000);
+document.getElementById('start').onclick=async e=>{ e.target.remove(); R('stage started'); await loadIdles(); fetch('/api/spotify'); onEnded(); };
+</script></body></html>

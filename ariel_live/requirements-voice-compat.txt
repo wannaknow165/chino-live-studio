@@ -1,0 +1,3 @@
+# Compatibility dependency for the already-installed Perth watermark package.
+# Keep watermarking enabled; its Windows import requires pkg_resources.
+setuptools==80.9.0

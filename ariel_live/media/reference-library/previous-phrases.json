@@ -1,0 +1,219 @@
+{
+  "sourceUrl": "https://aistudio.google.com/apps/2be04365-4705-4895-a4d1-1127567a928f",
+  "sourceProject": "LION AI - Infinite Living Idle Engine",
+  "sourceFile": "src/components/VocabularySoundboard.tsx",
+  "sourceSha256": "eaa6b7dc2750842493ab82cb6f73b75109b5d23d9ac2025d542b639c8be092be",
+  "kind": "text_drafts_not_recordings",
+  "items": [
+    {
+      "category": "english",
+      "id": "en1",
+      "label": "Hello everyone, welcome to the stream!",
+      "emoji": "👋",
+      "subtitle": "שלום לכולם, ברוכים הבאים!",
+      "recordingReady": false
+    },
+    {
+      "id": "en2",
+      "category": "english",
+      "label": "How are you doing today? Everything good?",
+      "emoji": "😊",
+      "subtitle": "מה שלומכם היום? הכול טוב?",
+      "recordingReady": false
+    },
+    {
+      "id": "en3",
+      "category": "english",
+      "label": "I am the King Lion, keeping it classy and calm.",
+      "emoji": "🦁",
+      "subtitle": "אני מלך האריות, בסטייל וברוגע.",
+      "recordingReady": false
+    },
+    {
+      "id": "en4",
+      "category": "english",
+      "label": "Nice to meet you all! Tell me where you are from.",
+      "emoji": "🌍",
+      "subtitle": "נעים להכיר! מאיפה אתם צופים בעולם?",
+      "recordingReady": false
+    },
+    {
+      "id": "en5",
+      "category": "english",
+      "label": "Thank you so much for the love and positive vibes!",
+      "emoji": "❤️",
+      "subtitle": "תודה רבה על האהבה והאנרגיות הטובות!",
+      "recordingReady": false
+    },
+    {
+      "id": "en6",
+      "category": "english",
+      "label": "Practice English with me anytime, I am listening.",
+      "emoji": "🎙️",
+      "subtitle": "תרגלו איתי אנגלית בכיף, אני מקשיב.",
+      "recordingReady": false
+    },
+    {
+      "id": "en7",
+      "category": "english",
+      "label": "What is your favorite hobby? Tell me in the chat.",
+      "emoji": "☕",
+      "subtitle": "מה התחביב שלכם? ספרו לי בצ׳אט.",
+      "recordingReady": false
+    },
+    {
+      "id": "en8",
+      "category": "english",
+      "label": "Have an awesome and beautiful day ahead!",
+      "emoji": "☀️",
+      "subtitle": "שיהיה לכם המשך יום נפלא ומדהים!",
+      "recordingReady": false
+    },
+    {
+      "id": "en9",
+      "category": "english",
+      "label": "That is really interesting, tell me more about it!",
+      "emoji": "🧐",
+      "subtitle": "זה ממש מעניין, ספר/י לי עוד על זה!",
+      "recordingReady": false
+    },
+    {
+      "id": "en10",
+      "category": "english",
+      "label": "Hahaha, that was really funny! Love that.",
+      "emoji": "😂",
+      "subtitle": "חחח זה היה מצחיק! אהבתי מאוד.",
+      "specialAction": "laugh",
+      "recordingReady": false
+    },
+    {
+      "id": "d1",
+      "category": "daily",
+      "label": "שלום לכולם! מה שלומכם היום?",
+      "emoji": "🦁",
+      "subtitle": "ברכת שלום יומיומית חמה",
+      "recordingReady": false
+    },
+    {
+      "id": "d2",
+      "category": "daily",
+      "label": "איך עובר עליכם היום? ספרו לי בכיף.",
+      "emoji": "☕",
+      "subtitle": "פתיחת שיחה קלילה",
+      "recordingReady": false
+    },
+    {
+      "id": "d3",
+      "category": "daily",
+      "label": "אני יושב פה בנחת, שותה קפה ונהנה מהלייב.",
+      "emoji": "👑",
+      "subtitle": "שיחה רגועה ואווירה טובה",
+      "recordingReady": false
+    },
+    {
+      "id": "d4",
+      "category": "daily",
+      "label": "איזה יום יפה היום, מקווה שאתם בטוב!",
+      "emoji": "☀️",
+      "subtitle": "איחול יומיומי חיובי",
+      "recordingReady": false
+    },
+    {
+      "id": "d5",
+      "category": "daily",
+      "label": "תודה רבה שבאתם, תמיד תענוג לפגוש אתכם.",
+      "emoji": "🙏",
+      "subtitle": "הכרת תודה לצופים",
+      "recordingReady": false
+    },
+    {
+      "id": "d6",
+      "category": "daily",
+      "label": "על מה בא לכם לדבר היום חברים?",
+      "emoji": "💬",
+      "subtitle": "פתיחת נושא שיחה משותף",
+      "recordingReady": false
+    },
+    {
+      "id": "d7",
+      "category": "daily",
+      "label": "חחח הצחקתם אותי, איזה כיף פה איתכם!",
+      "emoji": "😂",
+      "subtitle": "צחוק חברי נעים",
+      "specialAction": "laugh",
+      "recordingReady": false
+    },
+    {
+      "id": "d8",
+      "category": "daily",
+      "label": "תרגישו חופשי לכתוב כל דבר, אני מקשיב לכולם.",
+      "emoji": "👂",
+      "subtitle": "הקשבה וסבלנות",
+      "recordingReady": false
+    },
+    {
+      "id": "d9",
+      "category": "daily",
+      "label": "ספרו לי מה עשיתם היום משהו מעניין?",
+      "emoji": "🤔",
+      "subtitle": "שאלה יומיומית פתוחה",
+      "recordingReady": false
+    },
+    {
+      "id": "d10",
+      "category": "daily",
+      "label": "שיהיה לכולנו המשך יום מושלם ומלא ברכות!",
+      "emoji": "✨",
+      "subtitle": "איחול חם מכל הלב",
+      "recordingReady": false
+    },
+    {
+      "id": "e1",
+      "category": "emotions",
+      "label": "וואו, באמת? לא ידעתי את זה!",
+      "emoji": "😲",
+      "subtitle": "הפתעה ועניין אמיתי",
+      "recordingReady": false
+    },
+    {
+      "id": "e2",
+      "category": "emotions",
+      "label": "אני ממש שמח לשמוע, איזה יופי!",
+      "emoji": "😊",
+      "subtitle": "שמחה והתלהבות",
+      "recordingReady": false
+    },
+    {
+      "id": "e3",
+      "category": "emotions",
+      "label": "מעניין מאוד, בהחלט נקודה למחשבה.",
+      "emoji": "🧐",
+      "subtitle": "מחשבה עמוקה",
+      "recordingReady": false
+    },
+    {
+      "id": "e4",
+      "category": "emotions",
+      "label": "מבין אותך לגמרי, הכול לטובה!",
+      "emoji": "🤝",
+      "subtitle": "אמפתיה וחיזוק",
+      "recordingReady": false
+    },
+    {
+      "id": "e5",
+      "category": "emotions",
+      "label": "אל תדאגו חברים, יהיה בסדר גמור!",
+      "emoji": "💪",
+      "subtitle": "עידוד וחיוביות",
+      "recordingReady": false
+    },
+    {
+      "id": "e6",
+      "category": "emotions",
+      "label": "איזה אנרגיות מעולות ושקטות יש פה היום.",
+      "emoji": "✨",
+      "subtitle": "הערכה לאווירה הרגועה",
+      "recordingReady": false
+    }
+  ]
+}

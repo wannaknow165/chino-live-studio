@@ -1,0 +1,55 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+*.err
+*.pyc
+__pycache__/
+.env*
+!.env.example
+**/.venv*/
+**/pose_venv/
+.aistudio/
+**/.cache/
+**/backups/
+**/*.blend1
+**/*.blend2
+ariel_live/tools/vendor/
+ariel_live/tools/models/
+# Runtime state, personal conversations, browser profiles and credentials stay local.
+ariel_live/data/*
+!ariel_live/data/performer/
+ariel_live/data/performer/*
+!ariel_live/data/performer/seated-wardrobe/
+!ariel_live/data/performer/seated-denim-chair/
+!ariel_live/data/performer/royal-hero-v12/
+ariel_live/data/performer/seated-wardrobe/*
+!ariel_live/data/performer/seated-wardrobe/Lion_Original_Rig_Wardrobe.blend
+!ariel_live/data/performer/seated-wardrobe/Lion_Wardrobe_Live_Scene.blend
+!ariel_live/data/performer/seated-wardrobe/lion_original_wardrobe.glb
+!ariel_live/data/performer/seated-wardrobe/preview-*.jpg
+ariel_live/data/performer/seated-denim-chair/*
+!ariel_live/data/performer/seated-denim-chair/Royal_Throne.blend
+!ariel_live/data/performer/seated-denim-chair/royal-throne.glb
+ariel_live/data/performer/royal-hero-v12/*
+!ariel_live/data/performer/royal-hero-v12/Royal_Lion_Hero_v12.blend
+!ariel_live/data/performer/royal-hero-v12/royal-lion-hero-v12.glb
+# Only active media; failed generations and old/deleted assets are archives.
+ariel_live/media/rejected/
+ariel_live/media/_deleted*/
+ariel_live/media/ortest/
+ariel_live/media/faces/
+ariel_live/media/interactions/incoming/
+ariel_live/media/interactions/scenes/
+# Original downloaded music is an archive; learned dance clips are media/dance.
+ariel_live/media/songs/
+# Generated local platform configuration is never committed.
+.local/
+
+# Local legacy browser key config
+lion_idle/config.js
+
+*.backup.html
+lion_idle/_req.json

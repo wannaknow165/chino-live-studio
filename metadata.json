@@ -1,0 +1,6 @@
+{
+  "name": "THE VOICE — Hebrew Narrator Studio",
+  "description": "Professional voice casting and production studio for cinematic Hebrew TikTok narration on psychology and social behavior.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

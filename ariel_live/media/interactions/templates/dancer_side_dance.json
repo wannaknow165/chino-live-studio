@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "preset": "dancer_side_dance",
+  "enabled": true,
+  "approvalScope": "operator_approved_output",
+  "approvedForIntegratedOutput": true,
+  "publicApproved": false,
+  "baseVideoUrl": "/media/dance/chino-dancer-side-openrouter.mp4",
+  "baseVideoSha256": "689a721388acf9a8cafb113fddfbe8b421bdf26b15309ca4fec80eff89d408c8",
+  "profile": {
+    "version": 1,
+    "kind": "side_dance",
+    "reviewed": true,
+    "sourceFile": "chino-dancer-side-openrouter.mp4",
+    "duration": 8,
+    "place": {
+      "x": 0.2,
+      "y": 0.78,
+      "width": 0.42
+    },
+    "fadeIn": 0.4,
+    "fadeOut": 0.6
+  },
+  "generationReview": {
+    "provider": "openrouter",
+    "model": "google/veo-3.1-lite",
+    "actualCostUSD": 0.24,
+    "motionObserved": "both paws raised and moved; head turns toward image left; paws return to armrests",
+    "approval": "operator_approved_visual_review",
+    "approvedAt": "2026-11-09T19:35:11.356187+00:00"
+  }
+}

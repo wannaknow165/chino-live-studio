@@ -1,0 +1,87 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>האריה • מנוע דיבור 3D</title><style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0a0f13;color:#e9edf1;font:16px/1.6 system-ui}
+main{max-width:1100px;margin:30px auto;padding:20px}h1{margin:0;color:#eed4a4}p{color:#9caab5;margin-top:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#121b22;border:1px solid #2a3944;border-radius:18px;padding:22px}
+h2{margin:0 0 14px;font-size:19px}button,a.btn,select,input,textarea{font:inherit;border-radius:9px;border:1px solid #3b4b59;padding:10px 14px;background:#1d2a34;color:#fff}
+button,a.btn{cursor:pointer;display:inline-block;text-decoration:none;margin:4px 0 4px 6px}button.primary{background:#d7b678;color:#1b160f;font-weight:700}
+button.danger{background:#982d37;border-color:#c65863;font-weight:800}textarea{width:100%;min-height:95px;resize:vertical}label{display:block;margin:12px 0 4px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.pill{padding:5px 10px;background:#1e303e;border-radius:30px;font-size:14px}
+#notice{min-height:30px;color:#f0c878}#events{white-space:pre-wrap;max-height:170px;overflow:auto;color:#b4cad5;font-size:14px}
+small{display:block;color:#91a1ae}pre{direction:ltr;white-space:pre-wrap;font-size:12px}a{color:#e4c48b}@media(max-width:700px){.grid{grid-template-columns:1fr}main{margin:5px auto}}
+</style></head><body><main>
+<h1>האריה — דיבור ותנועה בזמן אמת</h1><p>ריג 3D עם הקול המקורי מהסרטונים • כרגע משפטים מהספרייה • דיבור חדש וחופשי באותו קול עדיין אינו מחובר</p>
+<div class="row"><a class="btn" href="/stage" target="_blank">פתיחת תצוגת האריה והפעלת קול</a><a class="btn" href="http://localhost:7777/" target="_blank">הדשבורד הקיים</a><button class="danger" id="stop">עצור הכול — השתק והקפא תגובות</button></div>
+<div id="notice" role="status"></div><div class="row" id="status"></div><br>
+<section class="card"><h2>הקול המקורי שאושר</h2><select id="voiceBank" aria-label="משפט מהספרייה"></select><button class="primary" id="bankSay">השמע עם תנועות פה</button><button id="record">הקלט בדיקה של 15 שניות</button><a id="recordFile" hidden>פתח הקלטה</a><small>הקלטה מקומית של הדמות והקול. אינה מתחילה שידור.</small></section><br>
+<section class="card"><h2>אני מדבר — הוא עונה</h2><button class="primary" id="talk">לחץ כדי להתחיל לדבר</button><span id="talkState"></span><small>לחיצה נוספת מסיימת את ההקלטה ושולחת לאריה. עד 15 שניות בכל תור. אפשר לבחור מיקרופון באזור קלט השמע.</small></section><br>
+<div id="latency" class="pill">זמן תגובה יופיע אחרי הבדיקה</div><br>
+<div class="grid"><section class="card"><h2>אני כותב — הוא אומר בדיוק</h2><small>משפט מדויק שלך. עוצר תגובה ממתינה ומדבר במקומה.</small>
+<label for="line">מה האריה יגיד?</label><textarea id="line" placeholder="שלום חברים, איזה כיף שאתם כאן!"></textarea>
+<div class="row"><select id="lang"><option value="he">עברית</option><option value="en">English</option></select><button class="primary" id="say">אמור את המשפט</button></div>
+<label>מצב פעולה</label><button id="manual">ידני</button><button id="auto">תגובה אוטומטית לחדר המחובר</button>
+<small>האוטומציה משתמשת רק באירועי החדר שלך בדשבורד. הלייב שנצפה ללמידה אינו מפעיל אותה.</small>
+</section><section class="card"><h2>אני כותב — הוא עונה לי</h2><small>שאלה או תגובה שלך, ותשובה של האריה. בדיקה מקומית ללא שידור.</small>
+<label for="incoming">מה אמרו לאריה?</label><textarea id="incoming" placeholder="למה אתה חושב שתנצח בבאטל הזה?"></textarea>
+<div class="row"><select id="kind"><option value="opponent">המתמודד שמולי</option><option value="chat">צופה בקהל</option><option value="gift">אירוע מתנה</option></select><button class="primary" id="respond">הקשב וענה</button></div>
+<button id="hold">היריב מדבר — המתן</button><button id="release">היריב סיים</button>
+</section><section class="card"><h2>פריים ותפאורה</h2>
+<label>פריים</label><select id="framing"><option value="seated">ישיבה מלאה</option><option value="battle">באטל</option><option value="portrait">פנים</option></select>
+<label>רקע אחורי</label><select id="background"><option value="royal">וילון כהה</option><option value="studio">אולפן כחול</option><option value="transparent">שקוף לשילוב בדשבורד</option></select>
+<label>תאורה</label><select id="lighting"><option value="warm">חמה</option><option value="neutral">ניטרלית</option><option value="cool">קרה</option></select>
+<label>בדיקת פה ופנים — חמש שניות</label><div id="poses"></div>
+</section><section class="card"><h2>קלט שמע ושליטה</h2>
+<small>בחרו ערוץ נפרד של היריב. אל תבחרו ערוץ שכולל את קול האריה עצמו.</small>
+<button id="devices">בחירת התקן שמע</button><select id="inputDevice" aria-label="קלט שמע"></select>
+<button id="listen">הפעל הקשבה</button><button id="unlisten">הפסק הקשבה</button>
+<small>התמלול מקומי. השיוך ליריב מבוסס על ההתקן שנבחר, ללא זיהוי דובר אוטומטי.</small>
+<label for="credential">מפתח להפעלה זו בלבד</label><input id="credential" type="password" autocomplete="off" placeholder="לא נשמר בקובץ"><button id="key">חבר בזיכרון בלבד</button>
+</section></div><section class="card" style="margin-top:18px"><h2>מצב וחיבור</h2><div id="events"></div><details><summary>מדידות</summary><pre id="details"></pre></details></section>
+</main><script>
+const $=id=>document.getElementById(id);
+const friendly={stage_audio_not_ready:'פתחו את תצוגת האריה ולחצו על הפעלת הקול.',speech_held:'הדיבור בהמתנה. לחצו ידני או שחררו את ההמתנה.',openai_key_required:'צריך לחבר מפתח להפעלה זו.',performer_busy:'האריה כבר מכין או משמיע תשובה.',local_rate_limit:'הגעתם להגבלת קצב הבדיקות; המתינו רגע.'};
+async function api(route,value){const r=await fetch('/api/'+route,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(value)});const j=await r.json();if(!r.ok)throw Error(friendly[j.error]||j.error);return j}
+const run=f=>async()=>{try{$('notice').textContent='מבצע…';await f();$('notice').textContent='בוצע';await status()}catch(e){$('notice').textContent=e.message}};
+$('say').onclick=run(()=>api('say',{text:$('line').value,language:$('lang').value}));
+$('bankSay').onclick=run(()=>api('voice/bank/say',{id:$('voiceBank').value}));
+$('record').onclick=run(()=>api('recording/start',{seconds:15}));
+fetch('/api/voice/bank').then(r=>r.json()).then(items=>{for(const item of items){const o=document.createElement('option');o.value=item.id;o.textContent=item.text;o.selected=item.id==='469f030b38';$('voiceBank').appendChild(o)}});
+setInterval(async()=>{try{const s=await(await fetch('/api/status')).json();if(s.recording.file){$('recordFile').hidden=false;$('recordFile').href=s.recording.file;$('recordFile').target='_blank'}}catch{}},3000);
+friendly.original_voice_phrase_unavailable='המשפט הזה עדיין אינו קיים בקול המקורי. בחרו משפט מהספרייה.';
+$('respond').onclick=run(()=>api('respond',{text:$('incoming').value,kind:$('kind').value}));
+$('stop').onclick=run(()=>api('stop',{}));$('manual').onclick=run(()=>api('mode',{mode:'manual'}));
+$('auto').onclick=run(()=>api('mode',{mode:'auto'}));
+$('hold').onclick=run(()=>api('input/activity',{active:true}));$('release').onclick=run(()=>api('input/activity',{active:false}));
+$('key').onclick=run(async()=>{const key=$('credential').value;$('credential').value='';await api('credential',{key})});
+for(const k of ['framing','background','lighting'])$(k).onchange=run(()=>api('scene',{[k]:$(k).value}));
+for(const [pose,label]of Object.entries({neutral:'ניטרלי',open:'פתיחה',seal:'סגירת שפתיים',round:'עיגול',smile:'חיוך',blink:'מצמוץ'})){const b=document.createElement('button');b.textContent=label;b.onclick=run(()=>api('pose',{pose}));$('poses').appendChild(b)}
+async function status(){const s=await(await fetch('/api/status')).json();$('status').replaceChildren();for(const t of [s.performer.mode==='auto'?'אוטומטי':s.performer.mode==='paused'?'עצור':'ידני',s.stage.ready?'דמות מוכנה':'דמות טרם נטענה',s.stage.audio?'קול פתוח':'קול ממתין להפעלה',s.stage.fps+' FPS',s.provider.configured?'מפתח מחובר':'מפתח חסר']){const n=document.createElement('span');n.className='pill';n.textContent=t;$('status').appendChild(n)}$('details').textContent=JSON.stringify(s,null,2);if(s.performer.error)$('notice').textContent=friendly[s.performer.error]||s.performer.error}
+setInterval(()=>status().catch(()=>{$('notice').textContent='השרת אינו זמין'}),2000);status();
+let talkRecorder=null,talkBusy=false;
+$('talk').onclick=async()=>{
+  if(talkRecorder?.state==='recording'){talkRecorder.stop();return}
+  if(talkBusy)return;talkBusy=true;
+  try{
+    const mic=await navigator.mediaDevices.getUserMedia({audio:{deviceId:$('inputDevice').value?{exact:$('inputDevice').value}:undefined,echoCancellation:true,noiseSuppression:true}});
+    await api('input/activity',{active:true});
+    const chunks=[],r=talkRecorder=new MediaRecorder(mic);let timeout;
+    r.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+    r.onstop=async()=>{clearTimeout(timeout);mic.getTracks().forEach(t=>t.stop());$('talkState').textContent='מתמלל ומכין תשובה…';$('talk').textContent='לחץ כדי להתחיל לדבר';
+      try{await api('input/activity',{active:false});const response=await fetch('/api/input/audio',{method:'POST',headers:{'X-Source':'operator','X-Mode':'respond'},body:new Blob(chunks,{type:r.mimeType})});const j=await response.json();if(!response.ok)throw Error(friendly[j.error]||j.error);$('talkState').textContent=j.text?'שמעתי: '+j.text:'לא זוהה דיבור ברור';}
+      catch(e){$('talkState').textContent=e.message}finally{talkBusy=false;talkRecorder=null}};
+    r.start();$('talk').textContent='סיימתי לדבר — ענה לי';$('talkState').textContent='מקליט…';timeout=setTimeout(()=>{if(r.state==='recording')r.stop()},15000);
+  }catch(e){talkBusy=false;$('talkState').textContent=e.message;api('input/activity',{active:false}).catch(()=>{})}
+};
+setInterval(async()=>{try{const s=await(await fetch('/api/status')).json(),t=s.performer.timing;if(t?.playbackStartMs!=null)$('latency').textContent='עד תחילת הניגון: '+(t.playbackStartMs/1000).toFixed(2)+' שנ׳ · הכנת תשובה: '+((t.decisionMs||0)/1000).toFixed(2)+' · הכנת קול: '+((t.voiceMs||0)/1000).toFixed(2);}catch{}},1000);
+const es=new EventSource('/api/events');es.onmessage=e=>{const d=JSON.parse(e.data);if(d.type==='utterance'||d.type==='transcript'){$('events').textContent=(d.type==='utterance'?'האריה: ':'קלט: ')+(d.text||'')+'\n'+$('events').textContent.slice(0,1800)}};
+let stream=null,ctx=null,recorder=null,activityTimer=null,speech=false,lastLoud=0,parts=[],busy=false;
+$('devices').onclick=run(async()=>{const permission=await navigator.mediaDevices.getUserMedia({audio:true});permission.getTracks().forEach(t=>t.stop());const devices=await navigator.mediaDevices.enumerateDevices();$('inputDevice').replaceChildren();for(const d of devices.filter(x=>x.kind==='audioinput')){const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||'Audio input';$('inputDevice').appendChild(o)}});
+async function stopInput(){clearInterval(activityTimer);if(recorder&&recorder.state!=='inactive')recorder.stop();stream?.getTracks().forEach(t=>t.stop());await ctx?.close();stream=null;recorder=null;speech=false;await api('input/activity',{active:false})}
+$('unlisten').onclick=run(stopInput);
+$('listen').onclick=run(async()=>{
+  if(stream)return;stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:$('inputDevice').value?{exact:$('inputDevice').value}:undefined,echoCancellation:true,noiseSuppression:true}});
+  ctx=new AudioContext();const a=ctx.createAnalyser();a.fftSize=512;ctx.createMediaStreamSource(stream).connect(a);const data=new Float32Array(512);
+  function begin(){parts=[];recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};recorder.onstop=async()=>{const clip=new Blob(parts,{type:recorder.mimeType});if(busy||clip.size<2000)return;busy=true;try{const r=await fetch('/api/input/audio',{method:'POST',headers:{'X-Source':'opponent'},body:clip});const j=await r.json();if(j.text)$('events').textContent='היריב: '+j.text+'\n'+$('events').textContent.slice(0,1800)}finally{busy=false}};recorder.start();lastLoud=performance.now()}
+  activityTimer=setInterval(()=>{a.getFloatTimeDomainData(data);const rms=Math.sqrt(data.reduce((n,x)=>n+x*x,0)/data.length),now=performance.now();if(rms>.025){lastLoud=now;if(!speech&&!busy){speech=true;api('input/activity',{active:true});begin()}}if(speech&&now-lastLoud>650){speech=false;api('input/activity',{active:false});if(recorder?.state==='recording')recorder.stop()}},60);
+});
+</script></body></html>

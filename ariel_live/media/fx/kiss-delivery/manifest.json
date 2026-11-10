@@ -1,0 +1,39 @@
+{
+  "source": "C:\\Users\\shk\\Downloads\\koisss.mp4",
+  "sourceUnmodified": true,
+  "width": 720,
+  "height": 1280,
+  "fps": 30,
+  "duration": 5.8,
+  "alpha": true,
+  "audio": false,
+  "gestureAttached": false,
+  "burstDelayMs": 0,
+  "files": [
+    "kiss-clean-alpha.webm",
+    "kiss-burst-alpha.webm",
+    "kiss-burst-preview.mp4"
+  ],
+  "effectId": "37dbf143",
+  "effectFile": "/media/fx/chino-kiss-burst.webm",
+  "effectName": "💋 נשיקה לכולם",
+  "playEndpoint": "http://127.0.0.1:7777/api/fx/play",
+  "playBody": {
+    "id": "37dbf143"
+  },
+  "settings": {
+    "id": "37dbf143",
+    "name": "💋 נשיקה לכולם",
+    "aim": "full",
+    "fit": false,
+    "scale": 1,
+    "hit": false
+  },
+  "verification": {
+    "alphaDecoded": true,
+    "apiDispatch": true,
+    "dashboardButtonVisible": true,
+    "browserPlaybackVerified": false,
+    "gestureAttached": false
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "inbox": [],
+  "lessons": [],
+  "history": [],
+  "overrides": {
+    "reuse-288185a729dc": {
+      "auto": true,
+      "roles": [
+        "chat",
+        "opponent"
+      ]
+    },
+    "reuse-96b58158a593": {
+      "auto": true,
+      "roles": [
+        "chat",
+        "opponent"
+      ]
+    },
+    "reuse-142a64471ef9": {
+      "auto": true,
+      "roles": [
+        "chat",
+        "opponent"
+      ]
+    },
+    "chino-1b610728-0693-4d0e-a5cc-53e20a00ee59": {
+      "auto": false,
+      "roles": [
+        "audience"
+      ]
+    },
+    "chino-ba28ca84-ef7d-4243-9fb4-b8f7f59e9aa3": {
+      "auto": false,
+      "roles": [
+        "audience"
+      ]
+    },
+    "chino-c78287d4-7340-4d2c-b325-159bc5b3cafd-edited-performance": {
+      "auto": true,
+      "roles": [
+        "audience",
+        "chat",
+        "opponent"
+      ]
+    },
+    "chino-94e8ff54-b78f-4247-9f9e-9b07d6ecd6e5": {
+      "auto": true,
+      "roles": [
+        "opponent"
+      ]
+    }
+  },
+  "people": {},
+  "sessions": [],
+  "metrics": [],
+  "audienceMode": "solo"
+}

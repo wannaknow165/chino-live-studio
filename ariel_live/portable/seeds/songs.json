@@ -1,0 +1,300 @@
+[
+  {
+    "id": "72156200ea",
+    "name": "young buta - שחור לבן",
+    "dances": [
+      "72156200ea_vibe1.mp4",
+      "72156200ea_vibe2.mp4"
+    ],
+    "sings": [
+      "72156200ea_sing1.mp4",
+      "72156200ea_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        14.726,
+        28.726
+      ],
+      [
+        70.726,
+        148.726
+      ],
+      [
+        229.726,
+        268.726
+      ]
+    ],
+    "analysis": {
+      "bpm": 110
+    }
+  },
+  {
+    "id": "cfff281ea3",
+    "name": "רואי אדם - קילומטר קדימה",
+    "dances": [
+      "cfff281ea3_vibe1.mp4",
+      "cfff281ea3_vibe2.mp4"
+    ],
+    "sings": [
+      "cfff281ea3_sing1_v2.mp4"
+    ],
+    "chorus": [
+      [
+        43.062,
+        62.062
+      ],
+      [
+        149.062,
+        213.062
+      ]
+    ],
+    "analysis": {
+      "bpm": 82
+    }
+  },
+  {
+    "id": "2bfc05b4bf",
+    "name": "רואי אדם - אבי הטחול",
+    "dances": [
+      "2bfc05b4bf_vibe1.mp4",
+      "2bfc05b4bf_vibe2.mp4"
+    ],
+    "sings": [
+      "2bfc05b4bf_sing1.mp4",
+      "2bfc05b4bf_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        177.051,
+        203.051
+      ]
+    ],
+    "analysis": {
+      "bpm": 100
+    }
+  },
+  {
+    "id": "54c2985189",
+    "name": "Idan Amedi, Omer Adam - כאב של לוחמים + בחורים טובים - מתוך חזרות למופע NEXT",
+    "dances": [
+      "54c2985189_vibe1.mp4",
+      "54c2985189_vibe2.mp4"
+    ],
+    "sings": [
+      "54c2985189_sing1.mp4",
+      "54c2985189_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        234.747,
+        248.747
+      ],
+      [
+        299.747,
+        315.747
+      ]
+    ],
+    "analysis": {
+      "bpm": 68
+    }
+  },
+  {
+    "id": "3f96037005",
+    "name": "אופק אדנק - נתתי לך בית",
+    "dances": [
+      "3f96037005_vibe1.mp4",
+      "3f96037005_vibe2.mp4"
+    ],
+    "sings": [
+      "3f96037005_sing3_v2.mp4"
+    ],
+    "chorus": [
+      [
+        52,
+        112
+      ],
+      [
+        146,
+        206
+      ],
+      [
+        222,
+        242
+      ]
+    ],
+    "analysis": {
+      "bpm": 128
+    }
+  },
+  {
+    "id": "844053320d",
+    "name": "Mor - מטריקס",
+    "dances": [
+      "844053320d_vibe1.mp4",
+      "844053320d_vibe2.mp4"
+    ],
+    "sings": [
+      "844053320d_sing1.mp4",
+      "844053320d_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        34.431,
+        53.431
+      ],
+      [
+        134.431,
+        154.431
+      ],
+      [
+        213.431,
+        233.431
+      ]
+    ],
+    "analysis": {
+      "bpm": 128
+    }
+  },
+  {
+    "id": "28fdfbab7d",
+    "name": "נדב חנציס, אופק אדנק - כבר לא שמח",
+    "dances": [
+      "28fdfbab7d_vibe1.mp4",
+      "28fdfbab7d_vibe2.mp4"
+    ],
+    "sings": [
+      "28fdfbab7d_sing1.mp4",
+      "28fdfbab7d_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        50.507,
+        61.507
+      ]
+    ],
+    "analysis": {
+      "bpm": 126
+    }
+  },
+  {
+    "id": "c022a89e99",
+    "name": "ישי לוי - ריקוד רומנטי",
+    "dances": [
+      "c022a89e99_vibe1.mp4",
+      "c022a89e99_vibe2.mp4"
+    ],
+    "sings": [
+      "c022a89e99_sing1.mp4",
+      "c022a89e99_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        169.179,
+        183.179
+      ]
+    ],
+    "analysis": {
+      "bpm": 128
+    }
+  },
+  {
+    "id": "6cda01cfde",
+    "name": "Gal Adam - אין אותי יותר",
+    "dances": [
+      "6cda01cfde_vibe1.mp4",
+      "6cda01cfde_vibe2.mp4"
+    ],
+    "sings": [
+      "6cda01cfde_sing1.mp4",
+      "6cda01cfde_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        43.254,
+        106.254
+      ],
+      [
+        145.254,
+        208.254
+      ],
+      [
+        218.254,
+        244.254
+      ]
+    ],
+    "analysis": {
+      "bpm": 126
+    }
+  },
+  {
+    "id": "5b7580ee6b",
+    "name": "דודו אהרון - מגדלים 2",
+    "dances": [
+      "5b7580ee6b_vibe1.mp4",
+      "5b7580ee6b_vibe2.mp4"
+    ],
+    "sings": [
+      "5b7580ee6b_sing1.mp4",
+      "5b7580ee6b_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        55.296,
+        115.296
+      ],
+      [
+        210.296,
+        230.296
+      ]
+    ],
+    "analysis": {
+      "bpm": 128
+    }
+  },
+  {
+    "id": "15d9ce81ef",
+    "name": "Omer Adam, Liran Danino - סיפור ישן",
+    "dances": [
+      "15d9ce81ef_vibe1.mp4",
+      "15d9ce81ef_vibe2.mp4"
+    ],
+    "sings": [
+      "15d9ce81ef_sing1.mp4",
+      "15d9ce81ef_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        53.809,
+        65.809
+      ]
+    ],
+    "analysis": {
+      "bpm": 107
+    }
+  },
+  {
+    "id": "e6dcb525c2",
+    "name": "ליאם גולן - מלכת האכזבות",
+    "dances": [
+      "e6dcb525c2_vibe1.mp4",
+      "e6dcb525c2_vibe2.mp4"
+    ],
+    "sings": [
+      "e6dcb525c2_sing1.mp4",
+      "e6dcb525c2_sing2.mp4"
+    ],
+    "chorus": [
+      [
+        101.226,
+        129.226
+      ],
+      [
+        146.226,
+        214.226
+      ]
+    ],
+    "analysis": {
+      "bpm": 102
+    }
+  }
+]

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>אריה — שליטה בלייב</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{--bg:#0d0b09;--panel:#17130f;--line:#3a2f22;--gold:#d9a441;--text:#f3e7d3;--dim:#a8957a;--red:#c0392b;--green:#2ecc71}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Segoe UI",Arial,sans-serif;display:flex;gap:18px;padding:18px;min-height:100vh}
+  .col{display:flex;flex-direction:column;gap:12px}
+  .left{flex:1;max-width:560px}
+  .right{width:300px;align-items:center}
+  h1{margin:0;font-size:22px;color:var(--gold)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  textarea{width:100%;min-height:90px;background:#0f0c09;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:18px;resize:vertical}
+  button{background:var(--gold);color:#1a1208;border:0;border-radius:8px;padding:11px 16px;font-size:16px;font-weight:700;cursor:pointer}
+  button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+  button.on{background:var(--red);color:#fff}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  select,input[type=range]{background:#0f0c09;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px}
+  #preview{width:270px;height:480px;border-radius:12px;border:1px solid var(--line);background:#000}
+  #status{font-size:14px;color:var(--dim);min-height:20px}
+  #log{font-size:14px;color:var(--dim);max-height:180px;overflow:auto;line-height:1.6}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#555;margin-inline-end:6px}
+  .dot.live{background:var(--green)}
+  label{font-size:14px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="col left">
+  <h1>👑 אריה — שליטה בלייב</h1>
+
+  <div class="card col">
+    <div class="row">
+      <button id="openStage">1. פתח חלון במה</button>
+      <span id="stageState"><span class="dot"></span>במה סגורה</span>
+    </div>
+    <label>את חלון הבמה תוסיף ב-Live Studio כ"לכידת חלון" (Window Capture).</label>
+  </div>
+
+  <div class="card col">
+    <label>כתוב — והאריה אומר (Enter שולח, Shift+Enter שורה חדשה)</label>
+    <textarea id="txt" placeholder="כתוב פה מה שהאריה יגיד..."></textarea>
+    <div class="row">
+      <button id="sayBtn">🦁 תגיד</button>
+      <button id="micBtn" class="ghost">🎙️ אני מדבר — הוא חוזר</button>
+      <button id="liveMicBtn" class="ghost">🗣️ הפה זז עם הקול שלי</button>
+      <button id="stopBtn" class="ghost">⏹ עצור</button>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div class="card col">
+    <div class="row">
+      <label>קול:</label>
+      <select id="voice">
+        <option value="Fenrir">Fenrir — קול האריה מהאפליקציה</option><option>Charon</option><option>Orus</option><option>Algenib</option><option>Puck</option><option>Iapetus</option>
+      </select>
+      <label>מודל:</label>
+      <select id="model">
+        <option value="gemini-3.8-flash-lite-tts">מהיר</option>
+        <option value="gemini-3.8-flash-tts">איכותי</option>
+      </select>
+    </div>
+    <div class="row">
+      <label><input type="checkbox" id="styleOn" checked> הנחיית הקול של האריה מהאפליקציה (מלך האריות)</label>
+    </div>
+    <div class="row">
+      <label>גודל תנועת הפה</label><input type="range" id="mouthGain" min="0.5" max="2" step="0.1" value="1">
+      <label>תנועת גוף</label><input type="range" id="bodyGain" min="0" max="2" step="0.1" value="1">
+    </div>
+  </div>
+
+  <div class="card"><div id="log"></div></div>
+</div>
+
+<div class="col right">
+  <canvas id="preview" width="540" height="960"></canvas>
+  <label>תצוגה מקדימה (מה שהקהל רואה)</label>
+</div>
+
+<script src="config.js"></script>
+<script>
+const KEY = (window.LION_CONFIG||{}).GEMINI_API_KEY;
+const $ = id => document.getElementById(id);
+const log = m => { const d=document.createElement('div'); d.textContent=new Date().toLocaleTimeString('he-IL')+' — '+m; $('log').prepend(d); };
+const status = m => $('status').textContent = m||'';
+
+/* ---------------- image + face map (master.png 941x1672) ---------------- */
+const img = new Image(); img.src = 'master.png';
+const W=941, H=1672;
+const FACE = {
+  mouthY: 652, mouthL: 425, mouthR: 580, mouthCX: 502,
+  jaw: {x:370, y:650, w:265, h:150},
+  eyes: [{x:412,y:470},{x:570,y:470}],
+  headC: {x:495,y:520}, headPivot:{x:495,y:820}, headR0:230, headR1:345
+};
+
+/* offscreen layers */
+const comp = document.createElement('canvas'); comp.width=W; comp.height=H; const cc=comp.getContext('2d');
+const head = document.createElement('canvas'); head.width=W; head.height=H; const hc=head.getContext('2d');
+const jawMask = document.createElement('canvas'); jawMask.width=FACE.jaw.w; jawMask.height=FACE.jaw.h+40; const jm=jawMask.getContext('2d');
+
+function buildJawLayer(){
+  // copy of the lower jaw region with feathered sides/bottom, hard top edge (lower lip)
+  const j=FACE.jaw; jm.clearRect(0,0,jawMask.width,jawMask.height);
+  jm.drawImage(img, j.x, j.y, j.w, j.h+40, 0, 0, j.w, j.h+40);
+  jm.globalCompositeOperation='destination-in';
+  const g=jm.createRadialGradient(j.w/2, 10, 10, j.w/2, 10, j.w*0.5);
+  g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(0.35,'rgba(0,0,0,1)'); g.addColorStop(0.85,'rgba(0,0,0,0)');
+  jm.fillStyle=g; jm.fillRect(0,0,jawMask.width,jawMask.height);
+  jm.globalCompositeOperation='source-over';
+}
+
+/* ---------------- animation state ---------------- */
+let mouth=0, mouthTarget=0;            // 0..1
+let blinkT=-1, nextBlink=performance.now()+2500;
+let speaking=false;
+const t0=performance.now();
+const noise = (t,f,s)=> Math.sin(t*f+s)*0.6 + Math.sin(t*f*2.31+s*1.7)*0.3 + Math.sin(t*f*0.47+s*0.3)*0.4;
+
+const lip = document.createElement('canvas'); lip.width=230; lip.height=100; const lc=lip.getContext('2d');
+function buildLipLayer(){
+  // upper lip / jowls (y 580..660) with feathered bottom + sides, drawn OVER the open mouth
+  lc.clearRect(0,0,230,100); lc.drawImage(img, FACE.mouthCX-115, 580, 230, 100, 0, 0, 230, 100);
+  lc.globalCompositeOperation='destination-in';
+  const gv=lc.createLinearGradient(0,0,0,100); gv.addColorStop(0,'rgba(0,0,0,1)'); gv.addColorStop(0.62,'rgba(0,0,0,1)'); gv.addColorStop(0.8,'rgba(0,0,0,0)');
+  lc.fillStyle=gv; lc.fillRect(0,0,230,100);
+  const gh=lc.createLinearGradient(0,0,230,0); gh.addColorStop(0,'rgba(0,0,0,0)'); gh.addColorStop(0.18,'rgba(0,0,0,1)'); gh.addColorStop(0.82,'rgba(0,0,0,1)'); gh.addColorStop(1,'rgba(0,0,0,0)');
+  lc.fillStyle=gh; lc.fillRect(0,0,230,100);
+  lc.globalCompositeOperation='source-over';
+}
+function drawMouth(ctx, open){
+  if(open<0.01) return;
+  const d = open*20*(+$('mouthGain').value);   // jaw drop in px
+  const halfW = 34 + 26*open;
+  // dark mouth interior, soft edged
+  ctx.save();
+  ctx.filter='blur(2.5px)';
+  ctx.beginPath();
+  ctx.ellipse(FACE.mouthCX, FACE.mouthY+d*0.35, halfW, d*0.75+4, 0, 0, Math.PI*2);
+  const g=ctx.createRadialGradient(FACE.mouthCX, FACE.mouthY+d*0.6, 2, FACE.mouthCX, FACE.mouthY+d*0.4, halfW);
+  g.addColorStop(0,'#2a0e0b'); g.addColorStop(0.5,'#140605'); g.addColorStop(1,'#080303');
+  ctx.fillStyle=g; ctx.fill();
+  ctx.filter='none';
+  ctx.restore();
+  // lowered jaw, then the upper lip back on top so the edge stays natural fur
+  ctx.drawImage(jawMask, FACE.jaw.x, FACE.jaw.y + d);
+  ctx.drawImage(lip, FACE.mouthCX-115, 580 + d*0.08);
+}
+
+function drawBlink(ctx, c){ // c 0..1 closed amount
+  if(c<=0) return;
+  for(const e of FACE.eyes){
+    ctx.save();
+    ctx.beginPath(); ctx.ellipse(e.x, e.y, 32, 18, 0, 0, Math.PI*2); ctx.clip();
+    // stretch the fur just above the eye down over it (eyelid)
+    ctx.drawImage(img, e.x-34, e.y-46, 68, 24, e.x-34, e.y-22, 68, 6+36*c);
+    ctx.restore();
+  }
+}
+
+function render(target){
+  if(!img.complete || !img.naturalWidth) return;
+  const now=performance.now(), t=(now-t0)/1000, bg=+$('bodyGain').value;
+
+  // mouth envelope smoothing (fast attack, slower release)
+  mouth += (mouthTarget-mouth) * (mouthTarget>mouth ? 0.55 : 0.25);
+
+  // blink scheduler
+  let blink=0;
+  if(now>nextBlink && blinkT<0){ blinkT=now; }
+  if(blinkT>=0){ const p=(now-blinkT)/170; blink = p<0.5? p*2 : 2-p*2; if(p>=1){ blinkT=-1; blink=0; nextBlink=now+2200+Math.random()*4500; if(Math.random()<0.15) nextBlink=now+250; } }
+
+  // 1) face composite
+  cc.drawImage(img,0,0);
+  drawMouth(cc, mouth);
+  drawBlink(cc, blink);
+
+  // 2) head layer (feathered) for sway
+  hc.globalCompositeOperation='source-over'; hc.clearRect(0,0,W,H); hc.drawImage(comp,0,0);
+  hc.globalCompositeOperation='destination-in';
+  const rg=hc.createRadialGradient(FACE.headC.x,FACE.headC.y,FACE.headR0,FACE.headC.x,FACE.headC.y,FACE.headR1);
+  rg.addColorStop(0,'rgba(0,0,0,1)'); rg.addColorStop(1,'rgba(0,0,0,0)');
+  hc.fillStyle=rg; hc.fillRect(0,0,W,H); hc.globalCompositeOperation='source-over';
+
+  const talk = speaking?1:0;
+  const ang = (noise(t,0.35,1)*0.9 + talk*mouth*0.6*Math.sin(t*5.3)) * Math.PI/180 * bg;
+  const dx = noise(t,0.22,4)*2.2*bg, dy = (noise(t,0.3,7)*1.5 - talk*mouth*2.5)*bg;
+  const breath = Math.sin(t*2*Math.PI/4.2); // ~4.2s breath
+
+  // 3) output
+  const ctx = target.getContext('2d');
+  const sx = target.width/W, sy = target.height/H;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,target.width,target.height);
+  // body breathing: scale anchored at bottom center, slight over-scale to hide edges
+  const s = 1.012 + 0.004*breath*bg;
+  ctx.setTransform(sx*s,0,0,sy*(s+0.003*breath*bg), target.width/2*(1-s), target.height*(1-(s+0.003*breath*bg)));
+  ctx.drawImage(comp,0,0);
+  // head on top with sway around neck pivot
+  ctx.translate(FACE.headPivot.x+dx, FACE.headPivot.y+dy - 2*breath*bg);
+  ctx.rotate(ang);
+  ctx.translate(-FACE.headPivot.x, -FACE.headPivot.y);
+  ctx.drawImage(head,0,0);
+  ctx.setTransform(1,0,0,1,0,0);
+}
+
+/* ---------------- stage window ---------------- */
+let stageWin=null, stageCanvas=null;
+function openStage(){
+  stageWin = window.open('', 'lionstage', 'popup,width=540,height=960');
+  if(!stageWin){ alert('הדפדפן חסם את החלון — אשר חלונות קופצים לקובץ הזה'); return; }
+  stageWin.document.open();
+  stageWin.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>ARIEL STAGE</title>
+  <style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{position:absolute;inset:0;margin:auto;height:100vh;width:calc(100vh*9/16);max-width:100vw;max-height:calc(100vw*16/9)}</style>
+  </head><body><canvas id="c" width="1080" height="1920"></canvas></body></html>`);
+  stageWin.document.close();
+  stageCanvas = stageWin.document.getElementById('c');
+  const loop=()=>{ if(stageWin.closed){ setStage(false); return; } render(stageCanvas); mirror(); stageWin.requestAnimationFrame(loop); };
+  stageWin.requestAnimationFrame(loop);
+  setStage(true); log('חלון במה נפתח');
+}
+function setStage(on){ $('stageState').innerHTML = `<span class="dot ${on?'live':''}"></span>${on?'במה פעילה':'במה סגורה'}`; }
+const pv=$('preview'), pctx=pv.getContext('2d');
+function mirror(){ if(stageCanvas) pctx.drawImage(stageCanvas,0,0,pv.width,pv.height); }
+// preview loop when no stage is open
+(function pl(){ if(!stageWin||stageWin.closed){ render(pv); } requestAnimationFrame(pl); })();
+img.onload = ()=>{ buildJawLayer(); buildLipLayer(); log('האריה נטען'); };
+
+/* ---------------- audio ---------------- */
+let actx=null, analyser=null, curSrc=null, micStream=null, micSrc=null;
+const buf = new Float32Array(1024);
+function ensureAudio(){
+  if(actx) return;
+  actx = new (window.AudioContext||window.webkitAudioContext)();
+  analyser = actx.createAnalyser(); analyser.fftSize=1024; analyser.smoothingTimeConstant=0.2;
+  setInterval(()=>{
+    analyser.getFloatTimeDomainData(buf);
+    let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i];
+    const rms=Math.sqrt(s/buf.length);
+    mouthTarget = Math.max(0, Math.min(1, (rms-0.012)*7.5));
+  }, 16);
+}
+
+/* ---------------- TTS queue ---------------- */
+const queue=[]; let busy=false;
+function say(text){
+  text=(text||'').trim(); if(!text) return;
+  queue.push(text); log('בתור: '+text); pump();
+}
+async function tts(text){
+  const voice=$('voice').value, model=$('model').value;
+  const LION_STYLE = "You are the imposing, ultra-deep male lion king and mafia boss from the video, sitting on a golden royal throne smoking a thick cigar. Speak in an ultra-low, gravelly, menacing bass register with heavy vocal fry and resonant chest depth. Deliver the lines with supreme predatory authority, slow pacing, and deliberate cynical smirks. Seamlessly and effortlessly transition between authentic Israeli street Hebrew and gritty, deep, confident English phrases ('Let's talk about something interesting', 'Interesting, right?', 'Now, here's the funny part', 'And that's the trick. It's not what they say... It's what they do.', 'Welcome to ACUITY'). Zero radio announcer enthusiasm; speak with raw alpha dominance and deep psychological weight that rumbles in the chest.";
+  const part0 = $('styleOn').checked ? {text, speechMetadata:{style:LION_STYLE}} : {text};
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{
+    method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':KEY},
+    body: JSON.stringify({contents:[{role:'user',parts:[part0]}], generationConfig:{responseModalities:['AUDIO'], speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}})
+  });
+  const j = await r.json();
+  if(!r.ok) throw new Error(j.error?.message || ('HTTP '+r.status));
+  const part = j.candidates?.[0]?.content?.parts?.find(p=>p.inlineData);
+  if(!part) throw new Error('לא חזר קול');
+  return { b64: part.inlineData.data, mime: part.inlineData.mimeType };
+}
+function pcmOrWavToBuffer(b64, mime){
+  const bin=atob(b64), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+  const isWav = u8[0]===0x52 && u8[1]===0x49 && u8[2]===0x46 && u8[3]===0x46;
+  if(isWav) return actx.decodeAudioData(u8.buffer);
+  // raw 16-bit PCM (audio/L16;rate=24000)
+  const rate = +(mime.match(/rate=(\d+)/)||[0,24000])[1];
+  const n=u8.length/2, ab=actx.createBuffer(1,n,rate), ch=ab.getChannelData(0), dv=new DataView(u8.buffer);
+  for(let i=0;i<n;i++) ch[i]=dv.getInt16(i*2,true)/32768;
+  return Promise.resolve(ab);
+}
+async function pump(){
+  if(busy || !queue.length) return;
+  busy=true; ensureAudio(); if(actx.state==='suspended') await actx.resume();
+  const text=queue.shift();
+  try{
+    status('🦁 מכין קול…'); const t=performance.now();
+    const {b64,mime}=await tts(text);
+    const ab=await pcmOrWavToBuffer(b64,mime);
+    status(`🦁 מדבר (${((performance.now()-t)/1000).toFixed(1)} שנ׳ הכנה)`);
+    await new Promise(res=>{
+      curSrc=actx.createBufferSource(); curSrc.buffer=ab;
+      curSrc.connect(analyser); analyser.connect(actx.destination);
+      speaking=true; pauseRec(true);
+      curSrc.onended=()=>{ speaking=false; curSrc=null; try{analyser.disconnect(actx.destination);}catch(e){} res(); };
+      curSrc.start();
+    });
+    log('נאמר: '+text);
+  }catch(e){ log('שגיאה: '+e.message); status('שגיאה: '+e.message); }
+  busy=false; status(''); pauseRec(false); pump();
+}
+function stopAll(){ queue.length=0; if(curSrc){ try{curSrc.stop();}catch(e){} } speaking=false; status('נעצר'); }
+
+/* ---------------- mic: I speak -> lion repeats (Hebrew STT) ---------------- */
+let rec=null, recOn=false, recPaused=false;
+function toggleRec(){
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ alert('הדפדפן לא תומך בזיהוי דיבור — תפתח ב-Chrome'); return; }
+  if(recOn){ recOn=false; rec&&rec.stop(); $('micBtn').classList.remove('on'); status(''); return; }
+  ensureAudio();
+  rec=new SR(); rec.lang='he-IL'; rec.continuous=true; rec.interimResults=true;
+  rec.onresult=e=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal){ const t=r[0].transcript.trim(); if(t && !speaking) say(t); }
+      else interim+=r[0].transcript;
+    }
+    if(interim && !speaking) status('🎙️ '+interim);
+  };
+  rec.onend=()=>{ if(recOn && !recPaused) try{rec.start();}catch(e){} };
+  rec.onerror=e=>{ if(e.error!=='no-speech' && e.error!=='aborted') log('מיקרופון: '+e.error); };
+  recOn=true; recPaused=false; rec.start(); $('micBtn').classList.add('on'); log('מקשיב — דבר והאריה יחזור');
+}
+function pauseRec(p){ if(!recOn||!rec) return; recPaused=p; if(p){ try{rec.abort();}catch(e){} } else { try{rec.start();}catch(e){} } }
+
+/* ---------------- mic direct: lips follow my own voice ---------------- */
+async function toggleLiveMic(){
+  ensureAudio(); if(actx.state==='suspended') await actx.resume();
+  if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; try{micSrc.disconnect();}catch(e){} speaking=false; $('liveMicBtn').classList.remove('on'); log('קול ישיר כבוי'); return; }
+  micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+  micSrc = actx.createMediaStreamSource(micStream); micSrc.connect(analyser); // not to speakers
+  speaking=true; $('liveMicBtn').classList.add('on'); log('קול ישיר — הפה זז עם הקול שלך (הקול עצמו יוצא מהמיקרופון ב-Live Studio)');
+}
+
+/* ---------------- wiring ---------------- */
+$('openStage').onclick=openStage;
+$('sayBtn').onclick=()=>{ say($('txt').value); $('txt').value=''; $('txt').focus(); };
+$('txt').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); $('sayBtn').click(); }});
+$('micBtn').onclick=toggleRec;
+$('liveMicBtn').onclick=()=>toggleLiveMic().catch(e=>log('מיקרופון: '+e.message));
+$('stopBtn').onclick=stopAll;
+if(!KEY) log('חסר מפתח Gemini ב-config.js');
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "preset": "tiny_on_paw",
+  "enabled": true,
+  "approvalScope": "operator_approved_output",
+  "approvedForIntegratedOutput": true,
+  "baseVideoUrl": "/media/generated/chino-tiny-open-paw.mp4",
+  "baseVideoSha256": "778440dddd57d506263950f44847feae3d4e7b79e324947fe0c6fc534e7e6b37",
+  "profile": {
+    "version": 1,
+    "reviewed": true,
+    "sourceFile": "chino-tiny-open-paw.mp4",
+    "duration": 6,
+    "pickupTime": 0,
+    "overlayStartTime": 0,
+    "holdUntil": 3.05,
+    "holdBaseLoop": {
+      "from": 1.65,
+      "to": 2.45
+    },
+    "handTrack": [
+      [
+        0,
+        0.9,
+        0.77
+      ],
+      [
+        0.5,
+        0.87,
+        0.76
+      ],
+      [
+        1,
+        0.62,
+        0.565
+      ],
+      [
+        1.5,
+        0.57,
+        0.562
+      ],
+      [
+        2,
+        0.55,
+        0.563
+      ],
+      [
+        2.5,
+        0.55,
+        0.57
+      ],
+      [
+        3,
+        0.56,
+        0.585
+      ],
+      [
+        3.5,
+        0.87,
+        0.75
+      ],
+      [
+        4,
+        0.9,
+        0.77
+      ],
+      [
+        6,
+        0.9,
+        0.77
+      ]
+    ],
+    "groundAnchor": {
+      "x": 0.9,
+      "y": 0.77
+    },
+    "assetScale": 0.14,
+    "maxUnobservedGapFrames": 0,
+    "sourceWindow": {
+      "from": 0,
+      "to": 4
+    },
+    "repeatCount": 2,
+    "reviewedScope": "Sampled paw surface anchors; independent alpha foot placement. Private preview pending operator approval.",
+    "occluderTrack": [
+      [
+        0,
+        [
+          [
+            0.99,
+            0.99
+          ],
+          [
+            1,
+            0.99
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      ],
+      [
+        6,
+        [
+          [
+            0.99,
+            0.99
+          ],
+          [
+            1,
+            0.99
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      ]
+    ],
+    "cameraCloseup": {
+      "scale": 3.4,
+      "afterSeconds": 5,
+      "rampSeconds": 0.65,
+      "releaseUntil": 3.05,
+      "focus": {
+        "x": 0.55,
+        "y": 0.45
+      }
+    }
+  },
+  "generationReview": {
+    "costUSD": 0.18,
+    "provider": "openrouter",
+    "status": "operator_approved_with_shared_closeup"
+  }
+}

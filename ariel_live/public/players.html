@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>צ׳ינו · שחקנים ואפקטים</title>
+<style>
+:root{--bg:#0d0b09;--panel:#17130f;--panel2:#120e0a;--line:#3a2f22;--gold:#d9a441;--gold2:#f3c86b;--text:#f3e7d3;--dim:#a8957a;--red:#e05545;--green:#3ddc84}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,"Segoe UI",Arial,sans-serif}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:9px 14px;font-weight:700;background:var(--gold);color:#1a1208}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}button.red{background:var(--red);color:#fff}button:disabled{opacity:.45;cursor:default}
+a{color:inherit}input{font:inherit}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;background:rgba(13,11,9,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);min-height:58px}
+.brand{font-weight:800;color:var(--gold);font-size:18px;margin-inline-end:6px}.sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--dim);font-size:13px;font-weight:600;white-space:nowrap}
+.chip.ok{color:var(--green);border-color:#24533a}.chip.bad{color:var(--red);border-color:#5a2a24}.chip.gold{color:var(--gold2);border-color:var(--gold)}.chip.click{cursor:pointer}
+a.btn{display:inline-block;text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-weight:700;font-size:14px}
+#prod{display:none;padding:10px 16px 12px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#1a140e,#120e0a)}#prod.on{display:block}
+#prod h3{margin:0 0 6px;font-size:13px;color:var(--gold2);font-weight:800}
+.prow{display:grid;grid-template-columns:minmax(110px,.9fr) minmax(140px,1.3fr) minmax(160px,2.4fr) minmax(150px,1.1fr) auto;gap:12px;align-items:center;padding:6px 0;border-top:1px dashed #2a2219}
+.prow:first-of-type{border-top:0}.prow .who{font-weight:800;direction:ltr;text-align:right;cursor:pointer}.prow .who:hover{color:var(--gold2)}
+.bar{height:12px;border-radius:99px;background:#2a2219;overflow:hidden;position:relative}
+.bar i{position:absolute;top:0;bottom:0;inset-inline-start:0;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:99px;transition:width .9s linear;overflow:hidden}
+.bar i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);animation:sh 1.4s linear infinite}
+.tm{font-size:13px;color:var(--dim);white-space:nowrap}.tm b{color:var(--text);font-variant-numeric:tabular-nums}
+.wrap{display:grid;grid-template-columns:310px 1fr;min-height:calc(100vh - 58px)}
+aside{border-inline-end:1px solid var(--line);background:var(--panel2);padding:12px;display:flex;flex-direction:column;gap:10px;position:sticky;top:58px;height:calc(100vh - 58px);overflow:auto}
+.add{display:flex;gap:6px}.add input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 11px;direction:ltr;text-align:right}
+.add input:focus{outline:none;border-color:var(--gold)}
+.filters{display:flex;gap:6px;flex-wrap:wrap}.filters button{padding:5px 11px;font-size:13px;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:99px}
+.filters button.on{background:var(--gold);color:#1a1208;border-color:var(--gold)}
+.pl{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;border:1px solid transparent}
+.pl:hover{background:var(--panel)}.pl.sel{background:var(--panel);border-color:var(--gold)}
+.av{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#2a2219;flex:none;display:grid;place-items:center;font-weight:800;color:var(--gold);overflow:hidden;font-size:18px}
+.pn{flex:1;min-width:0}.pn b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right}
+.pn span{display:block;font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini{height:4px;border-radius:99px;background:#2a2219;overflow:hidden;margin-top:5px}.mini i{display:block;height:100%;background:var(--gold)}
+.side{display:flex;flex-direction:column;align-items:flex-end;gap:3px}.cnt{font-size:12px;font-weight:800;color:var(--gold)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--gold2);animation:pulse 1s infinite}
+main{padding:18px 22px 130px;min-width:0}
+.phead{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.bigav{width:88px;height:88px;border-radius:50%;border:2px solid var(--gold);background:#2a2219;cursor:pointer;flex:none;display:grid;place-items:center;font-size:32px;color:var(--gold);font-weight:800;overflow:hidden;position:relative}
+.bigav img{width:100%;height:100%;object-fit:cover}.bigav .cam{position:absolute;bottom:0;inset-inline:0;background:rgba(0,0,0,.65);font-size:11px;color:var(--text);text-align:center;padding:2px 0;font-weight:600}
+.phead h1{margin:0;font-size:25px;direction:ltr;text-align:right}.facts{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+h2{font-size:17px;margin:26px 0 10px;color:var(--gold)}h2 small{color:var(--dim);font-weight:500;font-size:13px;margin-inline-start:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px}
+.fx{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;transition:transform .12s,border-color .12s,box-shadow .12s;user-select:none}
+.fx .th{aspect-ratio:3/4;background:#0a0807;position:relative;display:grid;place-items:center;overflow:hidden}
+.fx .th video,.fx .th img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.fx .ph{font-size:54px;filter:saturate(.8)}.fx .nm{padding:9px 10px 2px;font-weight:700;font-size:14px}
+.fx .ft{padding:6px 10px 10px;font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:6px}
+.fx.ready{border-color:#6a5326;cursor:pointer}.fx.ready:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 6px 18px rgba(217,164,65,.18)}
+.fx.ready .go{width:100%;padding:8px}.fx.ready.fire{animation:fire .6s}
+.fx.miss{cursor:pointer}.fx.miss .th>*:not(.box){opacity:.33;filter:grayscale(.6)}.fx.miss:hover{border-color:#6a5326}
+.fx.miss.chk{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset}.fx.miss.chk .th>*:not(.box){opacity:.75;filter:none}
+.box{position:absolute;top:8px;inset-inline-start:8px;width:28px;height:28px;border-radius:8px;border:2px solid var(--dim);background:rgba(0,0,0,.55);display:grid;place-items:center;font-weight:900;color:#1a1208;font-size:17px;z-index:2}
+.fx.chk .box{background:var(--gold);border-color:var(--gold)}
+.fx.busy{border-color:var(--gold)}.fx.busy .th>*{opacity:.45}.fx.busy .th .spin{opacity:1;position:absolute;font-size:30px;animation:pulse 1.2s infinite}
+.lblrow{display:flex;justify-content:space-between;gap:6px;font-size:12px}
+.err{color:var(--red);font-size:12px;padding:0 10px 9px;line-height:1.3}
+.ver{position:absolute;top:8px;inset-inline-end:8px;background:rgba(0,0,0,.7);border:1px solid var(--line);color:var(--text);font-size:11px;padding:3px 8px;border-radius:99px;z-index:2;cursor:pointer}
+.auto{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);cursor:pointer;user-select:none}.auto input{accent-color:var(--gold);width:16px;height:16px}
+.auto.on{color:var(--gold2)}
+.note{background:var(--panel2);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;color:var(--dim);font-size:13px;margin-bottom:10px}
+.live{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#act{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;background:#1f1811;border:1px solid var(--gold);border-radius:16px;padding:10px 16px;box-shadow:0 12px 34px rgba(0,0,0,.65);z-index:30;max-width:calc(100vw - 24px)}
+#act.on{display:flex}#act b{color:var(--gold2)}
+#toast{position:fixed;bottom:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:40;max-width:min(400px,calc(100vw - 32px))}
+.t{background:#1f1811;border:1px solid var(--line);border-inline-start:4px solid var(--gold);padding:9px 12px;border-radius:10px;font-size:14px;display:flex;gap:10px;align-items:center;animation:in .2s}
+.t.bad{border-inline-start-color:var(--red)}.t.ok{border-inline-start-color:var(--green)}.t button{padding:5px 10px;font-size:13px;flex:none}
+.empty{color:var(--dim);text-align:center;margin-top:18vh;font-size:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.dropping{outline:3px dashed var(--gold);outline-offset:-8px}
+.mxwrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+table.mx{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}
+.mx th,.mx td{padding:8px 6px;text-align:center;border-bottom:1px solid #2a2219;white-space:nowrap}
+.mx thead th{position:sticky;top:0;background:#1d1711;z-index:1;font-size:12px;color:var(--dim);font-weight:700;vertical-align:bottom}
+.mx thead th .e{display:block;font-size:22px;line-height:1.2}.mx thead tr.grp th{font-size:13px;color:var(--gold);border-bottom:1px solid var(--line)}
+.mx td.who{text-align:right;cursor:pointer;position:sticky;right:0;background:var(--panel);z-index:1}.mx td.who:hover b{color:var(--gold2)}
+.mx td.who div{display:flex;align-items:center;gap:8px}.mx td.who .av{width:34px;height:34px;font-size:14px}.mx td.who b{direction:ltr}
+.mx .c{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;font-weight:900;font-size:16px;cursor:pointer;border:1px solid transparent}
+.mx .c.r{background:var(--gold);color:#1a1208}.mx .c.r:hover{background:var(--gold2);transform:scale(1.08)}
+.mx .c.m{color:#5a4a36;border:1px dashed #3a2f22}.mx .c.m:hover{color:var(--gold);border-color:var(--gold)}
+.mx .c.b{color:var(--gold2);border:1px solid var(--gold);font-size:11px;animation:pulse 1.2s infinite}
+.mx tr.sep td{border-bottom:0;padding:0}.mx td.sum{font-weight:800;color:var(--gold)}
+.mx tbody tr:hover td{background:#1c1610}.mx tbody tr:hover td.who{background:#1c1610}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--dim);font-size:13px;margin:10px 2px 14px;align-items:center}
+.legend .c{width:22px;height:22px;font-size:12px;display:inline-grid;place-items:center;border-radius:6px;margin-inline-end:4px;vertical-align:middle}
+.legend .c.r{background:var(--gold);color:#1a1208}.legend .c.m{color:#5a4a36;border:1px dashed #3a2f22}.legend .c.b{color:var(--gold2);border:1px solid var(--gold)}
+#engBack{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:50;align-items:center;justify-content:center;padding:16px}#engBack.on{display:flex}
+#eng{background:#1a140e;border:1px solid var(--gold);border-radius:18px;width:min(640px,100%);max-height:90vh;overflow:auto;padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+#eng h3{margin:0 0 4px;color:var(--gold);font-size:19px}#eng .sub{color:var(--dim);font-size:13px;margin-bottom:14px}
+.erow{margin:14px 0}.erow label{display:block;font-weight:700;margin-bottom:6px}.erow select{width:100%;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
+.erow .hint{font-size:12px;color:var(--dim);margin-top:5px}.ebtns{display:flex;gap:8px;justify-content:flex-start;margin-top:16px}
+@keyframes sh{from{transform:translateX(-100%)}to{transform:translateX(100%)}}@keyframes pulse{50%{opacity:.35}}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}@keyframes fire{40%{box-shadow:0 0 0 4px var(--gold2),0 0 40px rgba(243,200,107,.6)}}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}aside{position:static;height:auto;max-height:42vh;border-inline-end:0;border-bottom:1px solid var(--line)}.prow{grid-template-columns:1fr 1fr}main{padding:14px 14px 140px}}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">🦁 צ׳ינו · שחקנים ואפקטים</span>
+  <span id="conn" class="chip">○ מתחבר…</span>
+  <span id="battle" class="chip gold click" style="display:none"></span>
+  <span id="running" class="chip" style="display:none"></span>
+  <span class="sp"></span>
+  <a class="btn" href="/specials" style="border-color:#7a5bb8;color:#d8c2ff">⭐ המיוחדים</a>
+  <button id="bulkBtn" class="ghost" title="מכין לכל השחקנים את מה שחסר להם בסט על היריב">🎬 הכן לכולם מה שחסר</button>
+  <button id="engBtn" class="ghost" title="איזה מנוע של OpenRouter עושה את העבודה">⚙️ מנועים</button>
+  <button id="viewBtn" class="ghost">📋 טבלת כולם</button>
+  <button id="stop" class="red" title="עוצר את האפקט/הסרטון שרץ עכשיו על המסך">⏹ עצור אפקט</button>
+  <a class="btn" href="/">↩ הלוח המלא</a>
+</header>
+<div id="prod"><h3>⚙️ בייצור עכשיו</h3><div id="prodRows"></div></div>
+<div class="wrap">
+  <aside>
+    <div class="add"><input id="q" placeholder="🔎 חפש או הוסף @שם" autocomplete="off" spellcheck="false"><button id="addBtn" title="הוסף שחקן">＋</button></div>
+    <div class="filters" id="filters"><button data-f="all" class="on">כולם</button><button data-f="opp">יריבים</button><button data-f="fan">תומכים</button><button data-f="busy">בייצור</button></div>
+    <div id="list"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="act">
+  <span>סימנת <b id="actN">0</b></span>
+  <label class="auto on"><input type="checkbox" id="autoDef"> 🚀 לשגר ללייב ברגע שמוכן</label>
+  <label class="auto" id="freshL" style="display:none"><input type="checkbox" id="fresh"> 📸 לצלם ראש חדש מהלייב</label>
+  <button id="make">🎬 הכן עכשיו</button>
+  <button id="clear" class="ghost">נקה</button>
+</div>
+<div id="toast"></div>
+<div id="engBack"><div id="eng"><h3>⚙️ מנועים — OpenRouter</h3><div class="sub" id="engSub">טוען את הרשימה…</div>
+  <div class="erow"><label>👶 התינוק — מנוע הווידאו</label><select id="engVideo"></select><div class="hint">התמונה של התינוק עם הפנים שלו נעשית קודם ב-Nano Banana, ואז המנוע הזה מזיז אותה.</div></div>
+  <div class="erow"><label>👊 המכות של הטורקי — מנוע הווידאו</label><select id="engBoxer"></select></div>
+  <div class="erow"><label>🎨 תמונה (הפנים שלו כתינוק)</label><select id="engImage"></select></div>
+  <div class="ebtns"><button id="engSave">💾 שמור</button><button id="engClose" class="ghost">סגור</button></div></div></div>
+<input type="file" id="file" accept="image/*" hidden>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const lc=s=>String(s||'').toLowerCase();
+const LS={get(k,d){try{const v=localStorage.getItem('pl_'+k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem('pl_'+k,JSON.stringify(v))}catch{}}};
+const S={cat:{sets:[],scenes:[]},list:[],jobs:[],auto:new Set(),autoEver:new Set(),hg:{},battle:'',sel:LS.get('sel',''),checks:new Set(),filter:'all',q:'',pending:new Map(),vidSeen:new Map(),ver:{},skew:0,conn:false,capMsg:{},readyKeys:null,photoV:{},loaded:false};
+const get=p=>fetch(p,{cache:'no-store'}).then(r=>r.json());
+async function post(p,b){try{const r=await fetch(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});let j={};try{j=await r.json()}catch{}if(!r.ok&&!j.error)j.error='שגיאה '+r.status;return j}catch(e){return{error:'אין חיבור לשרת'}}}
+const now=()=>Date.now()+S.skew;
+const mmss=ms=>{const s=Math.max(0,Math.floor(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const allItems=()=>[...S.cat.sets,...S.cat.scenes];
+const cur=()=>S.list.find(p=>lc(p.user)===lc(S.sel));
+const emo=he=>[...String(he||'✨')][0];
+const ak=(u,id)=>lc(u)+'|'+id;
+function toast(msg,cls='',btn){const d=document.createElement('div');d.className='t '+cls;const sp=document.createElement('span');sp.textContent=msg;d.appendChild(sp);if(btn){const b=document.createElement('button');b.textContent=btn.label;b.onclick=()=>{btn.fn();d.remove()};d.appendChild(b)}$('#toast').prepend(d);setTimeout(()=>d.remove(),btn?20000:cls==='bad'?10000:5000);while($('#toast').children.length>5)$('#toast').lastChild.remove()}
+// ---------- what does this player have ----------
+function itemState(pl,it){
+  const k=ak(pl.user,it.id), pend=S.pending.get(k);
+  if(it.kind==='set'){
+    const clips=(pl.clips||{})[it.id]||[]; if(clips.length) return {st:'ready',clips};
+    const js=S.jobs.filter(j=>j.kind==='opponent'&&lc(j.user)===lc(pl.user)&&j.boxer===it.id);
+    const run=js.find(j=>!j.error&&!j.ready&&now()-j.t<15*60000); if(run) return {st:'busy',job:run};
+    if(pend) return {st:'busy',pend};
+    const fail=js.find(j=>j.error&&now()-j.t<60*60000); return fail?{st:'miss',err:fail.status||fail.error}:{st:'miss'};
+  }
+  const items=(pl.fun||{})[it.id]||[]; const ready=items.filter(x=>x.file&&/מוכן/.test(x.status||'')); if(ready.length) return {st:'ready',fun:ready};
+  const run=items.find(x=>!/מוכן|נכשל/.test(x.status||'')); if(run) return {st:'busy',fun1:run};
+  if(pend) return {st:'busy',pend};
+  const fail=items.find(x=>/נכשל/.test(x.status||'')); return fail?{st:'miss',err:fail.status}:{st:'miss'};
+}
+const EXP={cap:40e3,gen:150e3,cut:45e3,img:25e3,vid:110e3};
+function prog(s){
+  const cap=(a,b)=>Math.min(b,a);
+  if(s.job){const j=s.job,at=j.at||{},st=j.step||0,t0=j.t||now();
+    if(st<=1) return {p:.03+.17*cap((now()-(at[st]??t0))/EXP.cap,.95),label:S.capMsg[lc(j.user)]||(/שמור/.test(j.status||'')?'💾 משתמש בראש השמור':'📸 תופס את הפנים שלו'),t:now()-t0};
+    const baby=j.boxer==='ov_baby',lbl=String(j.status||'').replace(/\s*\(~[^)]*\)/,'');
+    if(st<=3) return {p:.2+.6*cap((now()-(at[2]??t0))/(baby?60e3:EXP.gen),.97),label:baby?lbl:'🎬 מייצר את הסרטון',t:now()-t0};
+    return {p:.8+.18*cap((now()-(at[4]??at[5]??t0))/(baby?50e3:EXP.cut),.97),label:baby?lbl:'✂️ חותך לשקוף',t:now()-t0};}
+  if(s.fun1){const x=s.fun1,t0=x.t||now(),vid=/וידאו/.test(x.status||'');
+    if(!vid) return {p:.04+.26*cap((now()-t0)/EXP.img,.95),label:'🎨 מצייר אותו עם צ׳ינו',t:now()-t0};
+    if(!S.vidSeen.has(x.id)) S.vidSeen.set(x.id,Math.max(now(),t0+EXP.img));
+    return {p:.3+.68*cap((now()-S.vidSeen.get(x.id))/EXP.vid,.97),label:'🎬 מייצר את הסרטון',t:now()-t0};}
+  if(s.pend) return {p:.02+.12*cap((Date.now()-s.pend.t)/60e3,.95),label:s.pend.label,t:Date.now()-s.pend.t};
+  return {p:0,label:'',t:0};
+}
+// ---------- list ----------
+function counts(pl){let r=0,b=0;for(const it of allItems()){const st=itemState(pl,it).st;if(st==='ready')r++;else if(st==='busy')b++}return{r,b,n:allItems().length}}
+function avatar(pl,cls='av'){const src=pl.photo||(pl.head&&pl.head.img)||'';const v=S.photoV[lc(pl.user)];return src?`<img class="${cls}" src="${esc(src)}${v?'?v='+v:''}" alt="" loading="lazy">`:`<span class="${cls}">${esc(String(pl.user||'?')[0].toUpperCase())}</span>`}
+function renderList(){
+  const q=lc(S.q.replace(/^@/,'').trim());
+  let L=S.list.filter(p=>!q||lc(p.user).includes(q)||lc(p.nick).includes(q));
+  if(S.filter==='opp') L=L.filter(p=>(p.roles||[]).includes('opp'));
+  if(S.filter==='fan') L=L.filter(p=>(p.roles||[]).includes('fan'));
+  const withC=L.map(p=>({p,c:counts(p)}));
+  const shown=S.filter==='busy'?withC.filter(x=>x.c.b>0):withC;
+  shown.sort((a,b)=>(lc(b.p.user)===lc(S.battle))-(lc(a.p.user)===lc(S.battle))||(b.c.b>0)-(a.c.b>0));
+  $('#list').innerHTML=shown.length?shown.map(({p,c})=>`<div class="pl ${lc(p.user)===lc(S.sel)?'sel':''}" data-u="${esc(p.user)}">${avatar(p)}<div class="pn"><b>@${esc(p.user)}</b><span>${lc(p.user)===lc(S.battle)?'⚔️ בקרב עכשיו · ':''}${(p.roles||[]).includes('fan')?'💎 '+(p.diamonds||0).toLocaleString()+' · ':''}${esc(p.nick||'')}${!p.nick&&!(p.roles||[]).length?'נוסף ידנית':''}</span><div class="mini"><i style="width:${Math.round(c.r/c.n*100)}%"></i></div></div><div class="side"><span class="cnt">${c.r}/${c.n}</span>${c.b?'<span class="dot" title="בייצור"></span>':''}</div></div>`).join('')
+   :`<div class="note">${q?`אין "${esc(q)}" ברשימה — לחץ ＋ כדי להוסיף אותו`:S.filter==='busy'?'אין כרגע כלום בייצור':S.filter==='fan'?'עוד אין תומכים — מי שישלח מתנה בלייב יופיע כאן לבד':'עוד אין שחקנים — כתוב שם משתמש למעלה ולחץ ＋'}</div>`;
+}
+// ---------- one player ----------
+function thumb(it){return it.thumb?`<img src="${esc(it.thumb)}" alt="">`:`<span class="ph">${emo(it.he)}</span>`}
+function card(pl,it,s){
+  const k=it.kind+':'+it.id,a=ak(pl.user,it.id),ch=S.checks.has(k);
+  if(s.st==='ready'){
+    const many=it.kind==='set'?s.clips:s.fun,v=(S.ver[a]||0)%many.length,c=many[v];
+    const media=it.kind==='set'?`<video src="/media/overlays/${esc(c.id)}.webm#t=1.6" muted playsinline loop preload="auto"></video>`:`<video src="${esc(c.file)}" poster="${esc(c.img||'')}" muted playsinline loop preload="none"></video>`;
+    return `<div class="fx ready" data-kind="${it.kind}" data-id="${esc(c.id)}" data-he="${esc(it.he)}"><div class="th">${media}${many.length>1?`<span class="ver" data-ver="${esc(a)}">גרסה ${v+1}/${many.length}</span>`:''}</div><div class="nm">${esc(it.he)}</div><div class="ft"><button class="go">🚀 שגר ללייב</button></div></div>`;}
+  if(s.st==='busy'){const g=prog(s);
+    return `<div class="fx busy" data-pu="${esc(pl.user)}" data-pi="${it.kind}:${it.id}"><div class="th">${thumb(it)}<span class="spin">⏳</span></div><div class="nm">${esc(it.he)}</div><div class="ft"><div class="bar"><i style="width:${(g.p*100).toFixed(1)}%"></i></div><div class="lblrow"><span class="lbl">${esc(g.label)}</span><span class="tm"><b>${mmss(g.t)}</b></span></div><label class="auto ${S.auto.has(a)?'on':''}"><input type="checkbox" data-auto="${esc(a)}" ${S.auto.has(a)?'checked':''}> 🚀 לשגר ללייב כשמוכן</label></div></div>`;}
+  return `<div class="fx miss ${ch?'chk':''}" data-chk="${k}"><div class="th">${thumb(it)}<span class="box">${ch?'✓':''}</span></div><div class="nm">${esc(it.he)}</div><div class="ft">${ch?'✓ יוכן כשתלחץ "הכן עכשיו"':'חסר לו · לחץ כדי לסמן'}</div>${s.err?`<div class="err">✗ ניסיון קודם נכשל: ${esc(String(s.err).replace(/^נכשל:\s*/,'').slice(0,110))}</div>`:''}</div>`;
+}
+function liveHtml(pl){const on=S.hg.on&&lc(S.hg.user)===lc(pl.user);
+  return `<h2>🍅 חי בלייב<small>חינם · מיידי · עובד כשהוא בלייב או כשיש ראש שמור שלו</small></h2><div class="live" id="live">${on?`<span class="chip ok">🍅 משחק הראש דלוק עליו · ${S.hg.thrown||0} זריקות</span><button data-hg="t1">💥 זרוק</button><button data-hg="t5">💥×5</button><button class="ghost" data-hg="off">כבה</button>`:`<button data-hg="on">🍅 הדלק משחק הראש עליו</button><span class="chip">כל לייק בצ׳אט = זריקה על הראש שלו</span>`}</div>`}
+// ---------- everyone × every effect, one screen ----------
+const short=he=>String(he||'').replace(/^\S+\s+/,'').replace(/^הטורקי\s*(—\s*)?/,'');
+function renderTable(){
+  const sets=S.cat.sets,scenes=S.cat.scenes,items=[...sets,...scenes];
+  const q=lc(S.q.replace(/^@/,'').trim());let L=S.list.filter(p=>!q||lc(p.user).includes(q)||lc(p.nick).includes(q));
+  if(S.filter==='opp')L=L.filter(p=>(p.roles||[]).includes('opp'));if(S.filter==='fan')L=L.filter(p=>(p.roles||[]).includes('fan'));if(S.filter==='busy')L=L.filter(p=>counts(p).b>0);
+  let tr=0,tb=0;const rows=L.map(pl=>{const c=counts(pl);tr+=c.r;tb+=c.b;return `<tr><td class="who" data-sel="${esc(pl.user)}"><div>${avatar(pl)}<b>@${esc(pl.user)}</b>${lc(pl.user)===lc(S.battle)?' ⚔️':''}</div></td>${items.map(it=>{const s=itemState(pl,it);
+    if(s.st==='ready'){const many=it.kind==='set'?s.clips:s.fun;return `<td><span class="c r" data-launch="${it.kind}" data-id="${esc(many[0].id)}" data-he="${esc(it.he)}" title="🚀 שגר ללייב: ${esc(it.he)}">✓</span></td>`}
+    if(s.st==='busy')return `<td><span class="c b" title="${esc(prog(s).label)}">${Math.round(prog(s).p*100)}%</span></td>`;
+    return `<td><span class="c m" data-want="${esc(pl.user)}" data-k="${it.kind}:${it.id}" title="חסר — לחץ כדי לסמן להכנה">＋</span></td>`}).join('')}<td class="sum">${c.r}/${c.n}</td></tr>`}).join('');
+  $('#main').innerHTML=`<div class="phead"><div><h1 style="direction:rtl">📋 מה יש לכל אחד</h1><div class="facts"><span class="chip ok">✓ ${tr} סרטונים מוכנים</span>${tb?`<span class="chip gold">⚙️ ${tb} בייצור</span>`:''}<span class="chip">${L.length} שחקנים · ${items.length} אפקטים</span></div></div></div>
+  <div class="legend"><span><span class="c r">✓</span>מוכן — לחץ ומשגר ללייב</span><span><span class="c b">%</span>בייצור</span><span><span class="c m">＋</span>חסר — לחץ כדי להכין לו</span></div>
+  ${L.length?`<div class="mxwrap"><table class="mx"><thead><tr class="grp"><th></th><th colspan="${sets.length}">👊 על היריב</th><th colspan="${scenes.length}">🦁 עם צ׳ינו</th><th></th></tr><tr><th style="text-align:right">שחקן</th>${items.map(it=>`<th title="${esc(it.he)}"><span class="e">${emo(it.he)}</span>${esc(short(it.he))}</th>`).join('')}<th>סה״כ</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="note">אין שחקנים שמתאימים לחיפוש</div>'}`;
+  renderAct()}
+function setView(v){S.view=v;LS.set('view',v);$('#viewBtn').textContent=v==='table'?'👤 חזרה לשחקן':'📋 טבלת כולם';renderMain()}
+function renderMain(){
+  if(S.view==='table')return renderTable();
+  const pl=cur();
+  if(!pl){$('#main').innerHTML=S.sel?`<div class="empty">@${esc(S.sel)} עוד לא ברשימה<button id="addSel">＋ הוסף אותו</button></div>`:`<div class="empty">👉 בחר שחקן מהרשימה<small>או כתוב שם משתמש למעלה ולחץ ＋</small></div>`;renderAct();return}
+  const st=it=>itemState(pl,it),c=counts(pl),miss=c.n-c.r-c.b;
+  const isFan=(pl.roles||[]).includes('fan'),noPic=!pl.photo&&!(pl.head&&pl.head.img);
+  $('#main').innerHTML=`<div class="phead" id="phead"><div class="bigav" id="bigav" title="לחץ או גרור תמונה כדי להחליף">${avatar(pl,'')}<span class="cam">📷 תמונה</span></div><div><h1>@${esc(pl.user)}</h1><div class="facts"><span class="chip ok">✓ ${c.r} מוכנים</span>${c.b?`<span class="chip gold">⚙️ ${c.b} בייצור</span>`:''}${miss?`<span class="chip">＋ ${miss} חסרים</span>`:''}${lc(pl.user)===lc(S.battle)?'<span class="chip gold">⚔️ בקרב עכשיו</span>':''}${isFan?`<span class="chip gold">💎 ${(pl.diamonds||0).toLocaleString()} · ${pl.gifts||0} מתנות</span>`:''}${pl.head?'<span class="chip ok" title="אפשר להכין לו סרטונים גם כשהוא לא בלייב">💾 הראש שלו שמור</span>':'<span class="chip" title="בהכנה הראשונה נתפוס את הראש מהלייב שלו ונשמור">📸 אין ראש שמור — למכות צריך שיהיה בלייב · לתינוק מספיקה תמונה</span>'}</div></div></div>
+  <h2>👊 על היריב<small>הפנים האמיתיות שלו · שקוף · ${esc(engLine())}</small></h2><div class="grid">${S.cat.sets.map(it=>card(pl,it,st(it))).join('')}</div>
+  <h2>🦁 עם צ׳ינו<small>דמות מצוירת שלו יחד עם האריה · ~2–3 דק׳</small></h2>${noPic?'<div class="note">📷 אין לי עדיין תמונה שלו לסרטונים עם צ׳ינו — גרור לכאן תמונה, או הדבק אותה (Ctrl+V). אם הוא בלייב אקח לבד את תמונת הפרופיל שלו.</div>':''}<div class="grid">${S.cat.scenes.map(it=>card(pl,it,st(it))).join('')}</div>
+  ${liveHtml(pl)}`;
+  renderAct();
+}
+function renderAct(){const n=S.checks.size;$('#act').classList.toggle('on',n>0);$('#actN').textContent=n+(n===1?' אפקט':' אפקטים');const pl=cur();$('#freshL').style.display=pl&&pl.head&&[...S.checks].some(k=>k.startsWith('set:'))?'':'none'}
+// ---------- everything being made right now, for everyone ----------
+function busyAll(){const out=[];for(const pl of S.list)for(const it of allItems()){const s=itemState(pl,it);if(s.st==='busy')out.push({pl,it,s})}
+  for(const j of S.jobs){if(j.kind!=='opponent'||j.error||j.ready||now()-j.t>15*60000)continue;if(S.list.some(p=>lc(p.user)===lc(j.user)))continue;const it=S.cat.sets.find(x=>x.id===j.boxer)||{id:j.boxer,he:j.boxer,kind:'set'};out.push({pl:{user:j.user||'?',clips:{},fun:{}},it,s:{st:'busy',job:j}})}
+  return out}
+function renderProd(){const B=busyAll();$('#prod').classList.toggle('on',B.length>0);$('#running').style.display=B.length?'':'none';$('#running').textContent='⚙️ '+B.length+' בייצור';
+  $('#prodRows').innerHTML=B.map(({pl,it,s})=>{const g=prog(s),a=ak(pl.user,it.id);return `<div class="prow" data-pu="${esc(pl.user)}" data-pi="${it.kind}:${it.id}"><span class="who" data-go="${esc(pl.user)}">@${esc(pl.user)}</span><span>${esc(it.he)}</span><div class="bar"><i style="width:${(g.p*100).toFixed(1)}%"></i></div><span class="tm"><span class="lbl">${esc(g.label)}</span> · <b>${mmss(g.t)}</b></span><label class="auto ${S.auto.has(a)?'on':''}"><input type="checkbox" data-auto="${esc(a)}" ${S.auto.has(a)?'checked':''}> 🚀 אוטומטי ללייב</label></div>`}).join('')}
+function renderHead(){$('#conn').className='chip '+(S.conn?'ok':'bad');$('#conn').textContent=S.conn?'● מחובר':'○ אין חיבור לשרת';const b=$('#battle');b.style.display=S.battle?'':'none';b.textContent='⚔️ בקרב עכשיו: @'+S.battle}
+function renderAll(){renderHead();renderList();renderMain();renderProd()}
+// progress bars move every second without redrawing the videos
+function tick(){let stale=false;
+  document.querySelectorAll('[data-pu][data-pi]').forEach(el=>{const pl=S.list.find(p=>lc(p.user)===lc(el.dataset.pu))||{user:el.dataset.pu,clips:{},fun:{}};const [kind,id]=el.dataset.pi.split(':');const it=(kind==='set'?S.cat.sets:S.cat.scenes).find(x=>x.id===id)||{id,kind};const s=itemState(pl,it);if(s.st!=='busy'){stale=true;return}const g=prog(s);const i=el.querySelector('.bar i');if(i)i.style.width=(g.p*100).toFixed(1)+'%';const l=el.querySelector('.lbl');if(l)l.textContent=g.label;const t=el.querySelector('.tm b');if(t)t.textContent=mmss(g.t)});
+  if(stale)renderAll()}
+// ---------- data ----------
+let refT=null;function refreshSoon(){clearTimeout(refT);refT=setTimeout(refresh,250)}
+async function refresh(){try{const j=await get('/api/players');if(j.error)throw new Error(j.error);if(j.now)S.skew=j.now-Date.now();S.list=j.list||[];S.auto=new Set(j.auto||[]);S.auto.forEach(k=>S.autoEver.add(k));
+  const rk=new Set();for(const pl of S.list)for(const it of allItems())if(itemState(pl,it).st==='ready')rk.add(ak(pl.user,it.id)+'|'+it.kind);
+  if(S.readyKeys)for(const k of rk)if(!S.readyKeys.has(k)){const [u,id,kind]=k.split('|');if(S.autoEver.has(u+'|'+id))continue;const pl=S.list.find(p=>lc(p.user)===u),it=allItems().find(x=>x.id===id&&x.kind===kind);if(pl&&it)readyToast(pl,it)}
+  S.readyKeys=rk;S.loaded=true;renderAll()}catch(e){$('#main').innerHTML=`<div class="empty">✗ לא הצלחתי לקרוא את רשימת השחקנים<small>${esc(e.message)} — אם השרת עלה עכשיו, רענן את הדף</small></div>`}}
+function readyToast(pl,it){const s=itemState(pl,it);if(s.st!=='ready')return;const many=it.kind==='set'?s.clips:s.fun;toast(`✓ מוכן: ${it.he} ל-@${pl.user}`,'ok',{label:'🚀 שגר עכשיו',fn:()=>launch(it.kind,many[0].id,it.he)})}
+async function pollGen(){try{const g=await get('/api/gen');S.jobs=g.jobs||S.jobs;if(S.battle!==(g.opponent||'')){S.battle=g.opponent||'';renderHead();renderList()}}catch{}}
+async function launch(kind,id,he){const j=kind==='set'?await post('/api/overlay/play',{id,loop:false,swap:false,pos:'center'}):await post('/api/fun/play',{id});if(j.error)toast('✗ '+j.error,'bad');else toast('🚀 שוגר ללייב: '+he,'ok')}
+async function make(){const pl=cur();if(!pl||!S.checks.size)return;const u=pl.user;
+  const sets=[...S.checks].filter(k=>k.startsWith('set:')).map(k=>k.slice(4)),scenes=[...S.checks].filter(k=>k.startsWith('fun:')).map(k=>k.slice(4));
+  const auto=$('#autoDef').checked,fresh=$('#fresh').checked;LS.set('autoDef',auto);S.checks.clear();$('#fresh').checked=false;
+  const capLbl=pl.head&&!fresh?'💾 משתמש בראש השמור שלו':'📸 תופס את הפנים שלו מהלייב (עד דקה)';
+  sets.forEach(id=>S.pending.set(ak(u,id),{t:Date.now(),label:capLbl}));scenes.forEach(id=>S.pending.set(ak(u,id),{t:Date.now(),label:'🎨 מתחיל…'}));
+  if(auto){sets.concat(scenes).forEach(id=>{S.auto.add(ak(u,id));S.autoEver.add(ak(u,id))})}
+  renderAll();
+  const jobs=[];
+  if(scenes.length)jobs.push(post('/api/fun/user',{user:u,scenes,auto}).then(j=>{scenes.forEach(id=>S.pending.delete(ak(u,id)));if(j.error)toast('✗ '+j.error,'bad');else if(j.exists)toast(j.msg);else toast(`🎬 התחלתי ${j.started} סרטונים עם צ׳ינו ל-@${u}`,'ok');return refresh()}));
+  if(sets.length)jobs.push(post('/api/gen/opponent/some',{user:u,sets,auto,fresh}).then(async j=>{await pollGen();sets.forEach(id=>S.pending.delete(ak(u,id)));if(j.error)toast('✗ '+j.error,'bad');else if(j.exists)toast(j.msg);else toast(`🥊 מייצר ${j.started} סרטונים ל-@${u}${j.saved?' מהראש השמור שלו':''}`,'ok');renderAll()}));
+  await Promise.all(jobs)}
+async function addPlayer(name){const u=String(name||'').trim().replace(/^@/,'');if(!u)return;const ex=S.list.find(p=>lc(p.user)===lc(u));if(ex){select(ex.user);return}
+  const j=await post('/api/players/add',{user:u});if(j.error)return toast('✗ '+j.error,'bad');S.q='';$('#q').value='';await refresh();select(j.user)}
+function select(u){S.sel=u;LS.set('sel',u);S.checks.clear();renderList();renderMain();window.scrollTo({top:0,behavior:'smooth'})}
+async function upload(file){const pl=cur();if(!pl||!file)return;if(!/^image\//.test(file.type||''))return toast('✗ זה לא קובץ תמונה','bad');toast('📷 שומר תמונה…');
+  try{const r=await fetch('/api/players/photo?user='+encodeURIComponent(pl.user),{method:'PUT',body:file});const j=await r.json().catch(()=>({}));if(j.error)return toast('✗ '+j.error,'bad');S.photoV[lc(pl.user)]=Date.now();toast('✓ התמונה נשמרה','ok');refresh()}catch(e){toast('✗ '+e.message,'bad')}}
+// ---------- ⚙️ engines (OpenRouter) ----------
+S.eng=null;
+const engNm=id=>(S.eng&&S.eng.names&&S.eng.names[id])||String(id||'').split('/').pop();
+const engCost=id=>{const t=S.eng&&S.eng.tested&&S.eng.tested[id];if(t)return t.usd;const m=S.eng&&(S.eng.video||[]).find(x=>x.id===id);return m&&m.est&&m.est.usd!=null?m.est.usd:null};
+function engLine(){if(!S.eng||!S.eng.current)return 'OpenRouter';const c=S.eng.current,b=engCost(c.boxer),v=engCost(c.video),im=engCost(c.image)||0.04;return `מכות: ${engNm(c.boxer)}${b!=null?' ~$'+b.toFixed(2):''} · תינוק: Nano Banana + ${engNm(c.video)}${v!=null?' ~$'+(v+im).toFixed(2):''}`}
+async function loadEng(){try{S.eng=await get('/api/engines')}catch{}}
+function engOpts(list,cur,kind){const T=(S.eng&&S.eng.tested)||{};return (list||[]).map(m=>{const t=T[m.id];const price=t?`$${t.usd.toFixed(2)} (נבדק)`:(kind==='video'&&m.est&&m.est.usd!=null?`~$${m.est.usd.toFixed(2)} ל-${m.est.secs} שנ׳`:kind==='image'?`$${(m.out*1e6).toFixed(1)} למיליון`:'');return `<option value="${esc(m.id)}" ${m.id===cur?'selected':''}>${esc(engNm(m.id))} — ${esc(price)}${t?' · '+esc(t.he):''}</option>`}).join('')}
+async function openEng(){$('#engBack').classList.add('on');$('#engSub').textContent='טוען את הרשימה מ-OpenRouter…';await loadEng();const e=S.eng;if(!e||!e.current){$('#engSub').textContent='✗ לא הצלחתי לקרוא את המנועים';return}
+  $('#engSub').textContent=(e.key?'🔑 המפתח של OpenRouter מחובר':'⚠️ אין מפתח OpenRouter')+` · ${e.video.length} מנועי וידאו · מהזול ליקר`;
+  $('#engVideo').innerHTML=engOpts(e.video,e.current.video,'video');$('#engBoxer').innerHTML=engOpts(e.video,e.current.boxer,'video');$('#engImage').innerHTML=engOpts(e.image,e.current.image,'image')}
+$('#engBtn').onclick=openEng;$('#engClose').onclick=()=>$('#engBack').classList.remove('on');$('#engBack').onclick=e=>{if(e.target.id==='engBack')$('#engBack').classList.remove('on')};
+$('#engSave').onclick=async()=>{const j=await post('/api/engines',{video:$('#engVideo').value,boxer:$('#engBoxer').value,image:$('#engImage').value});if(j.error)return toast('✗ '+j.error,'bad');await loadEng();$('#engBack').classList.remove('on');toast('✓ נשמר — '+engLine(),'ok');renderMain()};
+// ---------- 🎬 everyone's missing set, one click ----------
+$('#bulkBtn').onclick=async()=>{const plan=[];for(const pl of S.list){const sets=S.cat.sets.filter(it=>itemState(pl,it).st==='miss').map(it=>it.id);if(!sets.length)continue;const can=pl.head?sets:((pl.photo&&sets.includes('ov_baby'))?['ov_baby']:[]);if(can.length)plan.push({u:pl.user,sets:can,skip:sets.length-can.length})}
+  const n=plan.reduce((a,x)=>a+x.sets.length,0);if(!n)return toast('אין מה להכין עכשיו — מי שאין לו ראש שמור או תמונה צריך להיות בלייב');
+  const c=S.eng&&S.eng.current,b=engCost(c&&c.boxer)??0.09,v=(engCost(c&&c.video)??0.09)+0.04;const usd=plan.reduce((a,x)=>a+x.sets.reduce((s,id)=>s+(id==='ov_baby'?v:b),0),0);const skip=plan.reduce((a,x)=>a+x.skip,0);
+  if(!confirm(`להכין ${n} סרטונים ל-${plan.length} שחקנים?\nבערך $${usd.toFixed(2)} בסך הכל.\n\n${plan.map(x=>'@'+x.u+': '+x.sets.length).join('\n')}${skip?`\n\n(עוד ${skip} מכות יחכו שהשחקנים יעלו לייב)`:''}`))return;
+  plan.forEach(x=>x.sets.forEach(id=>S.pending.set(ak(x.u,id),{t:Date.now(),label:'⏳ בתור…'})));renderAll();toast(`🎬 התחלתי ${n} סרטונים`,'ok');
+  await Promise.all(plan.map(x=>post('/api/gen/opponent/some',{user:x.u,sets:x.sets,auto:false}).then(j=>{x.sets.forEach(id=>S.pending.delete(ak(x.u,id)));if(j.error)toast('✗ @'+x.u+': '+j.error,'bad');else if(j.msg)toast('@'+x.u+': '+j.msg)})));await pollGen();renderAll()};
+// ---------- clicks ----------
+S.view=new URLSearchParams(location.search).get('view')||LS.get('view','player');
+const toPlayerView=()=>{if(S.view==='table'){S.view='player';LS.set('view','player');$('#viewBtn').textContent='📋 טבלת כולם'}};
+$('#viewBtn').textContent=S.view==='table'?'👤 חזרה לשחקן':'📋 טבלת כולם';
+$('#viewBtn').onclick=()=>setView(S.view==='table'?'player':'table');
+$('#list').onclick=e=>{const r=e.target.closest('.pl');if(r){toPlayerView();select(r.dataset.u)}};
+$('#q').oninput=e=>{S.q=e.target.value;renderList();if(S.view==='table')renderMain()};
+$('#q').onkeydown=e=>{if(e.key==='Enter')addPlayer(e.target.value)};
+$('#addBtn').onclick=()=>addPlayer($('#q').value);
+$('#filters').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.filter=b.dataset.f;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('on',x===b));renderList();if(S.view==='table')renderMain()};
+$('#battle').onclick=()=>{if(S.battle)addPlayer(S.battle)};
+$('#stop').onclick=async()=>{await Promise.all([post('/api/overlay/stop',{}),post('/api/clip/stop',{})]);toast('⏹ נעצר')};
+$('#make').onclick=make;$('#clear').onclick=()=>{S.checks.clear();renderMain()};
+$('#autoDef').checked=LS.get('autoDef',true);
+$('#file').onchange=e=>{upload(e.target.files[0]);e.target.value=''};
+$('#prodRows').onclick=e=>{const w=e.target.closest('[data-go]');if(w)addPlayer(w.dataset.go)};
+document.addEventListener('change',async e=>{const a=e.target.closest('input[data-auto]');if(!a)return;const [u,id]=a.dataset.auto.split('|');const on=a.checked;if(on){S.auto.add(a.dataset.auto);S.autoEver.add(a.dataset.auto)}else S.auto.delete(a.dataset.auto);a.closest('.auto').classList.toggle('on',on);
+  const j=await post('/api/gen/auto',{user:u,id,on});if(j.error)return toast('✗ '+j.error,'bad');toast(on?'🚀 ישוגר ללייב ברגע שמוכן':'בסדר — לא ישוגר לבד')});
+$('#main').addEventListener('click',async e=>{
+  if(e.target.closest('label.auto'))return;
+  const ws=e.target.closest('[data-sel]');if(ws){toPlayerView();return select(ws.dataset.sel)}
+  const lb=e.target.closest('[data-launch]');if(lb){lb.style.transform='scale(1.3)';setTimeout(()=>lb.style.transform='',220);return launch(lb.dataset.launch,lb.dataset.id,lb.dataset.he)}
+  const wb=e.target.closest('[data-want]');if(wb){toPlayerView();select(wb.dataset.want);S.checks.add(wb.dataset.k);renderMain();return}
+  if(e.target.id==='addSel')return addPlayer(S.sel);
+  if(e.target.closest('#bigav'))return $('#file').click();
+  const hg=e.target.closest('[data-hg]');if(hg){const pl=cur();const k=hg.dataset.hg;
+    if(k==='on'){hg.disabled=true;hg.textContent='מדליק… (תופס את הראש שלו)';const j=await post('/api/headgame',{on:true,user:pl.user});if(j.error){toast('✗ '+j.error,'bad');hg.disabled=false;hg.textContent='🍅 הדלק משחק הראש עליו'}return}
+    if(k==='off'){await post('/api/headgame',{on:false});return}
+    await post('/api/headgame/throw',{n:k==='t5'?5:1});return}
+  const vb=e.target.closest('.ver');if(vb){S.ver[vb.dataset.ver]=(S.ver[vb.dataset.ver]||0)+1;renderMain();return}
+  const r=e.target.closest('.fx.ready');if(r){r.classList.remove('fire');void r.offsetWidth;r.classList.add('fire');return launch(r.dataset.kind,r.dataset.id,r.dataset.he)}
+  const m=e.target.closest('.fx.miss');if(m){const k=m.dataset.chk;S.checks.has(k)?S.checks.delete(k):S.checks.add(k);renderMain()}});
+$('#main').addEventListener('mouseover',e=>{const v=e.target.closest('.fx.ready')?.querySelector('video');if(v&&v.paused){v.play().catch(()=>{})}});
+$('#main').addEventListener('mouseout',e=>{const f=e.target.closest('.fx.ready');if(f&&!f.contains(e.relatedTarget)){const v=f.querySelector('video');if(v)v.pause()}});
+['dragenter','dragover'].forEach(t=>$('#main').addEventListener(t,e=>{if(cur()&&[...(e.dataTransfer?.items||[])].some(i=>i.kind==='file')){e.preventDefault();$('#main').classList.add('dropping')}}));
+['dragleave','drop'].forEach(t=>$('#main').addEventListener(t,e=>{if(t==='dragleave'&&$('#main').contains(e.relatedTarget))return;$('#main').classList.remove('dropping')}));
+$('#main').addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer?.files?.[0];if(f)upload(f)});
+document.addEventListener('paste',e=>{if(e.target===$('#q'))return;const f=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/'))?.getAsFile();if(f)upload(f)});
+// ---------- live updates ----------
+let boot=null;
+function sse(){const es=new EventSource('/api/events');es.onopen=()=>{S.conn=true;renderHead()};es.onerror=()=>{S.conn=false;renderHead()};
+  es.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch{return}S.conn=true;
+    if(m.type==='hello'){if(boot&&m.boot&&boot!==m.boot)location.reload();boot=m.boot;renderHead()}
+    else if(m.type==='genjobs'){const was=new Set(S.jobs.filter(j=>j.ready).map(j=>j.id));S.jobs=m.jobs||[];if(m.now)S.skew=m.now-Date.now();if(S.jobs.some(j=>j.ready&&!was.has(j.id)))refreshSoon();else{renderProd();renderList();const pl=cur();if(pl&&S.jobs.some(j=>lc(j.user)===lc(pl.user)))renderMain()}}
+    else if(m.type==='overlays'||m.type==='fun'||m.type==='players')refreshSoon();
+    else if(m.type==='autolaunch'){S.auto=new Set(m.keys||[]);S.auto.forEach(k=>S.autoEver.add(k));document.querySelectorAll('input[data-auto]').forEach(i=>{i.checked=S.auto.has(i.dataset.auto);i.closest('.auto').classList.toggle('on',i.checked)})}
+    else if(m.type==='headgame'){S.hg=m;const pl=cur(),l=$('#live');if(pl&&l)l.outerHTML=liveHtml(pl).replace(/^[\s\S]*?(<div class="live")/,'$1')}
+    else if(m.type==='oppcap_wait'&&m.user){S.capMsg[lc(m.user)]=m.msg?'📸 '+m.msg:'📸 מחכה שיסתכל למצלמה'}
+    else if(m.type==='status'&&m.msg){if(/^🚀/.test(m.msg))toast(m.msg,'ok');else if(/נכשל/.test(m.msg)&&/^(🥊|🎬|🎭)/.test(m.msg))toast(m.msg,'bad')}
+    else if(m.type==='opponent')pollGen()}}
+(async()=>{try{const [c,g,h]=await Promise.all([get('/api/catalog'),get('/api/gen'),get('/api/headgame').catch(()=>({}))]);if(!c||!c.sets)throw new Error('השרת עוד לא מכיר את המסך הזה');S.cat=c;S.jobs=g.jobs||[];S.battle=g.opponent||'';S.hg=h||{};
+  const qs=new URLSearchParams(location.search).get('u');if(qs)S.sel=qs.replace(/^@/,'');await refresh();if(!cur()&&S.battle&&S.list.some(p=>lc(p.user)===lc(S.battle)))select(S.list.find(p=>lc(p.user)===lc(S.battle)).user);
+  sse();setInterval(tick,1000);setInterval(pollGen,15000);loadEng().then(()=>{if(S.view!=='table')renderMain()})}catch(e){$('#main').innerHTML=`<div class="empty">✗ ${esc(e.message)}<small>צריך להפעיל מחדש את השרת (ARIEL LIVE) כדי שהמסך החדש יעבוד</small></div>`}})();
+</script>
+</body>
+</html>

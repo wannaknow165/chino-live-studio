@@ -1,0 +1,328 @@
+[
+  {
+    "id": "691271ff09",
+    "text": "מה נשמע?",
+    "file": "691271ff09.mp4",
+    "secs": 49,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "slight unnatural mouth deformation during lip sync",
+      "mostly static pose after speech"
+    ],
+    "clean": true,
+    "input": "מה נשמע?",
+    "norm": "מה נשמע?"
+  },
+  {
+    "id": "cfefbd805a",
+    "text": "צ׳אט, כולם ללחוץ עכשיו! יאללה, דאבל טאפ למלך",
+    "file": "cfefbd805a.mp4",
+    "secs": 52,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor mouth sync rigidity"
+    ],
+    "clean": true,
+    "input": "צ׳אט, כולם ללחוץ עכשיו! יאללה, דאבל טאפ למלך",
+    "norm": "צ׳אט, כולם ללחוץ עכשיו! יאללה, דאבל טאפ למלך"
+  },
+  {
+    "id": "7902c31ae1",
+    "text": "היי, מה קורה?",
+    "file": "7902c31ae1.mp4",
+    "secs": 53,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor mouth warping during speech"
+    ],
+    "clean": true,
+    "input": "היי, מה קורה?",
+    "norm": "היי, מה קורה?"
+  },
+  {
+    "id": "d2f6bb618b",
+    "text": "תודה על המתנה, אחי, אתה מלך",
+    "file": "d2f6bb618b.mp4",
+    "secs": 85,
+    "res": "720p",
+    "score": 6,
+    "defects": [
+      "text on screen",
+      "minor mouth distortion during speech"
+    ],
+    "clean": true,
+    "input": "תודה על המתנה, אחי, אתה מלך",
+    "norm": "תודה על המתנה, אחי, אתה מלך"
+  },
+  {
+    "id": "469f030b38",
+    "text": "שלום לכולם, ברוכים הבאים ללייב של המלך",
+    "file": "469f030b38.mp4",
+    "secs": 89,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor lip-sync warping around muzzle"
+    ],
+    "clean": true,
+    "input": "שלום לכולם, ברוכים הבאים ללייב של המלך",
+    "norm": "שלום לכולם, ברוכים הבאים ללייב של המלך"
+  },
+  {
+    "id": "5efc42f2f1",
+    "text": "מה קורה צ׳אט?",
+    "file": "5efc42f2f1.mp4",
+    "secs": 95,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor lip sync warping",
+      "rigid body animation"
+    ],
+    "clean": true,
+    "input": "מה קורה צ׳אט?",
+    "norm": "מה קורה צ׳אט?"
+  },
+  {
+    "id": "354101c16c",
+    "text": "מי פה חדש? תכתבו בצ׳אט",
+    "file": "354101c16c.mp4",
+    "secs": 129,
+    "res": "720p",
+    "score": 6,
+    "defects": [
+      "static image with no lip sync animation"
+    ],
+    "clean": true,
+    "input": "מי פה חדש? תכתבו בצ׳אט",
+    "norm": "מי פה חדש? תכתבו בצ׳אט"
+  },
+  {
+    "id": "21660d985d",
+    "text": "יאללה, תעקבו אחרי המלך",
+    "file": "21660d985d.mp4",
+    "secs": 139,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor unnatural mouth movement"
+    ],
+    "clean": true,
+    "input": "יאללה, תעקבו אחרי המלך",
+    "norm": "יאללה, תעקבו אחרי המלך"
+  },
+  {
+    "id": "c859b83a4a",
+    "text": "מה קורה",
+    "file": "c859b83a4a.mp4",
+    "secs": 170,
+    "res": "720p",
+    "score": 6,
+    "defects": [
+      "static image with no lip sync or facial movement"
+    ],
+    "clean": true,
+    "input": "מה קורה",
+    "norm": "מה קורה"
+  },
+  {
+    "id": "d472599452",
+    "text": "היי כפרה, מה שלומך? יש משחק? שלחי לי אני אאשר, תוך כדי נכיר לעומק.",
+    "file": "d472599452.mp4",
+    "secs": 179,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor mouth distortion during speech"
+    ],
+    "clean": true,
+    "input": "היי כפרה, מה שלומך? יש משחק? שלחי לי אני אאשר, תוך כדי נכיר לעומק.",
+    "norm": "היי כפרה, מה שלומך? יש משחק? שלחי לי אני אאשר, תוך כדי נכיר לעומק."
+  },
+  {
+    "id": "809c0f31aa",
+    "text": "אחלה שירים. אהבתם חברים? וואלה אני לא מכיר את המילים, אני לומד",
+    "file": "809c0f31aa.mp4",
+    "secs": 181,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "subtle lip-sync warping around mouth"
+    ],
+    "clean": true,
+    "input": "אחלה שירים. אהבתם חברים? וואלה אני לא מכיר את המילים, אני לומד",
+    "norm": "אחלה שירים. אהבתם חברים? וואלה אני לא מכיר את המילים, אני לומד"
+  },
+  {
+    "id": "585b776881",
+    "text": "אל תפספסו, יש הפתעה בסוף הלייב",
+    "file": "585b776881.mp4",
+    "secs": 219,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor mouth distortion during speech"
+    ],
+    "clean": true,
+    "input": "אל תפספסו, יש הפתעה בסוף הלייב",
+    "norm": "אל תפספסו, יש הפתעה בסוף הלייב"
+  },
+  {
+    "id": "15d426e9d6",
+    "text": "מה נשמע? וואלה פצצה, את?אני חדש פה נעים מאוד, שינו כפרה.",
+    "file": "15d426e9d6.mp4",
+    "secs": 224,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor lip-sync distortion around mouth"
+    ],
+    "clean": true,
+    "input": "מה נשמע? וואלה פצצה, את?אני חדש פה נעים מאוד, שינו כפרה.",
+    "norm": "מה נשמע? וואלה פצצה, את?אני חדש פה נעים מאוד, שינו כפרה."
+  },
+  {
+    "id": "540576411f",
+    "text": "וואלה מה נשמע אחי?",
+    "file": "540576411f.mp4",
+    "secs": 252,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "subtle lip-sync warping",
+      "mostly static post-speech hold"
+    ],
+    "clean": true,
+    "input": "וואלה מה נשמע אחי?",
+    "norm": "וואלה מה נשמע אחי?"
+  },
+  {
+    "id": "29506af1c3",
+    "text": "מה אתם אומרים? תכתבו לי",
+    "file": "29506af1c3.mp4",
+    "secs": 260,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor lip sync stiffness"
+    ],
+    "clean": true,
+    "input": "מה אתם אומרים? תכתבו לי",
+    "norm": "מה אתם אומרים? תכתבו לי"
+  },
+  {
+    "id": "3ac6d757e6",
+    "text": "מה השם שלך? תואר? תואיר? נעים מאוד, אני צ'ינו. יאללה משחק, שתיים?",
+    "file": "3ac6d757e6.mp4",
+    "secs": 268,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "minor stiffness in facial animation"
+    ],
+    "clean": true,
+    "input": "מה השם שלך? תואר? תואיר? נעים מאוד, אני צ'ינו. יאללה משחק, שתיים?",
+    "norm": "מה השם שלך? תואר? תואיר? נעים מאוד, אני צ'ינו. יאללה משחק, שתיים?"
+  },
+  {
+    "id": "3fa034e318",
+    "text": "יאללה תתחילי משחק, בייבי",
+    "file": "3fa034e318.mp4",
+    "secs": 51,
+    "res": "720p",
+    "score": 6,
+    "defects": [
+      "subtitles/text overlay visible on screen",
+      "slight unnatural warping around mouth during speech"
+    ],
+    "clean": true,
+    "input": "יאללה תתחילי משחק, בייבי",
+    "norm": "יאללה תתחילי משחק, בייבי"
+  },
+  {
+    "id": "84c94d49af",
+    "text": "אחותי, יאללה תתחילי!",
+    "file": "84c94d49af.mp4",
+    "secs": 50,
+    "res": "720p",
+    "score": 7,
+    "defects": [
+      "subtle mouth warping during speech",
+      "minimal torso movement"
+    ],
+    "clean": true,
+    "input": "אחותי, יאללה תתחילי!",
+    "norm": "אחותי, יאללה תתחילי!"
+  },
+  {
+    "id": "faff7d0e72",
+    "text": "תגידי, מה השם שלך יפיופה?",
+    "file": "faff7d0e72.mp4",
+    "secs": 51,
+    "res": "720p",
+    "score": 7,
+    "defects": [],
+    "clean": true,
+    "input": "תגידי, מה השם שלך יפיופה?",
+    "norm": "תגידי, מה השם שלך יפיופה?"
+  },
+  {
+    "id": "8251cb25c4",
+    "text": "יפיופהה, מה שמך כפרה?",
+    "file": "8251cb25c4.mp4",
+    "secs": 37,
+    "res": "360p",
+    "score": 7,
+    "defects": [
+      "slight mouth warping during speech"
+    ],
+    "clean": true,
+    "input": "יפיופהה, מה שמך כפרה?",
+    "norm": "יפיופהה, מה שמך כפרה?"
+  },
+  {
+    "id": "fec2098154",
+    "text": "שנייה אחי, אני בטסט דקה.",
+    "file": "fec2098154.mp4",
+    "secs": 38,
+    "res": "360p",
+    "score": 6,
+    "defects": [
+      "lack of lip synchronization"
+    ],
+    "clean": true,
+    "input": "שנייה אחי, אני בטסט דקה.",
+    "norm": "שנייה אחי, אני בטסט דקה."
+  },
+  {
+    "id": "9109ed9ac3",
+    "text": "שנייה כפרה, מפעיל מצב אוטומט.",
+    "file": "9109ed9ac3.mp4",
+    "secs": 38,
+    "res": "360p",
+    "score": 7,
+    "defects": [
+      "minor mouth warping during speech animation"
+    ],
+    "clean": true,
+    "input": "שנייה כפרה, מפעיל מצב אוטומט.",
+    "norm": "שנייה כפרה, מפעיל מצב אוטומט."
+  },
+  {
+    "id": "2c1569aad7",
+    "text": "את מפריעה, כפרה, כבר שם מצב אוטומט.",
+    "file": "2c1569aad7.mp4",
+    "secs": 35,
+    "res": "360p",
+    "score": 6,
+    "defects": [
+      "static image with no lip sync or movement"
+    ],
+    "clean": true,
+    "input": "את מפריעה, כפרה, כבר שם מצב אוטומט.",
+    "norm": "את מפריעה, כפרה, כבר שם מצב אוטומט."
+  }
+]

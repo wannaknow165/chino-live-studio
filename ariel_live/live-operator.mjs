@@ -1,0 +1,27 @@
+import crypto from 'node:crypto';
+export async function operatorMessage({director,provider,production,live,persona,savePersona},input){
+ const {id,text,mode='chat',rowId}=input||{};
+ if(typeof id!=='string'||!/^[a-zA-Z0-9_-]{8,100}$/.test(id)||typeof text!=='string'||!text.trim()||text.length>1800||!['chat','say','teach','answer'].includes(mode))throw new Error('invalid_operator_message');
+ if(/(?:sk-(?:proj-|or-)?[A-Za-z0-9_-]{20,}|AIza[A-Za-z0-9_-]{25,}|AQ\.[A-Za-z0-9_-]{30,})/.test(text))throw new Error('operator_sensitive_message');
+ const log=director.saved.operatorMessages??=[];const prior=log.find(m=>m.id===id);if(prior)return {messages:log.slice(-40),duplicate:true};
+ const user={id,role:'user',mode,text:text.trim(),at:Date.now(),state:'pending'};log.push(user);director.save();
+ const reply=(message,extra={})=>{user.state='completed';log.push({id:crypto.randomUUID(),role:'assistant',text:message,at:Date.now(),...extra});director.saved.operatorMessages=log.slice(-200);director.save();return {messages:director.saved.operatorMessages.slice(-40),...extra};};
+ try{
+  if(mode==='teach'){const notes=[...(persona.operatorNotes||[]),user.text].slice(-10);while(notes.length>1&&notes.join('\n').length>1800)notes.shift();const next={...persona,operatorNotes:notes};savePersona(next);return reply('נשמרה הנחיית הסגנון שלך. היא תצורף להחלטות הבאות של צ׳ינו.',{learned:true});}
+  if(mode==='say'||mode==='answer'){
+   if(!live.active)throw new Error('live_not_active');if(!production)throw new Error('production_unavailable');let result;
+   if(mode==='answer'){const row=director.saved.inbox.find(r=>r.id===rowId&&r.state==='pending');if(!row)throw new Error('pending_item_not_found');if(user.text.length>350||user.text.split(/\s+/).length>32)throw new Error('invalid_operator_lines');row.draft=user.text;row.operatorApprovedText=true;director.save();result=production.offerLive(row,row.event,{text:user.text,confidence:1},{explicit:true});}
+   else {const lines=user.text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);const results=production.offerOperatorLines(lines);if(results.length>1){const queued=results.filter(x=>x.queued).length,cached=results.filter(x=>x.cached).length;return reply('טופלו '+results.length+' שורות: '+queued+' נכנסו לייצור, '+cached+' כבר קיימות בספרייה.' ,{productionResults:results});}result=results[0];}
+   return reply(result.cached?'המשפט כבר קיים בספרייה — אין צורך לייצר אותו שוב.':result.queued?'המשפט שלך נכנס לתור הייצור. המילים והאיכות ייבדקו לפני שימוש, והקליפ יישמר בספרייה.':'המשפט נשמר, אבל עדיין לא נשלח לייצור: '+(result.reason||'הייצור אינו זמין'),{productionResult:result});
+  }
+  const s=director.status(),p=production?.status();const answer=await provider.operatorChat({message:user.text,history:log.slice(-14).map(({role,text})=>({role,text})),runtime:{room:director.room,audienceMode:director.saved.audienceMode||'auto',mode:s.mode,active:s.active,busy:s.busy,stage:s.stage,provider:s.provider,readyClips:director.library?.().filter(c=>c.ready).length,lastDecision:s.lastDecision,live,budget:p?.sessionBudget,productionError:p?.autoSession?.error,productionRunning:p?.running,productionJobs:p?.jobs?.slice(-6),missing:director.saved.inbox.filter(r=>r.state==='pending'&&!r.productionExcluded).slice(-5).map(r=>({id:r.id,question:r.event.text,draft:r.draft,reason:r.reason})),character:persona}});if(answer?.command){const c=answer.command;if(!['set_scene','teach','say','answer'].includes(c.action))throw new Error('invalid_operator_action');
+   if(c.action==='set_scene'){if(!['solo','battle','auto'].includes(c.scene))throw new Error('invalid_audience_mode');director.setAudienceMode(c.scene);return reply(c.scene==='solo'?'נשמר מצב לבד עם הקהל: צ׳ינו יבדוק הודעות צ׳אט גם בלי שיקראו בשמו.':c.scene==='battle'?'נשמר מצב באטל: פנייה בשם פותחת שיחה, ואותו משתתף ממשיך חופשי לשתי דקות.':'נשמר מעבר אוטומטי לפי היריב והבאטל.',{appliedAction:'set_scene',scene:c.scene});}
+   if(typeof c.text!=='string'||!c.text.trim()||c.text.length>1800||/(?:sk-|AIza|AQ\.)[A-Za-z0-9_-]{20,}/.test(c.text))throw new Error('invalid_operator_action');
+   if(c.action==='teach'){const notes=[...(persona.operatorNotes||[]),c.text.trim()].slice(-10);while(notes.length>1&&notes.join('\n').length>1800)notes.shift();savePersona({...persona,operatorNotes:notes});return reply('התיקון שלך נשמר ויצורף להחלטות הבאות של צ׳ינו.',{learned:true,appliedAction:'teach'});}
+   if(!live.active)throw new Error('live_not_active');if(!production)throw new Error('production_unavailable');let results;
+   if(c.action==='say')results=production.offerOperatorLines(c.text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean));
+   else {const row=director.saved.inbox.find(r=>r.id===c.rowId&&r.state==='pending');if(!row)throw new Error('pending_item_not_found');if(c.text.length>350||c.text.split(/\s+/).length>32)throw new Error('invalid_operator_lines');row.draft=c.text.trim();row.operatorApprovedText=true;director.save();results=[production.offerLive(row,row.event,{text:row.draft,confidence:1},{explicit:true})];}
+   return reply('טופלו '+results.length+' משפטים: '+results.filter(x=>x.queued).length+' בתור הייצור, '+results.filter(x=>x.cached).length+' כבר קיימים בספרייה. המסגרת נשארה ללא שינוי.',{appliedAction:c.action,productionResults:results});
+  }return reply(answer);
+ }catch(e){user.state='failed';user.error=/^[a-z0-9_]+$/.test(e.message)?e.message:'operator_request_failed';director.save();throw e;}
+}

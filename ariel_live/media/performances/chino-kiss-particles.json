@@ -1,0 +1,17 @@
+{
+  "source": "C:\\Users\\shk\\Downloads\\koisss.mp4",
+  "sourceUnmodified": true,
+  "width": 720,
+  "height": 1280,
+  "fps": 30,
+  "duration": 5.8,
+  "alpha": true,
+  "audio": false,
+  "origin": [
+    0.5,
+    0.39
+  ],
+  "owner": "chino-ai-performance",
+  "gestureAttached": false,
+  "releaseCueRequired": true
+}
