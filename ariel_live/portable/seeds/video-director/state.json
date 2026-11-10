@@ -50,6 +50,13 @@
       "roles": [
         "opponent"
       ]
+    },
+    "chino-fcd6d3e2-1a13-4f0d-aecd-011ca44c2ab3": {
+      "auto": true,
+      "roles": [
+        "chat",
+        "opponent"
+      ]
     }
   },
   "people": {},

@@ -45,5 +45,20 @@
     "file": "chino-94e8ff54-b78f-4247-9f9e-9b07d6ecd6e5.mp4",
     "text": "נשיקות לכל הבנות שלנו!",
     "duration": 4.032
+  },
+  {
+    "id": "chino-fcd6d3e2-1a13-4f0d-aecd-011ca44c2ab3",
+    "file": "chino-fcd6d3e2-1a13-4f0d-aecd-011ca44c2ab3.mp4",
+    "text": "I'm doing great. How about you?",
+    "transcript": "I'm doing great. How about you?",
+    "duration": 5.034667,
+    "sha256": "938b8a685ae5fa2869c92b0603cbb465f251bd1452e3e2f9019f4109cc21f971",
+    "provider": "openrouter",
+    "attempts": 1,
+    "review": {
+      "score": 10,
+      "identityStable": true,
+      "defects": []
+    }
   }
 ]
