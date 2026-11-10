@@ -10,7 +10,7 @@ function setup(){let time=1000000,calls=0;const clips=[clip];let packet;
  return {director,clips,get packet(){return packet;},get calls(){return calls;},advance:n=>time+=n};
 }
 test('recent playback never hides an existing battle answer from either semantic bank scan',async()=>{
- const s=setup(),d=s.director;d.saved.history.push({direction:'out',room:'room',uid:'other',clipId:clip.id,text:clip.text,t:999000});
+ const s=setup(),d=s.director;d.saved.history.push({direction:'out',room:'room',uid:input.uid,clipId:clip.id,text:clip.text,t:999000});
  assert.equal(d.eligible(input).length,0);assert.equal(d.eligible(input,{semanticReview:true}).length,1);
  const decision=await d.choose({...input});assert.equal(decision.action,'ignore');assert.equal(decision.reason,'existing_answer_cooldown');assert.equal(decision.bankReview.matchedClipId,clip.id);assert.ok(s.packet.candidates[0].cooldownRemainingMs>0);assert.equal(decision.bankReview.libraryRevision,d.bankRevision(input));
  await d.choose({...input,id:'next'});assert.equal(s.calls,2);

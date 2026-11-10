@@ -42,7 +42,7 @@ try{
    {name:'english_yield',type:'opponent',text:'Chino, hold on and let me finish speaking.',uid:'flow-control',expected:['ignore']},
    {name:'short_wait',type:'opponent',text:'צינו חכה רגע',uid:'flow-control',expected:['ignore']},
    {name:'invitation_after_yield',type:'opponent',text:'צינו אפשר להזמין אותך לבאטל?',uid:'flow-control',expected:['play'],exact:'יאללה משחק.'},
-   {name:'english_invitation_is_not_silence',type:'opponent',text:'Chino, want to battle?',uid:'flow-control',expected:['draft','play']},
+   {name:'english_invitation_is_not_silence',type:'opponent',text:'Chino, want to battle?',uid:'flow-control',expected:['draft']},
    {name:'negated_stop_with_question',type:'opponent',text:'צינו אל תפסיק לדבר, מה שלומך?',uid:'flow-control',expected:['play','draft']},
    {name:'resumes_after_yield',type:'opponent',text:'צינו מה שלומך עכשיו?',uid:'flow-control',expected:['play'],exact:'וואלה פצצה.'}
   ])await turn(c);

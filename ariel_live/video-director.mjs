@@ -18,6 +18,7 @@ decisionSchema.required.push('memoryUpdate');
 // These hints rank retrieval; every automatic answer still needs a fresh GPT
 // decision for this event and conversation, including greetings and learned cases.
 const greetingInputs = new Set(['שלום', 'היי', 'הי', 'אהלן', 'היי צינו', 'שלום צינו', 'אהלן צינו']);
+const battleInvitations=new Set(['אפשר להזמין אותך לבאטל','בא לך באטל','רוצה משחק','רוצה באטל','בוא לבאטל','בוא נשחק','יאללה משחק','want to battle','do you want to battle','want to play a game','would you like to battle']);
 const neutralGreetings = new Set(['7902c31ae1', '691271ff09', 'c859b83a4a']);
 const audienceClips = new Set(['469f030b38','5efc42f2f1','354101c16c','cfefbd805a','21660d985d','809c0f31aa','585b776881','29506af1c3']);
 // Existing imported recordings are searchable by the model. Explicit operator
@@ -220,13 +221,14 @@ export class VideoDirector {
   }
   filtered(reason) { this.counts.filtered++; return { accepted: false, reason }; }
   canSpeak() { return !this.otherSpeaking && !this.externalClip && !this.muted && this.context().videoMode !== false; }
+  lastReplyTo(clipId,e){return this.saved.history.findLast(h=>h.direction==='out'&&h.room===e.room&&h.clipId===clipId&&(!e.uid||h.uid===e.uid));}
   eligible(e, {semanticReview=false}={}) {
     const approved = c => this.saved.lessons.some(l => l.room === e.room && l.uid === e.uid && l.type === e.type && l.trigger === normalize(e.text) && l.clipId === c.id && l.recordedText === c.text);
     return this.library().filter(c => c.ready && !c.motionTemplate && ((c.auto && c.roles.includes(e.type)) || approved(c)) && c.language === e.language &&
       (approved(c)||(!femaleClips.has(c.id)||e.type==='opponent'&&this.context().opponent?.verifiedGender==='female')&&!operationalClips.has(c.id)&&c.id!=='3ac6d757e6')&&
       (semanticReview||approved(c)||!['wellbeing','identity','thanks'].includes(eventIntent(e))||reusableReply(eventIntent(e),c.text))&&
       (semanticReview||!neutralGreetings.has(c.id) || greetingInputs.has(normalize(e.text)) || eventIntent(e)==='greeting' || approved(c)) &&
-      (semanticReview||(e.wakeOnly&&(neutralGreetings.has(c.id)||fold(c.text)==='דבר'))||(['wellbeing','identity'].includes(eventIntent(e))&&reusableReply(eventIntent(e),c.text))||!this.saved.history.some(h => h.direction === 'out' && h.clipId === c.id && this.now() - h.t < this.repeatMs)));
+      (semanticReview||(e.wakeOnly&&(neutralGreetings.has(c.id)||fold(c.text)==='דבר'))||(['wellbeing','identity'].includes(eventIntent(e))&&reusableReply(eventIntent(e),c.text))||this.now()-(this.lastReplyTo(c.id,e)?.t??-Infinity)>=this.repeatMs));
   }
   bankRevision(event){
     const inventory=this.eligible(event,{semanticReview:true}).map(c=>[c.id,c.text,c.file,c.language]).sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
@@ -243,7 +245,7 @@ export class VideoDirector {
     if (!provider.configured || provider.blocked) throw new Error('openai_unavailable_operator_required');
     const libraryRevision=this.bankRevision(e);
     const reviewedCandidates=this.answerIndex.rank(e,this.eligible(e,{semanticReview:true})).map(c=>{
-      const last=this.saved.history.findLast(h=>h.direction==='out'&&h.room===e.room&&h.clipId===c.id);
+      const last=this.lastReplyTo(c.id,e);
       const lastPlayedAgoMs=last?Math.max(0,this.now()-last.t):null;
       return {...c,lastPlayedAgoMs,cooldownRemainingMs:last?Math.max(0,this.repeatMs-lastPlayedAgoMs):0};
     });
@@ -265,6 +267,7 @@ export class VideoDirector {
     const wrongPerson=d=>d.action==='play'&&reusableReply('identity',d.text)&&/(?:איך קוראים לי|מה השם שלי|what is my name)/u.test(fold(e.text));
     const wrongLanguage=d=>d.action==='draft'&&e.language==='en'&&/[\u0590-\u05ff]/.test(d.text||d.fallbackText||'')&&!/[a-z]/i.test(d.text||d.fallbackText||'');
     const unsupportedTurnControl=d=>d.understanding?.intent==='turn_yield'&&d.understanding.standalone===true&&d.understanding.confidence>=.92&&!turnYieldCue(e.rawText||e.text);
+    const unrelatedBattleAnswer=d=>d.action==='play'&&[e.text,d.understanding?.canonicalQuestion].some(s=>battleInvitations.has(normalize(s)))&&['wellbeing','identity'].some(intent=>reusableReply(intent,d.text));
     let d=await this.decide({...packet,reviewStage:'select_existing'},signal);
     if(signal?.aborted)return d;
     validate(d);
@@ -272,10 +275,10 @@ export class VideoDirector {
       ?{...value,action:'ignore',clipId:'',text:'',fallbackText:'',reusable:false,reason:'speaker_requests_listening'}:value;
     d=applyTurnControl(d);
     let passes=1;
-    if(d.action==='draft'||questionOnly(d)||wrongPerson(d)||wrongLanguage(d)||unsupportedTurnControl(d)){
+    if(d.action==='draft'||questionOnly(d)||wrongPerson(d)||wrongLanguage(d)||unsupportedTurnControl(d)||unrelatedBattleAnswer(d)){
       // A second GPT pass must confirm there really is no suitable recording
       // before a missing answer is eligible for automatic paid production.
-      const rejection=questionOnly(d)?'question_instead_of_answer':wrongPerson(d)?'wrong_person_name':wrongLanguage(d)?'wrong_reply_language':unsupportedTurnControl(d)?'unsupported_turn_control':null;
+      const rejection=questionOnly(d)?'question_instead_of_answer':wrongPerson(d)?'wrong_person_name':wrongLanguage(d)?'wrong_reply_language':unsupportedTurnControl(d)?'unsupported_turn_control':unrelatedBattleAnswer(d)?'unrelated_battle_answer':null;
       if(rejection)this.record('choice_recheck',{eventId:e.id,clipId:d.clipId,reason:rejection});
       d=await this.decide({...packet,reviewStage:'before_new_video',proposedDecision:d,validationFeedback:rejection},signal);
       if(signal?.aborted)return d;
@@ -284,6 +287,7 @@ export class VideoDirector {
     }
     if(wrongLanguage(d))throw new Error('decision_language_mismatch');
     if(unsupportedTurnControl(d))throw new Error('decision_turn_control_mismatch');
+    if(unrelatedBattleAnswer(d))throw new Error('decision_wrong_game_answer');
     if(d.understanding&&e.understanding?.source!=='operator')e.understanding={...d.understanding,source:'model'};
     if(d.action==='play'&&!this.eligible(e,{semanticReview:true}).some(c=>c.id===d.clipId&&c.text===d.text))throw new Error('decision_clip_changed');
     // Catch an obvious question-only response without requiring all legitimate
@@ -296,7 +300,7 @@ export class VideoDirector {
     if(d.action==='play'){
       const c=reviewedCandidates.find(c=>c.id===d.clipId),approved=this.learned(e,[c]);
       const repeatExempt=approved||(e.wakeOnly&&(neutralGreetings.has(c.id)||fold(c.text)==='דבר'))||(['wellbeing','identity'].includes(eventIntent(e))&&reusableReply(eventIntent(e),c.text));
-      if(!repeatExempt){const last=this.saved.history.findLast(h=>h.direction==='out'&&h.room===e.room&&h.clipId===c.id);cooldownRemainingMs=last?Math.max(0,this.repeatMs-(this.now()-last.t)):0;}
+      if(!repeatExempt){const last=this.lastReplyTo(c.id,e);cooldownRemainingMs=last?Math.max(0,this.repeatMs-(this.now()-last.t)):0;}
       if(cooldownRemainingMs>0)d={...d,action:'ignore',clipId:'',text:'',fallbackText:'',reusable:false,reason:'existing_answer_cooldown'};
     }
     return {...d,bankReview:{provider:'openai',model:provider.model||'',eventId:e.id,passes,libraryRevision,candidateCount:reviewedCandidates.length,

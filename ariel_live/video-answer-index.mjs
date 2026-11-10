@@ -45,7 +45,7 @@ export function reusableReply(intent, text) {
   const t=fold(text);
   const patterns={
     greeting:/^(?:היי|הי|שלום|אהלן)(?: לך)?(?: מה קורה| מה נשמע| כיף שבאת)?$|^(?:hello|hi|hey)(?: there)?$/u,
-    wellbeing:/^(?:(?:וואלה|אני|הכל|הכול) )?(?:מעולה|מצוין|מצויין|פצצה|בסדר|טוב|סבבה)(?: תודה)?(?: מה איתך| ואיך אצלך| ואצלך| איך אצלך)?$|^(?:im |i am )?(?:good|great|fine)(?: thanks)?(?: how about you| and you)?$/u,
+    wellbeing:/^(?:(?:וואלה|אני|הכל|הכול) )?(?:מעולה|מצוין|מצויין|פצצה|בסדר|טוב|סבבה)(?: תודה)?(?: מה איתך| ואיך אצלך| ואצלך| איך אצלך)?$|^(?:im |i am )?(?:doing )?(?:good|great|fine)(?: thanks)?(?: how about you| and you)?$/u,
     identity:/^(?:אני|קוראים לי) צינו(?: האריה הווירטואלי)?$|^(?:im|i am|my name is) chino$/u,
     thanks:/^(?:בכיף|בשמחה|באהבה|על לא דבר)(?: תמיד)?$|^(?:youre welcome|my pleasure|anytime)$/u,
     wake:/^(?:דבר|כן|כן אני מקשיב|אני מקשיב)$/u,
