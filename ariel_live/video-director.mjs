@@ -254,6 +254,9 @@ export class VideoDirector {
     let d=await this.decide({...packet,reviewStage:'select_existing'},signal);
     if(signal?.aborted)return d;
     validate(d);
+    const applyTurnControl=value=>value.understanding?.intent==='turn_yield'&&value.understanding.standalone===true&&value.understanding.confidence>=.92
+      ?{...value,action:'ignore',clipId:'',text:'',fallbackText:'',reusable:false,reason:'speaker_requests_listening'}:value;
+    d=applyTurnControl(d);
     let passes=1;
     if(d.action==='draft'||questionOnly(d)||wrongPerson(d)||wrongLanguage(d)){
       // A second GPT pass must confirm there really is no suitable recording
@@ -263,6 +266,7 @@ export class VideoDirector {
       d=await this.decide({...packet,reviewStage:'before_new_video',proposedDecision:d,validationFeedback:rejection},signal);
       if(signal?.aborted)return d;
       validate(d);passes++;
+      d=applyTurnControl(d);
     }
     if(wrongLanguage(d))throw new Error('decision_language_mismatch');
     if(d.understanding&&e.understanding?.source!=='operator')e.understanding={...d.understanding,source:'model'};

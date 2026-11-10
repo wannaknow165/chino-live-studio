@@ -27,7 +27,7 @@ export function missingReply(event,decision){
   return proposed||(event.language==='en'?'Could you clarify what you mean?':'תחדד לי רגע למה התכוונת?');
 }
 export const understandingSchema={type:'object',additionalProperties:false,properties:{
-  intent:{type:'string',enum:['greeting','wellbeing','identity','thanks','wake','other']},
+  intent:{type:'string',enum:['greeting','wellbeing','identity','thanks','wake','turn_yield','other']},
   canonicalQuestion:{type:'string'},confidence:{type:'number'},standalone:{type:'boolean'},
 },required:['intent','canonicalQuestion','confidence','standalone']};
 export function validUnderstanding(u){
